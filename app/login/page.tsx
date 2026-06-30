@@ -17,14 +17,14 @@ export default function LoginPage() {
     <div style={{
       minHeight: '100vh', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      background: 'var(--bg)', padding: '24px',
+      padding: '24px',
     }}>
       <div style={{ width: '100%', maxWidth: 380, textAlign: 'center' }}>
 
         {/* Logo */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--line)' }}>
-            <Image src="/laguno.png" alt="Laguno" width={56} height={56} style={{ objectFit: 'cover' }} />
+          <div style={{ width: 80, height: 80, overflow: 'hidden' }}>
+            <Image src="/laguno.png" alt="Laguno" width={80} height={80} style={{ objectFit: 'contain' }} />
           </div>
         </div>
 

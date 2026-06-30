@@ -2,30 +2,71 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+const DISCORD_API = 'https://discord.com/api/v10';
+
+function parseMessage(text: string, userId: string, guildName: string, memberCount: number): string {
+  return text
+    .replace(/{user}/g,         `<@${userId}>`)
+    .replace(/{username}/g,     'Michu')
+    .replace(/{displayname}/g,  'Michu')
+    .replace(/{server}/g,       guildName)
+    .replace(/{count}/g,        String(memberCount))
+    .replace(/{id}/g,           userId)
+    .replace(/{created}/g,      'há 2 anos');
+}
+
 export async function POST(req: NextRequest, { params }: { params: { guildId: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
-  const { channelId, type, headerText, message, footerText, accentColor, showAccountAge, bannerType, bannerUrl } = body;
+  const { channelId, message, accentColor } = body;
 
   if (!channelId || !message) {
     return NextResponse.json({ error: 'channelId e message são obrigatórios' }, { status: 400 });
   }
 
-  try {
-    const res = await fetch(
-      `${process.env.BOT_API_URL}/guilds/${params.guildId}/welcome/test`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.BOT_API_SECRET}` },
-        body: JSON.stringify({ channelId, type: type ?? 'welcome', headerText, message, footerText, accentColor, showAccountAge, bannerType, bannerUrl, userId: session.user.id }),
-      }
-    );
+  const token = process.env.DISCORD_TOKEN;
+  if (!token) return NextResponse.json({ error: 'DISCORD_TOKEN não configurado' }, { status: 500 });
 
-    if (!res.ok) return NextResponse.json({ error: 'Bot não conseguiu enviar' }, { status: 502 });
-    return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: 'Bot offline ou inacessível' }, { status: 503 });
+  // Fetch guild info for placeholders
+  const guildRes = await fetch(`${DISCORD_API}/guilds/${params.guildId}?with_counts=true`, {
+    headers: { Authorization: `Bot ${token}` },
+  });
+  const guild = guildRes.ok ? await guildRes.json() : null;
+  const guildName = guild?.name ?? 'Servidor';
+  const memberCount = guild?.approximate_member_count ?? 0;
+  const userId = (session.user as { id?: string }).id ?? '349527593634234370';
+
+  const parsedMessage = `🧪 **[TESTE]** ${parseMessage(message, userId, guildName, memberCount)}`;
+
+  // Build accent color as integer
+  const accentInt = accentColor ? parseInt(accentColor.replace('#', ''), 16) : 0x6db83e;
+
+  // Send via Discord REST API using Components V2
+  const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bot ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      flags: 1 << 15, // IS_COMPONENTS_V2
+      components: [{
+        type: 17, // Container
+        accent_color: isNaN(accentInt) ? 0x6db83e : accentInt,
+        components: [{
+          type: 10, // TextDisplay
+          content: parsedMessage,
+        }],
+      }],
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    return NextResponse.json({ error: 'Discord recusou a mensagem', detail: err }, { status: 502 });
   }
+
+  return NextResponse.json({ ok: true });
 }

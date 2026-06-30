@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { assertGuildAccess } from '@/lib/guildAuth';
+import { syncAutoModRules } from '@/lib/discordAutoMod';
 
 const MONGO_URI = process.env.MONGODB_URI!;
 
@@ -12,8 +12,8 @@ async function getDb() {
 }
 
 export async function GET(_: NextRequest, { params }: { params: { guildId: string } }) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!await assertGuildAccess(params.guildId))
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { client, db } = await getDb();
   try {
@@ -25,8 +25,8 @@ export async function GET(_: NextRequest, { params }: { params: { guildId: strin
 }
 
 export async function POST(req: NextRequest, { params }: { params: { guildId: string } }) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!await assertGuildAccess(params.guildId))
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -47,7 +47,33 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
       });
     } catch { /* bot pode estar offline, não é crítico */ }
 
-    return NextResponse.json({ ok: true });
+    // Sincroniza regras de AutoMod nativas do Discord (só quando a secção AutoMod é guardada)
+    let autoModWarning: string | null = null;
+    if (safeBody.autoMod) {
+      // alertChannelId pode vir no mesmo payload ou já estar guardado na BD
+      let alertChannelId =
+        (safeBody.logs as { moderation?: { channelId?: string } })?.moderation?.channelId
+        ?? (safeBody.logChannelId as string | null)
+        ?? null;
+      if (!alertChannelId) {
+        const cfg = await db.collection('guildconfigs').findOne({ guildId: params.guildId });
+        alertChannelId =
+          (cfg?.logs as { moderation?: { channelId?: string } })?.moderation?.channelId
+          ?? (cfg?.logChannelId as string | null)
+          ?? null;
+      }
+      try {
+        const sync = await syncAutoModRules(params.guildId, safeBody.autoMod as Parameters<typeof syncAutoModRules>[1], alertChannelId);
+        if (sync.error === 'no_token') autoModWarning = 'As regras do bot ficaram guardadas, mas as regras nativas do Discord nao foram criadas (DISCORD_TOKEN em falta).';
+        else if (sync.error === 'list_failed') autoModWarning = 'As regras nativas do Discord nao foram criadas. Confirma que o bot esta no servidor e tem a permissao "Gerir Servidor".';
+        else if (!sync.ok) autoModWarning = `Algumas regras nao foram criadas no Discord: ${sync.failures.join('; ')}`;
+      } catch (err) {
+        console.error('[syncAutoMod]', params.guildId, err);
+        autoModWarning = 'Erro ao sincronizar com o Discord.';
+      }
+    }
+
+    return NextResponse.json({ ok: true, autoModWarning });
   } finally {
     await client.close();
   }

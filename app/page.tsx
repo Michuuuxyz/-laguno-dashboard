@@ -1,213 +1,257 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Navbar } from '@/components/Navbar';
+import LightRays from '@/components/LightRays';
+
+export const metadata: Metadata = {
+  title: 'Laguno — Bot de Discord em português',
+  description: 'Bane spammers. Regista tudo. Dá boas-vindas. Em português, feito por um português.',
+  openGraph: {
+    title: 'Laguno — Bot de Discord em português',
+    description: 'Bane spammers. Regista tudo. Dá boas-vindas. Em português, feito por um português.',
+    url: 'https://www.lagunoapp.xyz',
+  },
+};
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID;
-const INVITE    = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=8`;
-
-/* ── Icons ─────────────────────────────────── */
-const Shield = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
-const Bolt   = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>;
-const Users  = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
-const Tag    = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg>;
-const Code   = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>;
-const Layout = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>;
-const Arrow  = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>;
-
-const features = [
-  { icon: <Shield />, title: 'Moderação',             desc: 'Ban, kick, warn e timeout com permissões configuráveis. Log automático de todas as ações de moderação.' },
-  { icon: <Bolt />,   title: 'Auto-moderação',        desc: 'Filtra spam, links e palavras proibidas automaticamente, com exceções por canal e cargo.' },
-  { icon: <Users />,  title: 'Boas-vindas',           desc: 'Mensagens de entrada e saída com variáveis dinâmicas: nome, contagem de membros, data de criação.' },
-  { icon: <Tag />,    title: 'Role panels',           desc: 'Painéis com botões para os membros escolherem os próprios cargos, configuráveis no dashboard.' },
-  { icon: <Code />,   title: 'Comandos personalizados', desc: 'Define respostas automáticas com prefixo próprio. Ativa e desativa individualmente por servidor.' },
-  { icon: <Layout />, title: 'Dashboard web',         desc: 'Painel de controlo completo no browser. Alterações em tempo real, sem reiniciar o bot.' },
-];
+const INVITE    = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`;
 
 export default function Home() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh' }}>
+      <Navbar />
 
-      {/* ── Navbar ─────────────────────────────── */}
-      <header style={{
-        position: 'sticky', top: 0, zIndex: 100,
-        background: 'rgba(13,13,15,.85)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--line)',
-      }}>
-        {/* Green accent line at very top */}
-        <div style={{ height: 2, background: 'linear-gradient(90deg, transparent, #3ecf8e 40%, transparent)' }} />
-
-        <div style={{
-          height: 54, display: 'flex', alignItems: 'center',
-          padding: '0 clamp(16px,4vw,64px)', gap: 32,
-          maxWidth: 1200, margin: '0 auto', width: '100%',
-        }}>
-          {/* Nav links — center */}
-          <nav style={{ display: 'flex', gap: 4, flex: 1, justifyContent: 'center' }}>
-            <a href="#features" className="nav-link">Funcionalidades</a>
-            <a href={INVITE} target="_blank" rel="noreferrer" className="nav-link">Adicionar ao Discord</a>
-          </nav>
-
-          {/* CTAs */}
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-            <Link href="/dashboard" className="nav-cta-outline">Dashboard</Link>
-            <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green">Adicionar grátis</a>
-          </div>
+      {/* ── HERO — título que domina, figurinha integrada ── */}
+      <section style={{ position: 'relative', overflow: 'hidden', minHeight: '92vh', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+          <LightRays
+            raysOrigin="top-center"
+            raysColor="#328a30"
+            raysSpeed={1}
+            lightSpread={0.5}
+            rayLength={3}
+            followMouse={true}
+            mouseInfluence={0.1}
+            noiseAmount={0}
+            distortion={0}
+            pulsating={false}
+            fadeDistance={1}
+            saturation={1}
+          />
         </div>
-      </header>
 
-      {/* ── Hero ───────────────────────────────── */}
-      <section style={{
-        display: 'grid', gridTemplateColumns: '1fr 1fr',
-        gap: 'clamp(40px,6vw,96px)', alignItems: 'center',
-        maxWidth: 1080, margin: '0 auto', width: '100%',
-        padding: 'clamp(64px,10vh,120px) clamp(16px,4vw,64px)',
-        minHeight: '86vh',
-      }}>
-        <div>
-          <div className="fade-up" style={{ marginBottom: 20 }}>
-            <span className="badge badge-green" style={{ fontSize: 11.5 }}>
-              <span className="dot dot-green" />
-              Bot disponível
-            </span>
-          </div>
-
-          <h1 className="fade-up d-1" style={{
-            fontSize: 'clamp(30px,4vw,50px)', fontWeight: 700,
-            letterSpacing: '-.04em', lineHeight: 1.1, marginBottom: 20,
+        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 1200, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
+          {/* Título gigante */}
+          <h1 style={{
+            fontSize: 'clamp(52px,10vw,130px)',
+            fontWeight: 900,
+            letterSpacing: '-.06em',
+            lineHeight: 0.95,
+            color: 'var(--text-1)',
+            marginBottom: 0,
           }}>
-            Gestão de servidores<br />
-            <span style={{ color: 'var(--green)' }}>sem complicações</span>
+            O teu<br />
+            servidor<br />
+            <span style={{ color: 'var(--green)', WebkitTextStroke: '0px' }}>sem caos.</span>
           </h1>
 
-          <p className="fade-up d-2" style={{
-            fontSize: 15.5, color: 'var(--text-2)',
-            lineHeight: 1.75, marginBottom: 36, maxWidth: 440,
-          }}>
-            Moderação, auto-mod, boas-vindas e roles — por servidor, em tempo real, via dashboard web.
-          </p>
-
-          <div className="fade-up d-3" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <a href={INVITE} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ fontSize: 14, padding: '.62rem 1.4rem' }}>
-              Adicionar ao Discord
-            </a>
-            <Link href="/dashboard" className="btn btn-secondary" style={{ fontSize: 14, padding: '.62rem 1.4rem' }}>
-              Abrir dashboard <Arrow />
-            </Link>
-          </div>
-        </div>
-
-        {/* Bot image */}
-        <div className="fade-up d-2" style={{ position: 'relative' }}>
+          {/* Figurinha sobreposta no título */}
           <div style={{
-            position: 'relative', borderRadius: 14, overflow: 'hidden',
-            aspectRatio: '3/4', maxWidth: 360, margin: '0 auto',
-            border: '1px solid var(--line)',
-            boxShadow: '0 24px 64px rgba(0,0,0,.5)',
+            position: 'absolute',
+            right: 'clamp(20px,4vw,56px)',
+            top: '50%',
+            transform: 'translateY(-55%)',
+          }} className="hero-fig">
+            <Image
+              src="/fig3.png"
+              alt="Laguno"
+              width={320}
+              height={320}
+              style={{
+                filter: 'drop-shadow(0 40px 80px rgba(0,0,0,.5))',
+                transform: 'rotate(6deg)',
+              }}
+            />
+          </div>
+
+          {/* Linha e descrição curta */}
+          <div style={{ marginTop: 'clamp(32px,5vh,48px)', display: 'flex', alignItems: 'center', gap: 32, flexWrap: 'wrap' }}>
+            <p style={{ fontSize: 'clamp(15px,1.6vw,18px)', color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 380 }}>
+              Bot de moderação português. Ban, logs, boas-vindas, self-roles e sorteios.
+              Tudo num dashboard. Tudo grátis.
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 15, padding: '.8rem 2rem', fontWeight: 700 }}>
+                Adicionar
+              </a>
+              <Link href="/features" className="nav-cta-outline" style={{ fontSize: 15, padding: '.8rem 2rem' }}>
+                Ver mais
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── BLOCO VERDE — declaração forte ── */}
+      <section style={{ background: 'var(--green)', padding: 'clamp(48px,7vh,80px) clamp(20px,4vw,56px)' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
+          <p style={{
+            fontSize: 'clamp(24px,4vw,52px)',
+            fontWeight: 900,
+            letterSpacing: '-.04em',
+            lineHeight: 1.1,
+            color: '#fff',
+            maxWidth: 700,
           }}>
-            <Image src="/laguno.png" alt="Laguno bot" fill style={{ objectFit: 'cover', objectPosition: 'center top' }} priority />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(13,13,15,.96) 0%, rgba(13,13,15,.1) 45%, transparent 100%)' }} />
-            <div style={{
-              position: 'absolute', bottom: 18, left: 16, right: 16,
-              background: 'rgba(20,20,22,.96)', backdropFilter: 'blur(12px)',
-              border: '1px solid var(--line)', borderRadius: 12,
-              padding: '12px 14px',
+            Feito por um português<br />para servidores portugueses.
+          </p>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,.75)', lineHeight: 1.7, maxWidth: 320 }}>
+            Chega de bots em inglês. O Laguno fala como as pessoas do teu servidor falam.
+          </p>
+        </div>
+      </section>
+
+      {/* ── MÓDULOS — lista direta, sem floreados ── */}
+      <section style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(64px,9vh,100px) clamp(20px,4vw,56px)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(32px,5vw,80px)', alignItems: 'start' }} className="modules-split">
+
+          {/* Esquerda: título */}
+          <div style={{ position: 'sticky', top: 100 }}>
+            <h2 style={{
+              fontSize: 'clamp(32px,5vw,64px)',
+              fontWeight: 900,
+              letterSpacing: '-.05em',
+              lineHeight: 1.0,
+              marginBottom: 24,
             }}>
-              {/* Command input */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid var(--line)' }}>
-                <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--elevated)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                </div>
-                <code style={{ fontSize: 12, color: 'var(--text-2)', letterSpacing: '-.01em' }}>
-                  <span style={{ color: 'var(--green)', fontWeight: 600 }}>/warn</span>
-                  {' '}<span style={{ color: '#7c9fd4' }}>@spammer</span>
-                  {' '}<span style={{ color: 'var(--text-3)' }}>flood no canal</span>
-                </code>
-              </div>
-
-              {/* Bot response */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--line)' }}>
-                    <Image src="/laguno.png" alt="Laguno" width={26} height={26} style={{ objectFit: 'cover' }} />
-                  </div>
-                  <span style={{ position: 'absolute', bottom: -1, right: -1, width: 8, height: 8, borderRadius: '50%', background: '#57f287', border: '1.5px solid rgba(20,20,22,.96)' }} />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1)' }}>Laguno</span>
-                    <span style={{ fontSize: 9.5, fontWeight: 600, background: '#5865f2', color: '#fff', padding: '1px 5px', borderRadius: 3, letterSpacing: '.02em' }}>BOT</span>
-                  </div>
-                  <p style={{ fontSize: 11.5, color: 'var(--text-2)', lineHeight: 1.5 }}>
-                    Aviso registado. <span style={{ color: 'var(--green)' }}>1 aviso</span> total para este utilizador.
-                  </p>
-                </div>
-              </div>
-            </div>
+              Faz o<br />trabalho<br />chato.
+            </h2>
+            <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.7, marginBottom: 32 }}>
+              Para ti sobrar tempo para o que interessa.
+            </p>
+            <Image
+              src="/fig2.png"
+              alt=""
+              width={160}
+              height={160}
+              style={{ transform: 'rotate(-8deg)', filter: 'drop-shadow(0 16px 32px rgba(0,0,0,.4))' }}
+            />
           </div>
-        </div>
-      </section>
 
-      {/* ── Features ───────────────────────────── */}
-      <section id="features" style={{ position: 'relative', zIndex: 1,
-        maxWidth: 1080, margin: '0 auto', width: '100%',
-        padding: 'clamp(48px,8vh,80px) clamp(16px,4vw,64px)',
-        borderTop: '1px solid var(--line)',
-      }}>
-        <div className="fade-up" style={{ marginBottom: 44 }}>
-          <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--green)', marginBottom: 12 }}>Funcionalidades</p>
-          <h2 style={{ fontSize: 'clamp(20px,2.8vw,30px)', fontWeight: 700, letterSpacing: '-.03em', maxWidth: 440 }}>
-            Um bot. Tudo o que um servidor precisa.
-          </h2>
-        </div>
-
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px,1fr))',
-          border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden',
-        }}>
-          {features.map((f, i) => (
-            <div key={f.title} className={`feature-cell fade-up d-${Math.min(i+1,6)}`} style={{ padding: '26px 28px' }}>
-              <div style={{
-                width: 34, height: 34, borderRadius: 8,
-                background: 'rgba(62,207,142,.08)', border: '1px solid rgba(62,207,142,.15)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--green)', marginBottom: 14,
-              }}>
-                {f.icon}
-              </div>
-              <p style={{ fontSize: 14, fontWeight: 600, letterSpacing: '-.01em', marginBottom: 6 }}>{f.title}</p>
-              <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── CTA ────────────────────────────────── */}
-      <section style={{ maxWidth: 1080, margin: '0 auto', width: '100%', padding: '32px clamp(16px,4vw,64px) clamp(64px,10vh,100px)' }}>
-        <div style={{
-          padding: 'clamp(28px,4vw,48px)',
-          background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          flexWrap: 'wrap', gap: 20,
-        }}>
+          {/* Direita: lista de módulos */}
           <div>
-            <p style={{ fontSize: 'clamp(16px,2.2vw,22px)', fontWeight: 700, letterSpacing: '-.025em', marginBottom: 5 }}>
-              Adiciona o Laguno ao teu servidor
-            </p>
-            <p style={{ fontSize: 13.5, color: 'var(--text-2)', maxWidth: 380, lineHeight: 1.65 }}>
-              Configura em menos de 2 minutos. Sem código.
-            </p>
+            {[
+              { n: 'Moderação',      t: 'Ban, kick, mute, warn, timeout, purge, lock. Com histórico e ações automáticas.' },
+              { n: 'Auto-Mod',       t: 'Filtros de palavras, anti-spam, anti-flood, bloqueio de links. Configuras uma vez.' },
+              { n: 'Registos',       t: 'Mais de 30 eventos num canal à tua escolha. Quem baniu, quem editou, quem entrou.' },
+              { n: 'Boas-vindas',    t: 'Mensagem com menção, nome, servidor. DM privada e auto-delete opcionais.' },
+              { n: 'Self-Roles',     t: 'Painéis de botões para membros escolherem cargos. Sem trabalho teu.' },
+              { n: 'Sorteios',       t: 'Crias no dashboard, o Laguno publica e sorteia. Re-roll com um clique.' },
+            ].map(({ n, t }, i) => (
+              <div key={n} style={{
+                padding: 'clamp(20px,3vh,28px) 0',
+                borderBottom: '1px solid var(--line)',
+                display: 'grid',
+                gridTemplateColumns: '140px 1fr',
+                gap: 24,
+                alignItems: 'baseline',
+              }}>
+                <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--green)', letterSpacing: '-.01em' }}>
+                  {String(i + 1).padStart(2, '0')} {n}
+                </span>
+                <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{t}</p>
+              </div>
+            ))}
           </div>
-          <a href={INVITE} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ fontSize: 13.5, padding: '.62rem 1.3rem', flexShrink: 0 }}>
-            Começar grátis
-          </a>
         </div>
       </section>
 
-      {/* ── Footer ─────────────────────────────── */}
-      <footer style={{
-        borderTop: '1px solid var(--line)', marginTop: 'auto',
-        padding: '18px clamp(16px,4vw,64px)',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12,
+      {/* ── PERSONALIDADE — sem simetria ── */}
+      <section style={{ borderTop: '1px solid var(--line)', overflow: 'hidden' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(64px,9vh,100px) clamp(20px,4vw,56px)' }}>
+
+          <div style={{ display: 'flex', gap: 16, marginBottom: 48, flexWrap: 'wrap' }}>
+            {['stressado', 'sonolento', 'entediado', 'animado', 'feliz'].map((m, i) => (
+              <span key={m} style={{
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '4px 12px',
+                borderRadius: 99,
+                border: '1px solid var(--line)',
+                color: i === 0 ? '#ef4444' : i === 3 ? '#fbbf24' : i === 4 ? 'var(--green)' : 'var(--text-3)',
+              }}>{m}</span>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 'clamp(40px,6vw,96px)', alignItems: 'center' }} className="mood-grid">
+            <Image
+              src="/fig1.png"
+              alt="Laguno"
+              width={220}
+              height={220}
+              style={{ transform: 'rotate(-5deg)', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,.4))', flexShrink: 0 }}
+              className="fig-story"
+            />
+            <div>
+              <h2 style={{
+                fontSize: 'clamp(28px,5vw,60px)',
+                fontWeight: 900,
+                letterSpacing: '-.05em',
+                lineHeight: 1.05,
+                marginBottom: 24,
+              }}>
+                Tem dias bons<br />e dias maus.<br />
+                <span style={{ color: 'var(--text-3)', fontWeight: 400, fontSize: '70%' }}>Como toda a gente.</span>
+              </h2>
+              <div style={{
+                background: 'var(--card)',
+                border: '1px solid var(--line)',
+                borderLeft: '3px solid var(--green)',
+                borderRadius: '0 8px 8px 0',
+                padding: '16px 20px',
+                maxWidth: 440,
+              }}>
+                <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 6, fontStyle: 'italic' }}>modo sonolento</p>
+                <p style={{ fontSize: 15, color: 'var(--text-1)', lineHeight: 1.6 }}>
+                  "Zzz... <span style={{ color: 'var(--green)' }}>@spammer</span> aviso #3...
+                  já estou quase a dormir e ainda apareces..."
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA FINAL — simples, direto ── */}
+      <section style={{
+        background: '#0a0a0b',
+        borderTop: '1px solid var(--line)',
+        padding: 'clamp(80px,12vh,140px) clamp(20px,4vw,56px)',
+        textAlign: 'center',
       }}>
+        <h2 style={{
+          fontSize: 'clamp(36px,7vw,88px)',
+          fontWeight: 900,
+          letterSpacing: '-.05em',
+          lineHeight: 1.0,
+          marginBottom: 32,
+        }}>
+          É grátis.<br />
+          <span style={{ color: 'var(--green)' }}>Adiciona já.</span>
+        </h2>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 16, padding: '.9rem 2.5rem', fontWeight: 800 }}>
+            Adicionar ao servidor
+          </a>
+          <Link href="/docs" className="nav-cta-outline" style={{ fontSize: 16, padding: '.9rem 2.5rem' }}>
+            Documentação
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer style={{ borderTop: '1px solid var(--line)', padding: '18px clamp(20px,4vw,56px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--line)' }}>
             <Image src="/laguno.png" alt="" width={20} height={20} style={{ objectFit: 'cover' }} />
@@ -215,15 +259,28 @@ export default function Home() {
           <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>Laguno</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Link href="/legal?tab=terms"   style={{ fontSize: 12, color: 'var(--text-3)', textDecoration: 'none' }}>Termos</Link>
-          <Link href="/legal?tab=privacy" style={{ fontSize: 12, color: 'var(--text-3)', textDecoration: 'none' }}>Privacidade</Link>
+          <Link href="/sobre"             style={{ fontSize: 12, color: 'var(--text-3)' }}>Sobre</Link>
+          <Link href="/docs"              style={{ fontSize: 12, color: 'var(--text-3)' }}>Documentação</Link>
+          <Link href="/legal?tab=terms"   style={{ fontSize: 12, color: 'var(--text-3)' }}>Termos</Link>
+          <Link href="/legal?tab=privacy" style={{ fontSize: 12, color: 'var(--text-3)' }}>Privacidade</Link>
           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
             by <span style={{ color: 'var(--text-2)', fontWeight: 500 }}>Michuu</span>
-            <span style={{ margin: '0 6px' }}>·</span>
-            © 2026
+            <span style={{ margin: '0 6px' }}>·</span>© 2026
           </span>
         </div>
       </footer>
+
+      <style>{`
+        .fig-story:hover { transform: rotate(-5deg) scale(1.04) !important; }
+
+        @media (max-width: 860px) {
+          .hero-fig { display: none; }
+          .modules-split { grid-template-columns: 1fr !important; }
+          .modules-split > div:first-child { position: static !important; }
+          .mood-grid { grid-template-columns: 1fr !important; }
+          .mood-grid > img { display: none; }
+        }
+      `}</style>
     </div>
   );
 }

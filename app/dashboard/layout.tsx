@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  robots: { index: false, follow: false },
+};
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { getUserGuilds, hasManageGuild } from '@/lib/discord';

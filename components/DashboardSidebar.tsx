@@ -62,8 +62,8 @@ export function DashboardSidebar({ user, activeGuilds }: Props) {
         borderBottom: '1px solid var(--line)',
         display: 'flex', alignItems: 'center', gap: 9,
       }}>
-        <div style={{ width: 30, height: 30, borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
-          <Image src="/laguno.png" alt="Laguno" width={30} height={30} style={{ objectFit: 'cover' }} />
+        <div style={{ width: 42, height: 42, overflow: 'hidden', flexShrink: 0 }}>
+          <Image src="/laguno.png" alt="Laguno" width={42} height={42} style={{ objectFit: 'contain' }} />
         </div>
         <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-.03em', color: 'var(--text-1)' }}>
           Laguno
@@ -82,7 +82,7 @@ export function DashboardSidebar({ user, activeGuilds }: Props) {
         {user.image ? (
           <Image src={user.image} alt="" width={38} height={38}
             style={{ borderRadius: '50%', border: '1px solid var(--line)', flexShrink: 0 }}
-            unoptimized={user.image.endsWith('.gif')} />
+            unoptimized={user.image?.endsWith('.gif') ?? false} />
         ) : (
           <div style={{
             width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
@@ -163,7 +163,7 @@ export function DashboardSidebar({ user, activeGuilds }: Props) {
           Links
         </p>
         <a
-          href={`https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&scope=bot+applications.commands&permissions=8`}
+          href={`https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`}
           target="_blank" rel="noreferrer"
           style={{
             display: 'flex', alignItems: 'center', gap: 9,

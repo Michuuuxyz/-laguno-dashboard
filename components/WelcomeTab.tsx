@@ -1,85 +1,68 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface Channel { id: string; name: string; }
 
 export interface WelcomeConfig {
-  enabled:       boolean;
-  channelId:     string | null;
-  headerText:    string;
-  message:       string;
-  footerText:    string;
-  showAccountAge: boolean;
-  bannerType:    'none' | 'avatar' | 'custom';
-  bannerUrl:     string;
-  accentColor:   string;
+  enabled:     boolean;
+  channelId:   string | null;
+  message:     string;
+  deleteAfter: number;
+  accentColor: string;
+  dmEnabled:   boolean;
+  dmMessage:   string;
 }
 
 export interface GoodbyeConfig {
-  enabled:     boolean;
-  channelId:   string | null;
-  headerText:  string;
-  message:     string;
-  footerText:  string;
-  accentColor: string;
+  enabled:           boolean;
+  channelId:         string | null;
+  message:           string;
+  deleteAfter:       number;
+  accentColor:       string;
+  banMessageEnabled: boolean;
+  banMessage:        string;
 }
 
 interface Props {
-  welcome:  WelcomeConfig;
-  goodbye:  GoodbyeConfig;
-  channels: Channel[];
-  guildName: string;
-  guildId:  string;
-  onChange: (key: 'welcome' | 'goodbye', val: WelcomeConfig | GoodbyeConfig) => void;
+  welcome:         WelcomeConfig;
+  goodbye:         GoodbyeConfig;
+  channels:        Channel[];
+  guildName:       string;
+  guildId:         string;
+  onChange:        (key: 'welcome' | 'goodbye', val: WelcomeConfig | GoodbyeConfig) => void;
+  onSaveWelcome?:  () => Promise<void>;
+  onSaveGoodbye?:  () => Promise<void>;
+}
+
+function SaveBtn({ id, saving, saved, onSave }: { id: string; saving: string | null; saved: string | null; onSave: () => void }) {
+  return (
+    <button onClick={onSave} disabled={saving === id} style={{
+      background: saved === id ? 'rgba(109,184,62,.15)' : 'var(--green)',
+      color: saved === id ? 'var(--green)' : '#fff',
+      border: 'none', borderRadius: 7, padding: '5px 14px', fontSize: 12, fontWeight: 600,
+      cursor: saving === id ? 'wait' : 'pointer', transition: 'all .2s', minWidth: 80, flexShrink: 0,
+    }}>
+      {saving === id ? 'A guardar...' : saved === id ? 'Guardado!' : 'Guardar'}
+    </button>
+  );
 }
 
 const VARIABLES = [
-  { tag: '{user}',        desc: 'Menção (@utilizador)' },
+  { tag: '{user}',        desc: 'Menção do utilizador' },
   { tag: '{username}',    desc: 'Nome de utilizador' },
   { tag: '{displayname}', desc: 'Nome no servidor' },
   { tag: '{server}',      desc: 'Nome do servidor' },
   { tag: '{count}',       desc: 'Total de membros' },
-  { tag: '{created}',     desc: 'Conta criada há...' },
   { tag: '{id}',          desc: 'ID do utilizador' },
-];
-
-const ACCENT_PRESETS = [
-  { label: 'Verde',    color: '#3ecf8e' },
-  { label: 'Azul',     color: '#5865f2' },
-  { label: 'Roxo',     color: '#9b59b6' },
-  { label: 'Laranja',  color: '#e67e22' },
-  { label: 'Vermelho', color: '#e74c3c' },
-  { label: 'Rosa',     color: '#e91e8c' },
-  { label: 'Branco',   color: '#ffffff' },
-  { label: 'Sem cor',  color: '' },
+  { tag: '{created}',     desc: 'Conta criada há...' },
 ];
 
 const inputStyle: React.CSSProperties = {
-  background: 'var(--bg)', border: '1px solid var(--line)',
+  background: 'var(--surface)', border: '1px solid var(--line)',
   borderRadius: 8, padding: '8px 12px', color: 'var(--text-1)',
   fontSize: 13.5, width: '100%', outline: 'none',
 };
-
-function parsePreview(text: string, guildName: string): string {
-  return text
-    .replace(/{user}/g,         '@Michu')
-    .replace(/{username}/g,     'Michu')
-    .replace(/{displayname}/g,  'Michu')
-    .replace(/{server}/g,       guildName)
-    .replace(/{count}/g,        '42')
-    .replace(/{id}/g,           '123456789')
-    .replace(/{created}/g,      'há 2 anos');
-}
-
-function mdToHtml(text: string): string {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/__(.*?)__/g,     '<u>$1</u>')
-    .replace(/\*(.*?)\*/g,     '<em>$1</em>')
-    .replace(/`(.*?)`/g,       '<code style="background:rgba(255,255,255,.1);padding:1px 6px;border-radius:3px;font-size:12.5px">$1</code>')
-    .replace(/\n/g,            '<br/>');
-}
 
 function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
   return (
@@ -97,84 +80,65 @@ function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
   );
 }
 
-function Label({ children, hint }: { children: React.ReactNode; hint?: string }) {
-  return (
-    <div style={{ marginBottom: 6 }}>
-      <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{children}</p>
-      {hint && <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2, opacity: .7 }}>{hint}</p>}
-    </div>
-  );
+function parsePreview(text: string, guildName: string): string {
+  return text
+    .replace(/{user}/g,         '@Michu')
+    .replace(/{username}/g,     'Michu')
+    .replace(/{displayname}/g,  'Michu')
+    .replace(/{server}/g,       guildName)
+    .replace(/{count}/g,        '42')
+    .replace(/{id}/g,           '349527593634234370')
+    .replace(/{created}/g,      'há 2 anos');
 }
 
-/* ─── Discord-style preview ─── */
-function DiscordPreview({
-  headerText, message, footerText, showAccountAge, bannerType, bannerUrl, accentColor, guildName, type,
-}: {
-  headerText: string; message: string; footerText: string; showAccountAge: boolean;
-  bannerType: 'none' | 'avatar' | 'custom'; bannerUrl: string; accentColor: string;
-  guildName: string; type: 'welcome' | 'goodbye';
-}) {
-  const accent = accentColor || (type === 'welcome' ? '#3ecf8e' : '#80848e');
-  const headerParsed  = parsePreview(headerText, guildName);
-  const bodyParsed    = parsePreview(message, guildName);
-  const footerParsed  = parsePreview(footerText, guildName);
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
-  const showBanner = bannerType !== 'none';
-  const bannerSrc  = bannerType === 'custom' ? bannerUrl : null; // avatar = placeholder
+function mdToHtml(text: string): string {
+  return escapeHtml(text)
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.*?)__/g,     '<u>$1</u>')
+    .replace(/\*(.*?)\*/g,     '<em>$1</em>')
+    .replace(/-#\s(.*?)(\n|$)/g, '<span style="font-size:11px;color:#80848e">$1</span>$2')
+    .replace(/## (.*?)(\n|$)/g, '<strong style="font-size:15px">$1</strong>$2')
+    .replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,.1);padding:1px 6px;border-radius:3px;font-size:12px">$1</code>')
+    .replace(/\n/g, '<br/>');
+}
+
+/* ─── Discord-like message preview ─── */
+function DiscordPreview({ message, accentColor, guildName }: {
+  message: string; accentColor: string; guildName: string;
+}) {
+  const accent = accentColor || '#6db83e';
+  const parsed = parsePreview(message, guildName);
 
   return (
-    <div style={{ background: '#1e1f22', borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,.06)', fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
-      {/* channel bar */}
-      <div style={{ padding: '7px 14px', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div style={{ background: '#313338', borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,.06)', fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
+      <div style={{ padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', gap: 5 }}>
         <span style={{ color: '#80848e', fontSize: 13 }}>#</span>
-        <span style={{ fontSize: 12.5, color: '#80848e' }}>boas-vindas</span>
+        <span style={{ fontSize: 12, color: '#80848e' }}>boas-vindas</span>
       </div>
-
-      {/* bot message */}
-      <div style={{ padding: '14px 16px' }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          {/* Bot avatar */}
-          <div style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: 'linear-gradient(135deg,#3ecf8e,#1a9e6b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: '#fff' }}>L</div>
-
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Laguno</span>
-              <span style={{ fontSize: 10, fontWeight: 600, background: '#5865f2', color: '#fff', padding: '1px 5px', borderRadius: 3 }}>BOT</span>
-              <span style={{ fontSize: 11, color: '#80848e' }}>Hoje às 10:46</span>
-            </div>
-
-            {/* Container com accent */}
-            <div style={{ background: '#2b2d31', borderRadius: 8, overflow: 'hidden', borderLeft: `3px solid ${accent}`, maxWidth: 440 }}>
-              {/* Banner */}
-              {showBanner && (
-                <div style={{ height: 110, background: bannerSrc ? `url(${bannerSrc}) center/cover` : 'linear-gradient(135deg,rgba(62,207,142,.15),rgba(26,158,107,.08))', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-                  {bannerType === 'avatar' && (
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'linear-gradient(135deg,#3ecf8e,#1a9e6b)', margin: '0 auto 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: '#fff', border: '3px solid #2b2d31' }}>M</div>
-                      <p style={{ fontSize: 10, color: '#80848e' }}>avatar do membro</p>
-                    </div>
-                  )}
-                  {bannerType === 'custom' && !bannerUrl && (
-                    <p style={{ fontSize: 12, color: '#80848e' }}>URL da imagem aqui</p>
-                  )}
-                </div>
+      <div style={{ padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+        <div style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, background: 'linear-gradient(135deg,#6db83e,#4a8a25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff' }}>L</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
+            <span style={{ fontSize: 13.5, fontWeight: 600, color: '#f2f3f5' }}>Laguno</span>
+            <span style={{ fontSize: 9.5, fontWeight: 600, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>BOT</span>
+            <span style={{ fontSize: 11, color: '#80848e' }}>Hoje às 10:46</span>
+          </div>
+          <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `3px solid ${accent}`, overflow: 'hidden', maxWidth: 400 }}>
+            <div style={{ padding: '10px 13px' }}>
+              {message ? (
+                <p style={{ fontSize: 13.5, color: '#dbdee1', lineHeight: 1.65, margin: 0 }}
+                  dangerouslySetInnerHTML={{ __html: mdToHtml(parsed) }} />
+              ) : (
+                <p style={{ fontSize: 13, color: '#80848e', fontStyle: 'italic' }}>A tua mensagem aparece aqui...</p>
               )}
-
-              <div style={{ padding: '12px 14px' }}>
-                {headerText && (
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#dbdee1', marginBottom: 6 }}
-                    dangerouslySetInnerHTML={{ __html: mdToHtml(headerParsed) }} />
-                )}
-                {message && (
-                  <p style={{ fontSize: 13.5, color: '#dbdee1', lineHeight: 1.6, margin: 0 }}
-                    dangerouslySetInnerHTML={{ __html: mdToHtml(bodyParsed) }} />
-                )}
-                {(footerText || showAccountAge) && (
-                  <p style={{ fontSize: 11, color: '#80848e', marginTop: 8, borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: 8 }}>
-                    {footerText ? footerParsed : 'Conta criada há 2 anos'}
-                  </p>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -183,244 +147,383 @@ function DiscordPreview({
   );
 }
 
-/* ─── Main component ─── */
-export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onChange }: Props) {
-  const [section, setSection] = useState<'welcome' | 'goodbye'>('welcome');
-  const [testStatus, setTestStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
-  const [activeField, setActiveField] = useState<'header' | 'message' | 'footer'>('message');
-
-  const cfg = section === 'welcome' ? welcome : goodbye;
-  const w = cfg as WelcomeConfig;
-  const set = (val: Partial<WelcomeConfig & GoodbyeConfig>) =>
-    onChange(section, { ...cfg, ...val } as WelcomeConfig | GoodbyeConfig);
+/* ─── Message Editor Modal ─── */
+function MessageEditor({ message, accentColor, guildName, onSave, onClose, title }: {
+  message: string;
+  accentColor: string;
+  guildName: string;
+  onSave: (msg: string, accent: string) => void;
+  onClose: () => void;
+  title: string;
+}) {
+  const [msg, setMsg] = useState(message);
+  const [accent, setAccent] = useState(accentColor || '#6db83e');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   function insertVar(tag: string) {
-    if (activeField === 'header')  set({ headerText:  cfg.headerText  + tag });
-    if (activeField === 'message') set({ message:     cfg.message     + tag });
-    if (activeField === 'footer')  set({ footerText:  cfg.footerText  + tag });
-  }
-
-  async function sendTest() {
-    if (!cfg.channelId) return;
-    setTestStatus('loading');
-    try {
-      const body: Record<string, unknown> = {
-        channelId:    cfg.channelId,
-        headerText:   cfg.headerText,
-        message:      cfg.message,
-        footerText:   cfg.footerText,
-        accentColor:  cfg.accentColor,
-        type:         section,
-      };
-      if (section === 'welcome') {
-        body.showAccountAge = w.showAccountAge;
-        body.bannerType = w.bannerType;
-        body.bannerUrl  = w.bannerUrl;
-      }
-      const res = await fetch(`/api/guilds/${guildId}/welcome/test`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      setTestStatus(res.ok ? 'ok' : 'err');
-    } catch { setTestStatus('err'); }
-    setTimeout(() => setTestStatus('idle'), 3000);
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const newMsg = msg.slice(0, start) + tag + msg.slice(end);
+    setMsg(newMsg);
+    setTimeout(() => { el.focus(); el.setSelectionRange(start + tag.length, start + tag.length); }, 0);
   }
 
   return (
-    <div>
-      {/* Section tabs */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        {(['welcome', 'goodbye'] as const).map(s => (
-          <button key={s} onClick={() => setSection(s)} style={{
-            padding: '7px 18px', borderRadius: 20, fontSize: 13, cursor: 'pointer',
-            background: section === s ? 'var(--green)' : 'var(--card)',
-            color: section === s ? '#fff' : 'var(--text-3)',
-            border: `1px solid ${section === s ? 'var(--green)' : 'var(--line)'}`,
-            transition: 'all .15s',
-          }}>
-            {s === 'welcome' ? '👋 Boas-Vindas' : '👋 Despedidas'}
-          </button>
-        ))}
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
-
-        {/* ── LEFT: Config ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-          {/* Enable + canal */}
-          <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '16px 18px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>
-                  {section === 'welcome' ? 'Mensagem de Boas-Vindas' : 'Mensagem de Despedida'}
-                </p>
-                <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
-                  {section === 'welcome' ? 'Enviada quando um novo membro entra.' : 'Enviada quando um membro sai.'}
-                </p>
-              </div>
-              <Toggle on={cfg.enabled} onChange={() => set({ enabled: !cfg.enabled })} />
-            </div>
-            {cfg.enabled && (
-              <div>
-                <Label>Canal</Label>
-                <select style={inputStyle} value={cfg.channelId ?? ''} onChange={e => set({ channelId: e.target.value || null })}>
-                  <option value="">— Seleciona um canal —</option>
-                  {channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
-                </select>
-              </div>
-            )}
-          </div>
-
-          {cfg.enabled && (<>
-
-            {/* Conteúdo */}
-            <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '16px 18px' }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 14 }}>Conteúdo da mensagem</p>
-
-              <div style={{ marginBottom: 12 }}>
-                <Label hint="Título em negrito no topo do container (opcional)">Cabeçalho</Label>
-                <input style={inputStyle} placeholder="Ex: Bem-vindo ao {server}!" value={cfg.headerText}
-                  onFocus={() => setActiveField('header')}
-                  onChange={e => set({ headerText: e.target.value })} />
-              </div>
-
-              <div style={{ marginBottom: 12 }}>
-                <Label hint="Corpo principal da mensagem">Mensagem</Label>
-                <textarea rows={3} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }}
-                  value={cfg.message}
-                  onFocus={() => setActiveField('message')}
-                  onChange={e => set({ message: e.target.value })} />
-              </div>
-
-              <div style={{ marginBottom: section === 'welcome' ? 12 : 0 }}>
-                <Label hint="Texto pequeno no fundo do container (opcional)">Rodapé</Label>
-                <input style={inputStyle} placeholder="Ex: Lê as regras em #regras" value={cfg.footerText}
-                  onFocus={() => setActiveField('footer')}
-                  onChange={e => set({ footerText: e.target.value })} />
-              </div>
-
-              {section === 'welcome' && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: '1px solid var(--line)' }}>
-                  <div>
-                    <p style={{ fontSize: 13, color: 'var(--text-2)' }}>Mostrar idade da conta</p>
-                    <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 1 }}>Adiciona "Conta criada há X" ao rodapé</p>
-                  </div>
-                  <Toggle on={w.showAccountAge} onChange={() => set({ showAccountAge: !w.showAccountAge })} />
-                </div>
-              )}
-            </div>
-
-            {/* Banner */}
-            {section === 'welcome' && (
-              <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '16px 18px' }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 14 }}>Banner / Imagem</p>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                  {([
-                    { value: 'none',   label: 'Sem imagem' },
-                    { value: 'avatar', label: 'Avatar do membro' },
-                    { value: 'custom', label: 'URL personalizado' },
-                  ] as const).map(opt => (
-                    <button key={opt.value} onClick={() => set({ bannerType: opt.value })} style={{
-                      flex: 1, padding: '7px 4px', borderRadius: 7, fontSize: 12, cursor: 'pointer',
-                      background: w.bannerType === opt.value ? 'rgba(62,207,142,.12)' : 'var(--elevated)',
-                      color: w.bannerType === opt.value ? 'var(--green)' : 'var(--text-3)',
-                      border: `1px solid ${w.bannerType === opt.value ? 'rgba(62,207,142,.3)' : 'var(--line)'}`,
-                      transition: 'all .12s',
-                    }}>{opt.label}</button>
-                  ))}
-                </div>
-                {w.bannerType === 'custom' && (
-                  <input style={inputStyle} placeholder="https://exemplo.com/banner.png" value={w.bannerUrl}
-                    onChange={e => set({ bannerUrl: e.target.value })} />
-                )}
-              </div>
-            )}
-
-            {/* Cor de acento */}
-            <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '16px 18px' }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 14 }}>Cor do container</p>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-                {ACCENT_PRESETS.map(p => (
-                  <button key={p.color} onClick={() => set({ accentColor: p.color })} title={p.label} style={{
-                    width: 28, height: 28, borderRadius: '50%', border: `2px solid ${cfg.accentColor === p.color ? '#fff' : 'transparent'}`,
-                    background: p.color || 'var(--elevated)', cursor: 'pointer', flexShrink: 0, transition: 'border-color .12s',
-                    outline: p.color === '' ? '1px dashed var(--line)' : 'none',
-                  }} />
-                ))}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input type="color" value={cfg.accentColor || '#3ecf8e'}
-                  onChange={e => set({ accentColor: e.target.value })}
-                  style={{ width: 34, height: 34, borderRadius: 7, border: '1px solid var(--line)', background: 'none', cursor: 'pointer', padding: 2 }} />
-                <input style={{ ...inputStyle, fontFamily: 'monospace', fontSize: 13 }}
-                  placeholder="#3ecf8e" value={cfg.accentColor}
-                  onChange={e => set({ accentColor: e.target.value })} />
-              </div>
-            </div>
-
-          </>)}
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1000,
+      background: 'rgba(0,0,0,.75)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 20,
+    }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{
+        background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
+        width: '100%', maxWidth: 860, maxHeight: '90vh', overflow: 'hidden',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Header */}
+        <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <p style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-.02em' }}>{title}</p>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 4 }}>✕</button>
         </div>
 
-        {/* ── RIGHT: Preview ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, position: 'sticky', top: 20 }}>
-          {cfg.enabled ? (<>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Preview</p>
-              <button onClick={sendTest} disabled={!cfg.channelId || testStatus === 'loading'} style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '6px 13px',
-                borderRadius: 7, fontSize: 12.5, fontWeight: 500, cursor: cfg.channelId ? 'pointer' : 'not-allowed',
-                border: '1px solid var(--line)', transition: 'all .15s',
-                background: testStatus === 'ok' ? 'rgba(62,207,142,.12)' : testStatus === 'err' ? 'rgba(248,113,113,.1)' : 'var(--elevated)',
-                color: testStatus === 'ok' ? 'var(--green)' : testStatus === 'err' ? '#f87171' : cfg.channelId ? 'var(--text-2)' : 'var(--text-3)',
-                opacity: !cfg.channelId ? .5 : 1,
-              }}>
-                {testStatus === 'loading' ? '...' : testStatus === 'ok' ? '✓ Enviado!' : testStatus === 'err' ? '✕ Erro' : (
-                  <>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                    </svg>
-                    {cfg.channelId ? `Testar em #${channels.find(c => c.id === cfg.channelId)?.name}` : 'Seleciona canal'}
-                  </>
-                )}
-              </button>
+        {/* Body */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, flex: 1, overflow: 'hidden' }}>
+
+          {/* Left: editor */}
+          <div style={{ padding: '18px 20px', borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto' }}>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Conteúdo da Mensagem</p>
+              <textarea
+                ref={textareaRef}
+                rows={8}
+                style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.65, fontFamily: 'monospace', fontSize: 13 }}
+                placeholder={'## Bem-vindo ao {server}! 👋\nOlá {user}, estamos felizes por teres chegado!\n-# Membro nº {count}'}
+                value={msg}
+                onChange={e => setMsg(e.target.value)}
+              />
             </div>
 
-            <DiscordPreview
-              headerText={cfg.headerText}
-              message={cfg.message}
-              footerText={cfg.footerText}
-              showAccountAge={section === 'welcome' ? w.showAccountAge : false}
-              bannerType={section === 'welcome' ? w.bannerType : 'none'}
-              bannerUrl={section === 'welcome' ? w.bannerUrl : ''}
-              accentColor={cfg.accentColor}
-              guildName={guildName}
-              type={section}
-            />
-
-            {/* Variáveis */}
-            <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: '14px 16px' }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 10 }}>
-                Variáveis — clica para inserir em <span style={{ color: 'var(--green)' }}>{activeField === 'header' ? 'Cabeçalho' : activeField === 'footer' ? 'Rodapé' : 'Mensagem'}</span>
+            {/* Variables */}
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>
+                Quais variáveis/placeholders posso usar?
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {VARIABLES.map(v => (
                   <button key={v.tag} onClick={() => insertVar(v.tag)} title={v.desc} style={{
                     background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 6,
-                    padding: '3px 9px', fontSize: 12, color: 'var(--green)', cursor: 'pointer',
+                    padding: '4px 10px', fontSize: 12, color: 'var(--green)', cursor: 'pointer',
                     fontFamily: 'monospace', transition: 'all .1s',
                   }}>{v.tag}</button>
                 ))}
               </div>
+              <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 10, lineHeight: 1.6 }}>
+                Podes usar markdown: <code style={{ background: 'var(--elevated)', padding: '1px 5px', borderRadius: 4 }}>**negrito**</code>, <code style={{ background: 'var(--elevated)', padding: '1px 5px', borderRadius: 4 }}>## título</code>, <code style={{ background: 'var(--elevated)', padding: '1px 5px', borderRadius: 4 }}>-# subtexto</code>
+              </p>
             </div>
-          </>) : (
-            <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '40px 20px', textAlign: 'center' }}>
-              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Ativa o módulo para configurar.</p>
+
+            {/* Accent color */}
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Cor do container</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input type="color" value={accent} onChange={e => setAccent(e.target.value)}
+                  style={{ width: 36, height: 36, borderRadius: 8, border: '1px solid var(--line)', background: 'none', cursor: 'pointer', padding: 2 }} />
+                <input style={{ ...inputStyle, fontFamily: 'monospace', fontSize: 13 }}
+                  value={accent} onChange={e => setAccent(e.target.value)} placeholder="#6db83e" />
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* Right: preview */}
+          <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', background: 'var(--bg)' }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pré-visualização da Mensagem</p>
+            <DiscordPreview message={msg} accentColor={accent} guildName={guildName} />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '14px 22px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <button onClick={onClose} style={{
+            padding: '8px 18px', borderRadius: 8, border: '1px solid var(--line)',
+            background: 'var(--elevated)', color: 'var(--text-2)', fontSize: 13, cursor: 'pointer',
+          }}>Fechar</button>
+          <button onClick={() => { onSave(msg, accent); onClose(); }} style={{
+            padding: '8px 22px', borderRadius: 8, border: 'none',
+            background: 'var(--green)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          }}>Guardar</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ─── Config row ─── */
+function ConfigBlock({ label, hint, children, toggle, toggled }: {
+  label: string; hint?: string; children?: React.ReactNode;
+  toggle?: React.ReactNode; toggled?: boolean;
+}) {
+  return (
+    <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: toggled && children ? 12 : 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-1)' }}>{label}</p>
+          {hint && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3, lineHeight: 1.5 }}>{hint}</p>}
+        </div>
+        {toggle}
+      </div>
+      {toggled && children && <div>{children}</div>}
+    </div>
+  );
+}
+
+/* ─── Compact message preview ─── */
+function MessagePreview({ message, accentColor, guildName, onEdit }: {
+  message: string; accentColor: string; guildName: string; onEdit: () => void;
+}) {
+  const accent = accentColor || '#6db83e';
+  const parsed = parsePreview(message || '', guildName);
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <p style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 500 }}>Mensagem</p>
+        <button onClick={onEdit} style={{
+          padding: '5px 14px', borderRadius: 7, border: '1px solid var(--line)',
+          background: 'var(--elevated)', color: 'var(--text-2)', fontSize: 12.5,
+          cursor: 'pointer', fontWeight: 500, transition: 'all .12s',
+        }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(109,184,62,.1)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--green)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--elevated)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-2)'; }}
+        >Editar</button>
+      </div>
+      <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `3px solid ${accent}`, padding: '10px 13px', maxHeight: 100, overflow: 'hidden', position: 'relative' }}>
+        {message ? (
+          <p style={{ fontSize: 12.5, color: '#dbdee1', lineHeight: 1.6, margin: 0, fontFamily: '"gg sans","Noto Sans",sans-serif' }}
+            dangerouslySetInnerHTML={{ __html: mdToHtml(parsed) }} />
+        ) : (
+          <p style={{ fontSize: 12.5, color: '#80848e', fontStyle: 'italic', fontFamily: '"gg sans",sans-serif' }}>Sem mensagem — clica em Editar para configurar.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Main ─── */
+export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onChange, onSaveWelcome, onSaveGoodbye }: Props) {
+  const [editingModal, setEditingModal] = useState<null | 'welcome' | 'goodbye' | 'dm' | 'ban'>(null);
+  const [testStatusWelcome, setTestStatusWelcome] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
+  const [testStatusGoodbye, setTestStatusGoodbye] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
+  const [savingCard, setSavingCard] = useState<string | null>(null);
+  const [savedCard, setSavedCard] = useState<string | null>(null);
+
+  async function saveCard(id: string, fn?: () => Promise<void>) {
+    if (!fn) return;
+    setSavingCard(id);
+    await fn().catch(() => null);
+    setSavingCard(null); setSavedCard(id);
+    setTimeout(() => setSavedCard(c => c === id ? null : c), 2500);
+  }
+
+  function setW(val: Partial<WelcomeConfig>) { onChange('welcome', { ...welcome, ...val }); }
+  function setG(val: Partial<GoodbyeConfig>) { onChange('goodbye', { ...goodbye, ...val }); }
+
+  async function sendTest(type: 'welcome' | 'goodbye') {
+    const cfg = type === 'welcome' ? welcome : goodbye;
+    if (!cfg.channelId) return;
+    const set = type === 'welcome' ? setTestStatusWelcome : setTestStatusGoodbye;
+    set('loading');
+    try {
+      const res = await fetch(`/api/guilds/${guildId}/welcome/test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId: cfg.channelId, message: cfg.message, accentColor: cfg.accentColor, type }),
+      });
+      set(res.ok ? 'ok' : 'err');
+    } catch { set('err'); }
+    setTimeout(() => set('idle'), 3000);
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+
+      {/* ── BOAS-VINDAS ── */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-.02em' }}>Boas-Vindas</h3>
+          <SaveBtn id="welcome" saving={savingCard} saved={savedCard} onSave={() => saveCard('welcome', onSaveWelcome)} />
+        </div>
+        <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 14 }}>Enviada quando um novo membro entra no servidor.</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+          <ConfigBlock
+            label="Ativar as mensagens quando alguém entrar"
+            toggle={<Toggle on={welcome.enabled} onChange={() => setW({ enabled: !welcome.enabled })} />}
+            toggled={welcome.enabled}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 6 }}>Canal onde será enviada a mensagem</p>
+                <select style={inputStyle} value={welcome.channelId ?? ''} onChange={e => setW({ channelId: e.target.value || null })}>
+                  <option value="">— Seleciona um canal —</option>
+                  {channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 6 }}>Segundos para apagar a mensagem <span style={{ opacity: .6 }}>(0 = nunca apagar)</span></p>
+                <input type="number" min={0} style={{ ...inputStyle, width: 120 }}
+                  value={welcome.deleteAfter}
+                  onChange={e => setW({ deleteAfter: Math.max(0, parseInt(e.target.value) || 0) })} />
+              </div>
+
+              <MessagePreview
+                message={welcome.message}
+                accentColor={welcome.accentColor}
+                guildName={guildName}
+                onEdit={() => setEditingModal('welcome')}
+              />
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={() => sendTest('welcome')} disabled={!welcome.channelId || testStatusWelcome === 'loading'} style={{
+                  padding: '6px 14px', borderRadius: 7, border: '1px solid var(--line)',
+                  background: testStatusWelcome === 'ok' ? 'rgba(109,184,62,.12)' : testStatusWelcome === 'err' ? 'rgba(248,113,113,.1)' : 'var(--elevated)',
+                  color: testStatusWelcome === 'ok' ? 'var(--green)' : testStatusWelcome === 'err' ? '#f87171' : 'var(--text-2)',
+                  fontSize: 12.5, cursor: welcome.channelId ? 'pointer' : 'not-allowed', opacity: !welcome.channelId ? .5 : 1,
+                }}>
+                  {testStatusWelcome === 'loading' ? 'A enviar...' : testStatusWelcome === 'ok' ? '✓ Enviado!' : testStatusWelcome === 'err' ? '✕ Erro' : 'Testar Mensagem'}
+                </button>
+              </div>
+            </div>
+          </ConfigBlock>
+
+          <ConfigBlock
+            label="Ativar as mensagens diretas ao entrar"
+            hint="Envia uma DM ao membro quando entra — útil para mostrar regras ou boas-vindas privadas."
+            toggle={<Toggle on={welcome.dmEnabled} onChange={() => setW({ dmEnabled: !welcome.dmEnabled })} />}
+            toggled={welcome.dmEnabled}
+          >
+            <MessagePreview
+              message={welcome.dmMessage}
+              accentColor={welcome.accentColor}
+              guildName={guildName}
+              onEdit={() => setEditingModal('dm')}
+            />
+          </ConfigBlock>
+
+        </div>
+      </div>
+
+      {/* ── DESPEDIDAS ── */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-.02em' }}>Despedidas</h3>
+          <SaveBtn id="goodbye" saving={savingCard} saved={savedCard} onSave={() => saveCard('goodbye', onSaveGoodbye)} />
+        </div>
+        <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 14 }}>Enviada quando um membro sai ou é expulso.</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+          <ConfigBlock
+            label="Ativar as mensagens quando alguém sair"
+            toggle={<Toggle on={goodbye.enabled} onChange={() => setG({ enabled: !goodbye.enabled })} />}
+            toggled={goodbye.enabled}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 6 }}>Canal onde será enviada a mensagem</p>
+                <select style={inputStyle} value={goodbye.channelId ?? ''} onChange={e => setG({ channelId: e.target.value || null })}>
+                  <option value="">— Seleciona um canal —</option>
+                  {channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 6 }}>Segundos para apagar a mensagem <span style={{ opacity: .6 }}>(0 = nunca apagar)</span></p>
+                <input type="number" min={0} style={{ ...inputStyle, width: 120 }}
+                  value={goodbye.deleteAfter}
+                  onChange={e => setG({ deleteAfter: Math.max(0, parseInt(e.target.value) || 0) })} />
+              </div>
+
+              <MessagePreview
+                message={goodbye.message}
+                accentColor={goodbye.accentColor}
+                guildName={guildName}
+                onEdit={() => setEditingModal('goodbye')}
+              />
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={() => sendTest('goodbye')} disabled={!goodbye.channelId || testStatusGoodbye === 'loading'} style={{
+                  padding: '6px 14px', borderRadius: 7, border: '1px solid var(--line)',
+                  background: testStatusGoodbye === 'ok' ? 'rgba(109,184,62,.12)' : testStatusGoodbye === 'err' ? 'rgba(248,113,113,.1)' : 'var(--elevated)',
+                  color: testStatusGoodbye === 'ok' ? 'var(--green)' : testStatusGoodbye === 'err' ? '#f87171' : 'var(--text-2)',
+                  fontSize: 12.5, cursor: goodbye.channelId ? 'pointer' : 'not-allowed', opacity: !goodbye.channelId ? .5 : 1,
+                }}>
+                  {testStatusGoodbye === 'loading' ? 'A enviar...' : testStatusGoodbye === 'ok' ? '✓ Enviado!' : testStatusGoodbye === 'err' ? '✕ Erro' : 'Testar Mensagem'}
+                </button>
+              </div>
+            </div>
+          </ConfigBlock>
+
+          <ConfigBlock
+            label="Mostrar mensagem diferenciada ao ser banido"
+            hint="Envia uma mensagem diferente quando o membro foi banido em vez de ter saído voluntariamente."
+            toggle={<Toggle on={goodbye.banMessageEnabled} onChange={() => setG({ banMessageEnabled: !goodbye.banMessageEnabled })} />}
+            toggled={goodbye.banMessageEnabled}
+          >
+            <MessagePreview
+              message={goodbye.banMessage}
+              accentColor={goodbye.accentColor}
+              guildName={guildName}
+              onEdit={() => setEditingModal('ban')}
+            />
+          </ConfigBlock>
+
+        </div>
+      </div>
+
+      {/* ── Modals ── */}
+      {editingModal === 'welcome' && (
+        <MessageEditor
+          title="Editar mensagem de Boas-Vindas"
+          message={welcome.message}
+          accentColor={welcome.accentColor}
+          guildName={guildName}
+          onSave={(msg, accent) => setW({ message: msg, accentColor: accent })}
+          onClose={() => setEditingModal(null)}
+        />
+      )}
+      {editingModal === 'dm' && (
+        <MessageEditor
+          title="Editar mensagem de DM"
+          message={welcome.dmMessage}
+          accentColor={welcome.accentColor}
+          guildName={guildName}
+          onSave={(msg, accent) => setW({ dmMessage: msg, accentColor: accent })}
+          onClose={() => setEditingModal(null)}
+        />
+      )}
+      {editingModal === 'goodbye' && (
+        <MessageEditor
+          title="Editar mensagem de Despedida"
+          message={goodbye.message}
+          accentColor={goodbye.accentColor}
+          guildName={guildName}
+          onSave={(msg, accent) => setG({ message: msg, accentColor: accent })}
+          onClose={() => setEditingModal(null)}
+        />
+      )}
+      {editingModal === 'ban' && (
+        <MessageEditor
+          title="Editar mensagem de Ban"
+          message={goodbye.banMessage}
+          accentColor={goodbye.accentColor}
+          guildName={guildName}
+          onSave={(msg, accent) => setG({ banMessage: msg, accentColor: accent })}
+          onClose={() => setEditingModal(null)}
+        />
+      )}
     </div>
   );
 }

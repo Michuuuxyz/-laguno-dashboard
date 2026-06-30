@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { assertGuildAccess } from '@/lib/guildAuth';
 import { MongoClient, ObjectId } from 'mongodb';
 
 async function getDb() {
@@ -10,8 +9,8 @@ async function getDb() {
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: { guildId: string; warnId: string } }) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!await assertGuildAccess(params.guildId))
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { client, db } = await getDb();
   try {

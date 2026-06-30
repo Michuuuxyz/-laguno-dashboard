@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { WelcomeTab } from './WelcomeTab';
 import { RolesTab } from './RolesTab';
+import { GiveawayModule } from './modules/GiveawayModule';
 
 interface Channel { id: string; name: string; }
 interface Warn { _id: string; userId: string; reason: string; moderatorId: string; createdAt: string; }
@@ -27,8 +28,8 @@ interface WarnsCfg {
   autoAction: { enabled: boolean; threshold: number; action: string; duration: string };
   expiryDays: number;
 }
-interface WelcomeConfig { enabled: boolean; channelId: string | null; headerText: string; message: string; footerText: string; showAccountAge: boolean; bannerType: 'none'|'avatar'|'custom'; bannerUrl: string; accentColor: string; }
-interface GoodbyeConfig { enabled: boolean; channelId: string | null; headerText: string; message: string; footerText: string; accentColor: string; }
+interface WelcomeConfig { enabled: boolean; channelId: string | null; message: string; deleteAfter: number; accentColor: string; dmEnabled: boolean; dmMessage: string; }
+interface GoodbyeConfig { enabled: boolean; channelId: string | null; message: string; deleteAfter: number; accentColor: string; banMessageEnabled: boolean; banMessage: string; }
 interface RoleEntry   { roleId: string; label: string; emoji: string; }
 interface RolePanel   { id: string; title: string; description: string; roles: RoleEntry[]; }
 interface LogCategory {
@@ -53,6 +54,102 @@ interface Config {
   autoroles: string[]; rolePanels: RolePanel[];
   logs: LogsConfig;
 }
+
+/* ── Filtro de palavras: templates e lista por defeito ── */
+const WORD_TEMPLATES: { id: string; label: string; desc: string; words: string[] }[] = [
+  {
+    id: 'pt_basico',
+    label: 'Português — Básico',
+    desc: 'Palavrões comuns em português.',
+    words: [
+      'merda','caralho','porra','foda','fodase','foda-se','puta','putaria','cu','cuzão',
+      'buceta','piroca','pau','rola','bosta','cuzinho','boceta','xota','xana','pentelho',
+      'culhão','carai','cacete','vsf','fdp','puta merda','puta que pariu','vai se foder',
+      'filho da puta','filha da puta','arrombado','arrombada','desgraçado','desgraçada',
+      'miserável','safado','safada','canalha','sacanagem','punheta','cagalhão','boquete',
+      'gozar','gozo','trolha','cona','caralha','raios','carago','merda de','vai à merda',
+      'fodido','fodida','fudido','fudida','porra de','que se foda','que merda','sua mãe',
+      'tua mãe','vai tomar no cu','toma no cu','vai se fuder','fuder','fuderão','puta vida',
+    ],
+  },
+  {
+    id: 'pt_insultos',
+    label: 'Português — Insultos',
+    desc: 'Insultos e ofensas em português.',
+    words: [
+      'idiota','imbecil','retardado','retardada','cretino','cretina','babaca','otário','otaria',
+      'corno','cornudo','cornuda','prostituta','vagabundo','vagabunda','lixo','inútil','burro',
+      'burra','animal','palhaço','estúpido','estúpida','parvo','parva','tolo','tola','bêbado',
+      'drogado','viado','viadinho','viada','traveco','paneleiro','bicha','bocó','atrasado',
+      'atrasada','ignorante','maldito','maldita','desgraça','podre','nojento','nojenta',
+      'canalha','safado','safada','mentiroso','mentirosa','ladrão','ladra','louco','louca',
+      'psicopata','infeliz','miserável','coitado','sem vergonha','vergonha','ridículo',
+    ],
+  },
+  {
+    id: 'en_basico',
+    label: 'Inglês — Básico',
+    desc: 'Common English profanity.',
+    words: [
+      'fuck','shit','bitch','asshole','bastard','cunt','whore','slut','dick','cock',
+      'pussy','ass','faggot','retard','idiot','moron','dumbass','motherfucker','fucker',
+      'bullshit','jackass','prick','twat','wanker','crap','damn','hell','bloody hell',
+      'fuckoff','fuck off','shut up','son of a bitch','piece of shit','go to hell',
+      'screw you','asshat','dipshit','numbnuts','shithead','fuckwit','arsehole','arse',
+      'bollocks','tosser','wankface','shitface','douchebag','douche','jerkoff','jerk',
+    ],
+  },
+  {
+    id: 'discriminacao',
+    label: 'Discriminação & Ódio',
+    desc: 'Slurs racistas, homofóbicos e discriminatórios.',
+    words: [
+      'nigga','nigger','negro','preto sujo','macaco','macaca','nazi','hitler','fascista',
+      'judeu sujo','árabe sujo','terrorista','islamofobia','racista','xenófobo','homofóbico',
+      'transfóbico','lésbica','maricão','travesti','ftm','mtf','refugo','imigrante sujo',
+      'foda-se os pretos','morte aos gays','gay de merda','bicha do caralho','viado do cu',
+      'chink','gook','spic','wetback','towelhead','sandnigger','cracker','honky','kike',
+      'dyke','tranny','shemale','rape','rapar','aborto','holocausto','câmara de gás',
+      'kkk','ku klux','white power','heil hitler','88','1488','escravo','escrava',
+    ],
+  },
+  {
+    id: 'nsfw',
+    label: 'NSFW',
+    desc: 'Conteúdo sexual explícito.',
+    words: [
+      'pornografia','porno','porn','xxx','sexo','sex','oral','anal','vaginal','ejacular',
+      'ejaculação','orgasmo','masturbação','masturbar','vibrador','dildo','fetiche','bdsm',
+      'nude','nudes','pelado','pelada','nu','nua','seios','peito','mamilo','escrotum',
+      'testículos','pénis','penis','vagina','ânus','anus','clitóris','clitoris','cama',
+      'foder','fodendo','transando','trepar','transar','gozar no','mamar','mamar no',
+      'chupar','sugar','handjob','blowjob','creampie','cum','cumshot','jizz','sperm',
+      'semen','lick','licking','fingering','fingerfuck','deepthroat','gangbang','threesome',
+      'orgia','onlyfans','stripper','escort','prostituição','puteiro','bordel','cafetão',
+    ],
+  },
+  {
+    id: 'spam_scam',
+    label: 'Spam & Scam',
+    desc: 'Termos usados em spam, scams e publicidade indesejada.',
+    words: [
+      'free nitro','nitro grátis','clica aqui','click here','ganhe dinheiro','earn money',
+      'crypto','bitcoin grátis','free bitcoin','nft grátis','free nft','win prize',
+      'ganha prémio','you won','ganhou','congratulations','parabéns você foi selecionado',
+      'robux grátis','free robux','v-bucks grátis','free vbucks','paypal grátis',
+      'trabalho em casa','trabalho online','renda extra','ganhe r$','earn $','make money',
+      'buy followers','compra seguidores','boost server','servidor boost grátis',
+      'discord server','join my server','entra no meu servidor','promo','promoção',
+    ],
+  },
+];
+
+const DEFAULT_BAD_WORDS = [
+  ...WORD_TEMPLATES.find(t => t.id === 'pt_basico')!.words,
+  ...WORD_TEMPLATES.find(t => t.id === 'pt_insultos')!.words,
+  ...WORD_TEMPLATES.find(t => t.id === 'en_basico')!.words,
+  ...WORD_TEMPLATES.find(t => t.id === 'discriminacao')!.words,
+];
 
 const DEFAULT_AUTOMOD: AutoMod = {
   antiSpam:    { enabled: false, maxMessages: 5, interval: 5, action: 'timeout' },
@@ -145,8 +242,8 @@ const DEFAULT_LOGS: LogsConfig = Object.fromEntries(
   LOG_CATEGORIES.map(cat => [cat.id, DEFAULT_LOG_CAT(cat.events.map(e => e.id))])
 ) as unknown as LogsConfig;
 
-const DEFAULT_WELCOME: WelcomeConfig = { enabled: false, channelId: null, headerText: 'Bem-vindo(a) ao {server}! 👋', message: 'Olá {user}, estamos felizes por teres chegado!\nDá uma vista de olhos às regras e apresenta-te à comunidade.', footerText: 'Membro nº {count}', showAccountAge: true, bannerType: 'avatar', bannerUrl: '', accentColor: '#3ecf8e' };
-const DEFAULT_GOODBYE: GoodbyeConfig = { enabled: false, channelId: null, headerText: '', message: '**{displayname}** saiu do servidor. Ficamos agora **{count}** membros.', footerText: '', accentColor: '#80848e' };
+const DEFAULT_WELCOME: WelcomeConfig = { enabled: false, channelId: null, message: '## Bem-vindo(a) ao {server}! 👋\nOlá {user}, estamos felizes por teres chegado!\n-# Membro nº {count}', deleteAfter: 0, accentColor: '#6db83e', dmEnabled: false, dmMessage: 'Bem-vindo(a) ao {server}! Lê as regras e diverte-te.' };
+const DEFAULT_GOODBYE: GoodbyeConfig = { enabled: false, channelId: null, message: '**{displayname}** saiu do servidor. Ficamos agora **{count}** membros.', deleteAfter: 0, accentColor: '#80848e', banMessageEnabled: false, banMessage: '**{displayname}** foi banido do servidor.' };
 
 /* ── Icons ── */
 const IconGrid    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>;
@@ -159,6 +256,7 @@ const IconWarn    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="
 const IconSettings= () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 0-14.14 0M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m0 18a9 9 0 0 1-9-9m9 9v-2M3 12a9 9 0 0 1 9-9m-9 9h2"/></svg>;
 const IconChevron = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 const IconCheck   = () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+const IconGift    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>;
 
 /* ── Sidebar nav structure ── */
 const NAV = [
@@ -185,6 +283,12 @@ const NAV = [
     ],
   },
   {
+    section: 'EXTRA',
+    items: [
+      { id: 'giveaways',  label: 'Sorteios',          icon: <IconGift /> },
+    ],
+  },
+  {
     section: 'ADMINISTRAÇÃO',
     items: [
       { id: 'logs',       label: 'Logs',              icon: <IconFile /> },
@@ -201,6 +305,7 @@ const OVERVIEW_CARDS = [
   { id: 'welcome',    label: 'Boas-Vindas',    desc: 'Mensagem de entrada e saída com variáveis dinâmicas.',             icon: <IconUsers /> },
   { id: 'roles',      label: 'Roles & Painéis',desc: 'Auto-roles na entrada e painéis de cargos com botões.',            icon: <IconTag /> },
   { id: 'warns',      label: 'Avisos',         desc: 'Histórico de warns emitidos neste servidor.',                      icon: <IconWarn /> },
+  { id: 'giveaways',  label: 'Sorteios',       desc: 'Cria sorteios com prémios, banners, cargos e rerolls agendados.',   icon: <IconGift /> },
 ];
 
 /* ── Helpers ── */
@@ -276,6 +381,168 @@ const inputStyle: React.CSSProperties = {
   width: '100%', outline: 'none',
 };
 
+function AMCard({ title, desc, badge, enabled, onToggle, onSave, saving, saved, cardId, children }: {
+  title: string; desc: string; badge: 'discord' | 'bot';
+  enabled: boolean; onToggle: () => void;
+  onSave?: () => void; saving?: string | null; saved?: string | null; cardId?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div style={{
+      background: 'var(--card)', border: `1px solid ${enabled ? 'var(--green-border, rgba(109,184,62,.3))' : 'var(--line)'}`,
+      borderRadius: 12, overflow: 'hidden',
+      transition: 'border-color .15s',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', gap: 16 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+            <span style={{ fontSize: 13.5, fontWeight: 600 }}>{title}</span>
+            {badge === 'discord'
+              ? <span style={{ fontSize: 10.5, fontWeight: 600, background: 'rgba(88,101,242,.15)', color: '#818cf8', padding: '1px 7px', borderRadius: 4, letterSpacing: '.03em', flexShrink: 0 }}>DISCORD NATIVO</span>
+              : <span style={{ fontSize: 10.5, fontWeight: 600, background: 'var(--surface)', color: 'var(--text-3)', padding: '1px 7px', borderRadius: 4, border: '1px solid var(--line)', letterSpacing: '.03em', flexShrink: 0 }}>BOT</span>
+            }
+          </div>
+          <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.4 }}>{desc}</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {onSave && <SaveBtn id={cardId ?? title} saving={saving ?? null} saved={saved ?? null} onSave={onSave} />}
+          <Toggle on={enabled} onChange={onToggle} />
+        </div>
+      </div>
+      {enabled && children && (
+        <div style={{ padding: '0 18px 16px', borderTop: '1px solid var(--line)' }}>
+          <div style={{ paddingTop: 14 }}>{children}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── AutoMod Rule Row (module-level, stable reference) ── */
+function AMRuleRow({ ruleKey, title, desc, badge, enabled, onToggle, actionLabels, expanded, onExpand, onSave, saving, saved, saveMsg, children }: {
+  ruleKey: string; title: string; desc: string; badge: 'discord' | 'bot';
+  enabled: boolean; onToggle: () => void;
+  actionLabels: string[];
+  expanded: boolean; onExpand: () => void;
+  onSave?: () => void; saving?: boolean; saved?: boolean; saveMsg?: string | null;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div style={{
+      background: 'var(--card)',
+      border: enabled ? '1px solid rgba(109,184,62,.25)' : '1px solid var(--line)',
+      borderRadius: 12, overflow: 'hidden', transition: 'border-color .2s',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px' }}>
+        {/* Color bar */}
+        <div style={{
+          width: 4, height: 40, borderRadius: 2, flexShrink: 0,
+          background: enabled ? 'var(--green)' : 'var(--line)',
+          transition: 'background .2s',
+        }} />
+
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+            <p style={{ fontSize: 13.5, fontWeight: 700 }}>{title}</p>
+            <span style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: '.05em', padding: '1px 6px', borderRadius: 4,
+              background: badge === 'discord' ? 'rgba(88,101,242,.12)' : 'rgba(109,184,62,.1)',
+              color: badge === 'discord' ? '#818cf8' : 'var(--green)',
+            }}>{badge === 'discord' ? 'DISCORD NATIVO' : 'BOT'}</span>
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: enabled && actionLabels.length ? 8 : 0 }}>{desc}</p>
+          {enabled && actionLabels.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {actionLabels.map(l => (
+                <span key={l} style={{
+                  background: 'var(--surface)', border: '1px solid var(--line)',
+                  borderRadius: 20, padding: '2px 10px', fontSize: 11.5, color: 'var(--text-2)',
+                }}>{l}</span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {children && enabled && (
+            <button onClick={onExpand} style={{
+              background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 7,
+              padding: '5px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: 'var(--text-2)',
+            }}>{expanded ? 'Fechar' : 'Configurar'}</button>
+          )}
+          {onSave && (
+            <button onClick={onSave} disabled={saving} style={{
+              background: saved ? 'rgba(109,184,62,.15)' : 'var(--green)',
+              color: saved ? 'var(--green)' : '#fff',
+              border: 'none', borderRadius: 7,
+              padding: '5px 14px', fontSize: 12, fontWeight: 600, cursor: saving ? 'wait' : 'pointer',
+              transition: 'all .2s', minWidth: 80,
+            }}>
+              {saving ? 'A guardar...' : saved ? 'Guardado!' : 'Guardar'}
+            </button>
+          )}
+          <Toggle on={enabled} onChange={onToggle} />
+        </div>
+      </div>
+
+      {expanded && children && (
+        <div style={{ padding: '0 18px 18px', borderTop: '1px solid var(--line)' }}>
+          <div style={{ paddingTop: 16 }}>{children}</div>
+          {saveMsg && (
+            <p style={{ fontSize: 12, color: '#f87171', marginTop: 10, lineHeight: 1.4, background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.2)', borderRadius: 7, padding: '8px 10px' }}>{saveMsg}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AMSectionHeader({ title, desc }: { title: string; desc?: string }) {
+  return (
+    <div style={{ paddingTop: 22, paddingBottom: 8 }}>
+      <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--text-3)', marginBottom: desc ? 3 : 0 }}>{title}</p>
+      {desc && <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{desc}</p>}
+    </div>
+  );
+}
+
+function AMTags({ items, color, empty, onRemove }: {
+  items: string[]; color: 'red' | 'green'; empty: string; onRemove: (v: string) => void;
+}) {
+  const c = color === 'red'
+    ? { bg: 'rgba(248,113,113,.08)', border: 'rgba(248,113,113,.2)', text: '#f87171' }
+    : { bg: 'var(--green-muted, rgba(109,184,62,.08))', border: 'var(--green-border, rgba(109,184,62,.2))', text: 'var(--green)' };
+  if (items.length === 0) return <p style={{ fontSize: 12.5, color: 'var(--text-3)' }}>{empty}</p>;
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      {items.map(v => (
+        <span key={v} style={{ display: 'flex', alignItems: 'center', gap: 6, background: c.bg, border: `1px solid ${c.border}`, borderRadius: 20, padding: '3px 10px 3px 12px', fontSize: 12.5, color: c.text }}>
+          {v}
+          <button onClick={() => onRemove(v)} aria-label="Remover" style={{ background: 'none', border: 'none', color: c.text, cursor: 'pointer', padding: 0, lineHeight: 0, display: 'flex' }}>
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+          </button>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/* ── Botão de guardar inline (reutilizável) ── */
+function SaveBtn({ id, saving, saved, onSave }: { id: string; saving: string | null; saved: string | null; onSave: () => void }) {
+  return (
+    <button onClick={onSave} disabled={saving === id} style={{
+      background: saved === id ? 'rgba(109,184,62,.15)' : 'var(--green)',
+      color: saved === id ? 'var(--green)' : '#fff',
+      border: 'none', borderRadius: 7, padding: '5px 14px', fontSize: 12, fontWeight: 600,
+      cursor: saving === id ? 'wait' : 'pointer', transition: 'all .2s', minWidth: 80, flexShrink: 0,
+    }}>
+      {saving === id ? 'A guardar...' : saved === id ? 'Guardado!' : 'Guardar'}
+    </button>
+  );
+}
+
 /* ── Main component ── */
 export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'overview' }: {
   guildId: string; guildName?: string; initialTab?: string;
@@ -292,13 +559,25 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
   const [warns, setWarns]         = useState<Warn[]>([]);
   const [saving, setSaving]       = useState(false);
   const [saved, setSaved]         = useState(false);
+  const [saveMsg, setSaveMsg]     = useState<string | null>(null);
   const [newWord, setNewWord]     = useState('');
   const [newDomain, setNewDomain] = useState('');
+  const [setupStatus, setSetupStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
+  const [setupMsg, setSetupMsg] = useState<string | null>(null);
+  const [expandedRule, setExpandedRule] = useState<string | null>(null);
+  const [savingRule, setSavingRule]   = useState<string | null>(null);
+  const [savedRule, setSavedRule]     = useState<string | null>(null);
+  const [ruleSaveMsg, setRuleSaveMsg] = useState<string | null>(null);
+  const [savingCard, setSavingCard]   = useState<string | null>(null);
+  const [savedCard, setSavedCard]     = useState<string | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
   const active = searchParams.get('tab') ?? initialTab;
   const setActive = (tab: string) => router.push(`?tab=${tab}`, { scroll: false });
   const [loading, setLoading]     = useState(true);
+
+  // Limpa avisos/estado de guardado ao trocar de secção
+  useEffect(() => { setSaveMsg(null); setSaved(false); }, [active]);
 
   useEffect(() => {
     const safe = (p: Promise<unknown>, fallback: unknown) => p.catch(() => fallback);
@@ -325,11 +604,33 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
     }).catch(() => setLoading(false));
   }, [guildId]);
 
-  async function save() {
-    setSaving(true);
-    await fetch(`/api/guilds/${guildId}/config`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) });
-    setSaving(false); setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  async function saveFields(cardKey: string, keys: (keyof Config)[]) {
+    setSavingCard(cardKey);
+    const payload: Record<string, unknown> = {};
+    for (const k of keys) payload[k] = config[k];
+    await fetch(`/api/guilds/${guildId}/config`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => null);
+    setSavingCard(null); setSavedCard(cardKey);
+    setTimeout(() => setSavedCard(c => c === cardKey ? null : c), 2500);
+  }
+
+  async function saveRule(key: string) {
+    setSavingRule(key); setRuleSaveMsg(null);
+    try {
+      const res = await fetch(`/api/guilds/${guildId}/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ autoMod: config.autoMod }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.autoModWarning) setRuleSaveMsg(data.autoModWarning);
+      setSavedRule(key);
+      setTimeout(() => setSavedRule(null), 2500);
+    } finally {
+      setSavingRule(null);
+    }
   }
 
   function setAMSub<K extends keyof AutoMod>(key: K, sub: Partial<AutoMod[K]>) {
@@ -349,13 +650,6 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
 
   return (
     <div style={{ position: 'relative' }}>
-      {active !== 'overview' && (
-        <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 10 }}>
-          <button className="btn btn-primary" onClick={save} disabled={saving} style={{ fontSize: 13 }}>
-            {saving ? 'A guardar...' : saved ? 'Guardado!' : 'Guardar alterações'}
-          </button>
-        </div>
-      )}
 
         {/* OVERVIEW */}
         {active === 'overview' && (
@@ -393,216 +687,210 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
 
         {/* MODERATION */}
         {active === 'moderation' && (
-          <div>
-            <Section title="Comportamento" subtitle="Como o Laguno age quando uma ação de moderação é executada.">
-              <Row label="DM ao utilizador" desc="Envia uma mensagem privada ao membro quando é moderado (ban, kick, warn, timeout).">
-                <Toggle on={config.moderation.dmOnAction} onChange={() => setConfig(c => ({ ...c, moderation: { ...c.moderation, dmOnAction: !c.moderation.dmOnAction } }))} />
-              </Row>
-              <Row label="Motivo obrigatório" desc="Os moderadores são obrigados a especificar um motivo em todas as ações.">
-                <Toggle on={config.moderation.requireReason} onChange={() => setConfig(c => ({ ...c, moderation: { ...c.moderation, requireReason: !c.moderation.requireReason } }))} />
-              </Row>
-              <div style={{ paddingTop: 12 }}>
-                <Field label="URL de apelos" hint="Incluído na DM de ban — onde o utilizador pode contestar.">
-                  <input style={inputStyle} placeholder="https://forms.gle/..." value={config.moderation.appealUrl}
-                    onChange={e => setConfig(c => ({ ...c, moderation: { ...c.moderation, appealUrl: e.target.value } }))} />
-                </Field>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+            {/* Comportamento */}
+            <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '18px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div>
+                  <p style={{ fontSize: 13.5, fontWeight: 600, marginBottom: 2 }}>Comportamento</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Como o Laguno age quando uma ação de moderação é executada.</p>
+                </div>
+                <SaveBtn id="mod-behavior" saving={savingCard} saved={savedCard} onSave={() => saveFields('mod-behavior', ['moderation'])} />
               </div>
-            </Section>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--line)', gap: 16 }}>
+                  <div>
+                    <p style={{ fontSize: 13.5, fontWeight: 500 }}>DM ao utilizador</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>Envia mensagem privada ao membro quando é banido, expulso ou avisado.</p>
+                  </div>
+                  <Toggle on={config.moderation.dmOnAction} onChange={() => setConfig(c => ({ ...c, moderation: { ...c.moderation, dmOnAction: !c.moderation.dmOnAction } }))} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', gap: 16 }}>
+                  <div>
+                    <p style={{ fontSize: 13.5, fontWeight: 500 }}>Motivo obrigatório</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>Moderadores têm de especificar um motivo em todas as ações.</p>
+                  </div>
+                  <Toggle on={config.moderation.requireReason} onChange={() => setConfig(c => ({ ...c, moderation: { ...c.moderation, requireReason: !c.moderation.requireReason } }))} />
+                </div>
+              </div>
+            </div>
 
-            <Section title="Cargo de Mute" subtitle="Cargo atribuído como alternativa ao Discord Timeout (para servidores com canais privados).">
-              <Field label="Cargo de mute">
-                <select style={inputStyle} value={config.moderation.muteRoleId ?? ''}
-                  onChange={e => setConfig(c => ({ ...c, moderation: { ...c.moderation, muteRoleId: e.target.value || null } }))}>
-                  <option value="">— Usar Discord Timeout (padrão) —</option>
-                  {roles.map(r => <option key={r.id} value={r.id}>@{r.name}</option>)}
-                </select>
-              </Field>
-            </Section>
+            {/* URL de apelos + Cargo de mute + Canal de logs — numa linha */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+              {[
+                {
+                  id: 'mod-appeal', title: 'URL de apelos', desc: 'Enviado na DM de ban para o membro contestar.',
+                  child: <input style={inputStyle} placeholder="https://forms.gle/..." value={config.moderation.appealUrl}
+                    onChange={e => setConfig(c => ({ ...c, moderation: { ...c.moderation, appealUrl: e.target.value } }))} />,
+                  keys: ['moderation'] as (keyof Config)[],
+                },
+                {
+                  id: 'mod-mute', title: 'Cargo de mute', desc: 'Alternativa ao Discord Timeout para canais privados.',
+                  child: <select style={inputStyle} value={config.moderation.muteRoleId ?? ''}
+                    onChange={e => setConfig(c => ({ ...c, moderation: { ...c.moderation, muteRoleId: e.target.value || null } }))}>
+                    <option value="">Discord Timeout (padrão)</option>
+                    {roles.map(r => <option key={r.id} value={r.id}>@{r.name}</option>)}
+                  </select>,
+                  keys: ['moderation'] as (keyof Config)[],
+                },
+                {
+                  id: 'mod-logch', title: 'Canal de logs', desc: 'Regista ações de moderação neste canal.',
+                  child: <select style={inputStyle} value={config.logChannelId ?? ''}
+                    onChange={e => setConfig(c => ({ ...c, logChannelId: e.target.value || null }))}>
+                    <option value="">Desativado</option>
+                    {channels.map(ch => <option key={ch.id} value={ch.id}>#{ch.name}</option>)}
+                  </select>,
+                  keys: ['logChannelId'] as (keyof Config)[],
+                },
+              ].map(card => (
+                <div key={card.id} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                    <div>
+                      <p style={{ fontSize: 13.5, fontWeight: 600, marginBottom: 2 }}>{card.title}</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{card.desc}</p>
+                    </div>
+                    <SaveBtn id={card.id} saving={savingCard} saved={savedCard} onSave={() => saveFields(card.id, card.keys)} />
+                  </div>
+                  {card.child}
+                </div>
+              ))}
+            </div>
 
-            <Section title="Canal de Logs" subtitle="Regista ações de moderação neste canal (complementar ao módulo Logs).">
-              <Field label="Canal">
-                <select style={inputStyle} value={config.logChannelId ?? ''}
-                  onChange={e => setConfig(c => ({ ...c, logChannelId: e.target.value || null }))}>
-                  <option value="">— Desativado —</option>
-                  {channels.map(ch => <option key={ch.id} value={ch.id}>#{ch.name}</option>)}
-                </select>
-              </Field>
-            </Section>
           </div>
         )}
 
         {/* AUTO-MOD */}
-        {active === 'automod' && (
-          <div>
-            <Section title="Anti-Spam" subtitle="Pune utilizadores que enviam mensagens em excesso.">
-              <Row label="Ativar Anti-Spam" desc="Deteta rajadas de mensagens e aplica a ação configurada.">
-                <Toggle on={config.autoMod.antiSpam.enabled} onChange={() => setAMSub('antiSpam', { enabled: !config.autoMod.antiSpam.enabled })} />
-              </Row>
-              {config.autoMod.antiSpam.enabled && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 16 }}>
-                  <Field label="Máx. mensagens">
-                    <input type="number" min={2} max={20} style={inputStyle} value={config.autoMod.antiSpam.maxMessages}
-                      onChange={e => setAMSub('antiSpam', { maxMessages: parseInt(e.target.value) || 5 })} />
-                  </Field>
-                  <Field label="Intervalo (seg)">
-                    <input type="number" min={2} max={30} style={inputStyle} value={config.autoMod.antiSpam.interval}
-                      onChange={e => setAMSub('antiSpam', { interval: parseInt(e.target.value) || 5 })} />
-                  </Field>
-                  <Field label="Ação">
-                    <select style={inputStyle} value={config.autoMod.antiSpam.action}
-                      onChange={e => setAMSub('antiSpam', { action: e.target.value })}>
-                      <option value="delete">Apagar mensagem</option>
-                      <option value="timeout">Timeout (5 min)</option>
-                      <option value="kick">Kick</option>
-                      <option value="ban">Ban</option>
-                    </select>
-                  </Field>
-                </div>
-              )}
-            </Section>
-
-            <Section title="Filtro de Palavras" subtitle="Apaga automaticamente mensagens com palavras proibidas.">
-              <Row label="Ativar filtro" desc="Remove mensagens assim que são enviadas.">
-                <Toggle on={config.autoMod.wordFilter.enabled} onChange={() => setAMSub('wordFilter', { enabled: !config.autoMod.wordFilter.enabled })} />
-              </Row>
-              {config.autoMod.wordFilter.enabled && (
-                <div style={{ marginTop: 16 }}>
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                    <input style={{ ...inputStyle, flex: 1 }} placeholder="palavra proibida"
-                      value={newWord} onChange={e => setNewWord(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter' && newWord.trim()) { setAMSub('wordFilter', { words: [...config.autoMod.wordFilter.words, newWord.trim().toLowerCase()] }); setNewWord(''); } }} />
-                    <button className="btn btn-primary" onClick={() => { if (!newWord.trim()) return; setAMSub('wordFilter', { words: [...config.autoMod.wordFilter.words, newWord.trim().toLowerCase()] }); setNewWord(''); }}>Adicionar</button>
+        {active === 'automod' && (() => {
+          type FC = AutoMod & { floodControl?: { enabled?: boolean; maxMessages?: number; interval?: number; slowmode?: number; duration?: number } };
+          const fc = (config.autoMod as FC).floodControl ?? {};
+          const setFc = (patch: object) => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, floodControl: { ...fc, ...patch } } as AutoMod }));
+          const exp = (key: string) => expandedRule === key;
+          const tog = (key: string) => setExpandedRule(p => p === key ? null : key);
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ background: 'rgba(109,184,62,.06)', border: '1px solid rgba(109,184,62,.2)', borderRadius: 12, padding: '16px 20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                  <div>
+                    <p style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 3 }}>Configuracao Rapida</p>
+                    <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5 }}>Ativa todas as regras com os valores recomendados — inclui +120 palavras bloqueadas (PT + EN + discriminacao).</p>
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                    {config.autoMod.wordFilter.words.length === 0
-                      ? <p style={{ fontSize: 12.5, color: 'var(--text-3)' }}>Nenhuma palavra adicionada.</p>
-                      : config.autoMod.wordFilter.words.map(w => (
-                        <span key={w} style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: 20, padding: '4px 10px 4px 12px', fontSize: 12.5, color: '#f87171' }}>
-                          {w}
-                          <button onClick={() => setAMSub('wordFilter', { words: config.autoMod.wordFilter.words.filter(x => x !== w) })}
-                            style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: 14, padding: 0, lineHeight: 1 }}>✕</button>
-                        </span>
-                      ))}
-                  </div>
+                  <button disabled={setupStatus === 'loading'} onClick={async () => {
+                    setSetupStatus('loading'); setSetupMsg(null);
+                    try {
+                      const res = await fetch(`/api/guilds/${guildId}/automod/setup`, { method: 'POST' });
+                      const data = await res.json().catch(() => ({}));
+                      if (res.ok && data.ok) {
+                        setSetupStatus('ok');
+                        const cfg = await fetch(`/api/guilds/${guildId}/config`).then(r => r.json());
+                        if (cfg?.autoMod) setConfig(c => ({ ...c, autoMod: { ...DEFAULT_AUTOMOD, ...cfg.autoMod } }));
+                      } else {
+                        setSetupStatus('err');
+                        setSetupMsg(data.reason ?? data.error ?? 'Nao foi possivel ativar. Tenta de novo.');
+                      }
+                    } catch { setSetupStatus('err'); setSetupMsg('Erro de ligacao. Tenta de novo.'); }
+                    setTimeout(() => setSetupStatus('idle'), 6000);
+                  }} style={{ flexShrink: 0, padding: '9px 22px', borderRadius: 8, border: 'none', cursor: setupStatus === 'loading' ? 'wait' : 'pointer', fontWeight: 700, fontSize: 13, background: setupStatus === 'ok' ? 'rgba(109,184,62,.15)' : setupStatus === 'err' ? 'rgba(248,113,113,.15)' : 'var(--green)', color: setupStatus === 'ok' ? 'var(--green)' : setupStatus === 'err' ? '#f87171' : '#fff', transition: 'all .2s', minWidth: 148 }}>
+                    {setupStatus === 'loading' ? 'A ativar...' : setupStatus === 'ok' ? 'Ativado!' : setupStatus === 'err' ? 'Erro' : 'Ativar tudo'}
+                  </button>
                 </div>
-              )}
-            </Section>
-
-            <Section title="Anti-Link" subtitle="Bloqueia links externos, exceto os domínios na whitelist.">
-              <Row label="Ativar Anti-Link" desc="Apaga mensagens que contenham URLs.">
-                <Toggle on={config.autoMod.antiLink.enabled} onChange={() => setAMSub('antiLink', { enabled: !config.autoMod.antiLink.enabled })} />
-              </Row>
-              {config.autoMod.antiLink.enabled && (
-                <div style={{ marginTop: 16 }}>
-                  <Field label="Domínios permitidos" hint="ex: youtube.com, twitch.tv">
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                      <input style={{ ...inputStyle, flex: 1 }} placeholder="dominio.com" value={newDomain}
-                        onChange={e => setNewDomain(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter' && newDomain.trim()) { setAMSub('antiLink', { whitelist: [...config.autoMod.antiLink.whitelist, newDomain.trim().toLowerCase()] }); setNewDomain(''); } }} />
-                      <button className="btn btn-ghost" onClick={() => { if (!newDomain.trim()) return; setAMSub('antiLink', { whitelist: [...config.autoMod.antiLink.whitelist, newDomain.trim().toLowerCase()] }); setNewDomain(''); }}>Permitir</button>
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                      {config.autoMod.antiLink.whitelist.length === 0
-                        ? <p style={{ fontSize: 12.5, color: 'var(--text-3)' }}>Todos os links são bloqueados.</p>
-                        : config.autoMod.antiLink.whitelist.map(d => (
-                          <span key={d} style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'var(--green-muted)', border: '1px solid var(--green-border)', borderRadius: 20, padding: '4px 10px 4px 12px', fontSize: 12.5, color: 'var(--green)' }}>
-                            {d}
-                            <button onClick={() => setAMSub('antiLink', { whitelist: config.autoMod.antiLink.whitelist.filter(x => x !== d) })}
-                              style={{ background: 'none', border: 'none', color: 'var(--green)', cursor: 'pointer', fontSize: 14, padding: 0, lineHeight: 1 }}>✕</button>
-                          </span>
-                        ))}
-                    </div>
-                  </Field>
-                </div>
-              )}
-            </Section>
-
-            <Section title="Filtro de CAPS" subtitle="Remove mensagens com excesso de letras maiúsculas.">
-              <Row label="Ativar filtro de CAPS" desc="Apaga mensagens onde as maiúsculas ultrapassam o limite configurado.">
-                <Toggle on={config.autoMod.capsFilter.enabled} onChange={() => setAMSub('capsFilter', { enabled: !config.autoMod.capsFilter.enabled })} />
-              </Row>
-              {config.autoMod.capsFilter.enabled && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16 }}>
-                  <Field label="% máxima de maiúsculas" hint="Padrão: 70%">
-                    <input type="number" min={30} max={100} style={inputStyle} value={config.autoMod.capsFilter.maxPercent}
-                      onChange={e => setAMSub('capsFilter', { maxPercent: parseInt(e.target.value) || 70 })} />
-                  </Field>
-                  <Field label="Tamanho mínimo da mensagem" hint="Ignora mensagens curtas">
-                    <input type="number" min={5} max={50} style={inputStyle} value={config.autoMod.capsFilter.minLength}
-                      onChange={e => setAMSub('capsFilter', { minLength: parseInt(e.target.value) || 10 })} />
-                  </Field>
-                </div>
-              )}
-            </Section>
-
-            <Section title="Anti-Menções" subtitle="Pune utilizadores que mencionam demasiados utilizadores ou cargos numa mensagem.">
-              <Row label="Ativar Anti-Menções" desc="Apaga mensagens com demasiadas menções.">
-                <Toggle on={config.autoMod.mentionSpam.enabled} onChange={() => setAMSub('mentionSpam', { enabled: !config.autoMod.mentionSpam.enabled })} />
-              </Row>
-              {config.autoMod.mentionSpam.enabled && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16 }}>
-                  <Field label="Máx. menções por mensagem">
-                    <input type="number" min={2} max={20} style={inputStyle} value={config.autoMod.mentionSpam.maxMentions}
-                      onChange={e => setAMSub('mentionSpam', { maxMentions: parseInt(e.target.value) || 5 })} />
-                  </Field>
-                  <Field label="Ação">
-                    <select style={inputStyle} value={config.autoMod.mentionSpam.action}
-                      onChange={e => setAMSub('mentionSpam', { action: e.target.value })}>
-                      <option value="delete">Apagar mensagem</option>
-                      <option value="timeout">Timeout (10 min)</option>
-                      <option value="kick">Kick</option>
-                      <option value="ban">Ban</option>
-                    </select>
-                  </Field>
-                </div>
-              )}
-            </Section>
-
-            <Section title="Exceções">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <Field label="Canais ignorados" hint="O auto-mod não atua nestes canais.">
-                  <select style={inputStyle} onChange={e => { if (!e.target.value || config.autoMod.ignoredChannels.includes(e.target.value)) return; setAM('ignoredChannels', [...config.autoMod.ignoredChannels, e.target.value]); e.target.value = ''; }}>
-                    <option value="">+ Adicionar canal...</option>
-                    {channels.filter(c => !config.autoMod.ignoredChannels.includes(c.id)).map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
-                  </select>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-                    {config.autoMod.ignoredChannels.map(id => (
-                      <span key={id} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 20, padding: '3px 10px', fontSize: 12 }}>
-                        #{channels.find(c => c.id === id)?.name ?? id}
-                        <button onClick={() => setAM('ignoredChannels', config.autoMod.ignoredChannels.filter(x => x !== id))} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 12, padding: 0 }}>✕</button>
-                      </span>
-                    ))}
-                  </div>
-                </Field>
-                <Field label="Roles imunes" hint="Membros com estes cargos ignoram o auto-mod.">
-                  <select style={inputStyle} onChange={e => { if (!e.target.value || config.autoMod.ignoredRoles.includes(e.target.value)) return; setAM('ignoredRoles', [...config.autoMod.ignoredRoles, e.target.value]); e.target.value = ''; }}>
-                    <option value="">+ Adicionar role...</option>
-                    {roles.filter(r => !config.autoMod.ignoredRoles.includes(r.id)).map(r => <option key={r.id} value={r.id}>@{r.name}</option>)}
-                  </select>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-                    {config.autoMod.ignoredRoles.map(id => (
-                      <span key={id} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 20, padding: '3px 10px', fontSize: 12 }}>
-                        @{roles.find(r => r.id === id)?.name ?? id}
-                        <button onClick={() => setAM('ignoredRoles', config.autoMod.ignoredRoles.filter(x => x !== id))} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 12, padding: 0 }}>✕</button>
-                      </span>
-                    ))}
-                  </div>
-                </Field>
+                {setupMsg && setupStatus === 'err' && (
+                  <p style={{ fontSize: 12, color: '#f87171', marginTop: 12, lineHeight: 1.5, background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.2)', borderRadius: 8, padding: '10px 12px' }}>{setupMsg}</p>
+                )}
               </div>
-            </Section>
-          </div>
-        )}
+              <AMSectionHeader title="Discord Nativo" desc="Aplicadas instantaneamente pelo Discord, sem intervencao do bot." />
+              <AMRuleRow ruleKey="wordFilter" title={`Filtro de Palavras${config.autoMod.wordFilter.words.length > 0 ? ` (${config.autoMod.wordFilter.words.length})` : ''}`} desc="Bloqueia mensagens com palavras proibidas. Usa a API AutoMod do Discord (trigger KEYWORD, max 1000 palavras, 60 chars cada)." badge="discord" enabled={config.autoMod.wordFilter.enabled} onToggle={() => { const en = !config.autoMod.wordFilter.enabled; setAMSub('wordFilter', { enabled: en, ...(en && config.autoMod.wordFilter.words.length === 0 ? { words: [...DEFAULT_BAD_WORDS] } : {}) }); }} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={exp('wordFilter')} onExpand={() => tog('wordFilter')} onSave={() => saveRule('wordFilter')} saving={savingRule === 'wordFilter'} saved={savedRule === 'wordFilter'} saveMsg={savedRule === 'wordFilter' || savingRule === 'wordFilter' ? ruleSaveMsg : null}>
+                <div style={{ marginBottom: 14 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Templates rapidos</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {WORD_TEMPLATES.map(t => { const newW = t.words.filter(w => !config.autoMod.wordFilter.words.includes(w)); const all = newW.length === 0; return (<button key={t.id} title={t.desc} onClick={() => { if (all) return; setAMSub('wordFilter', { words: [...config.autoMod.wordFilter.words, ...newW] }); }} style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, cursor: all ? 'default' : 'pointer', border: all ? '1px solid var(--line)' : '1px solid rgba(109,184,62,.3)', background: all ? 'var(--surface)' : 'rgba(109,184,62,.08)', color: all ? 'var(--text-3)' : 'var(--green)' }}>{t.label}{all ? ' (adicionado)' : ` +${newW.length}`}</button>); })}
+                    <button onClick={() => { if (!config.autoMod.wordFilter.words.length) return; if (confirm('Limpar todas as palavras?')) setAMSub('wordFilter', { words: [] }); }} style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer', border: '1px solid rgba(248,113,113,.25)', background: 'rgba(248,113,113,.05)', color: '#f87171' }}>Limpar tudo</button>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                  <input style={{ ...inputStyle, flex: 1 }} placeholder="Adicionar palavra proibida" value={newWord} onChange={e => setNewWord(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newWord.trim()) { setAMSub('wordFilter', { words: [...config.autoMod.wordFilter.words, newWord.trim().toLowerCase()] }); setNewWord(''); } }} />
+                  <button className="btn btn-primary" onClick={() => { if (!newWord.trim()) return; setAMSub('wordFilter', { words: [...config.autoMod.wordFilter.words, newWord.trim().toLowerCase()] }); setNewWord(''); }}>Adicionar</button>
+                </div>
+                <AMTags items={config.autoMod.wordFilter.words} color="red" empty="Nenhuma palavra adicionada." onRemove={w => setAMSub('wordFilter', { words: config.autoMod.wordFilter.words.filter(x => x !== w) })} />
+              </AMRuleRow>
+              <AMRuleRow ruleKey="antiSpam" title="Detecao de Spam" desc="Usa o algoritmo de spam interno do Discord (trigger SPAM). Deteta e bloqueia conteudo repetitivo ou suspeito automaticamente." badge="discord" enabled={config.autoMod.antiSpam.enabled} onToggle={() => setAMSub('antiSpam', { enabled: !config.autoMod.antiSpam.enabled })} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={exp('antiSpam')} onExpand={() => tog('antiSpam')} onSave={() => saveRule('antiSpam')} saving={savingRule === 'antiSpam'} saved={savedRule === 'antiSpam'} saveMsg={savedRule === 'antiSpam' || savingRule === 'antiSpam' ? ruleSaveMsg : null}>
+                <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.6 }}>Esta regra nao tem parametros configuraveis — o Discord gere a detecao internamente. So precisas de a ativar. (O trigger SPAM nao suporta timeout, apenas bloquear e alertar.)</p>
+              </AMRuleRow>
+              <AMRuleRow ruleKey="mentionSpam" title="Anti-Mencoes" desc="Bloqueia mensagens com demasiadas mencoes (trigger MENTION_SPAM). Limite maximo: 50 mencoes (limite da API Discord)." badge="discord" enabled={config.autoMod.mentionSpam.enabled} onToggle={() => setAMSub('mentionSpam', { enabled: !config.autoMod.mentionSpam.enabled })} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={exp('mentionSpam')} onExpand={() => tog('mentionSpam')} onSave={() => saveRule('mentionSpam')} saving={savingRule === 'mentionSpam'} saved={savedRule === 'mentionSpam'} saveMsg={savedRule === 'mentionSpam' || savingRule === 'mentionSpam' ? ruleSaveMsg : null}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <Field label="Max. mencoes por mensagem"><input type="number" min={2} max={50} style={inputStyle} value={config.autoMod.mentionSpam.maxMentions} onChange={e => setAMSub('mentionSpam', { maxMentions: parseInt(e.target.value) || 5 })} /></Field>
+                  <Field label="Acao"><select style={inputStyle} value={config.autoMod.mentionSpam.action} onChange={e => setAMSub('mentionSpam', { action: e.target.value })}><option value="delete">Apagar mensagem</option><option value="timeout">Timeout (10 min)</option><option value="kick">Kick</option><option value="ban">Ban</option></select></Field>
+                </div>
+              </AMRuleRow>
+              <AMRuleRow ruleKey="antiLink" title="Anti-Link" desc="Bloqueia links e convites Discord (trigger KEYWORD com allow_list). Dominios permitidos nao sao bloqueados." badge="discord" enabled={config.autoMod.antiLink.enabled} onToggle={() => setAMSub('antiLink', { enabled: !config.autoMod.antiLink.enabled })} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={exp('antiLink')} onExpand={() => tog('antiLink')} onSave={() => saveRule('antiLink')} saving={savingRule === 'antiLink'} saved={savedRule === 'antiLink'} saveMsg={savedRule === 'antiLink' || savingRule === 'antiLink' ? ruleSaveMsg : null}>
+                <Field label="Dominios permitidos" hint="ex: youtube.com, twitch.tv">
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                    <input style={{ ...inputStyle, flex: 1 }} placeholder="dominio.com" value={newDomain} onChange={e => setNewDomain(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newDomain.trim()) { setAMSub('antiLink', { whitelist: [...config.autoMod.antiLink.whitelist, newDomain.trim().toLowerCase()] }); setNewDomain(''); } }} />
+                    <button className="btn btn-secondary" onClick={() => { if (!newDomain.trim()) return; setAMSub('antiLink', { whitelist: [...config.autoMod.antiLink.whitelist, newDomain.trim().toLowerCase()] }); setNewDomain(''); }}>Permitir</button>
+                  </div>
+                  <AMTags items={config.autoMod.antiLink.whitelist} color="green" empty="Todos os links sao bloqueados." onRemove={d => setAMSub('antiLink', { whitelist: config.autoMod.antiLink.whitelist.filter(x => x !== d) })} />
+                </Field>
+              </AMRuleRow>
+              <AMSectionHeader title="Laguno Bot" desc="Regras processadas pelo bot diretamente no servidor." />
+              <AMRuleRow ruleKey="capsFilter" title="Filtro de CAPS" desc="Remove mensagens com excesso de letras maiusculas. Configuravel por percentagem e comprimento minimo." badge="bot" enabled={config.autoMod.capsFilter.enabled} onToggle={() => setAMSub('capsFilter', { enabled: !config.autoMod.capsFilter.enabled })} actionLabels={['apagar mensagem', 'aviso no canal']} expanded={exp('capsFilter')} onExpand={() => tog('capsFilter')} onSave={() => saveRule('capsFilter')} saving={savingRule === 'capsFilter'} saved={savedRule === 'capsFilter'} saveMsg={savedRule === 'capsFilter' || savingRule === 'capsFilter' ? ruleSaveMsg : null}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <Field label="% maxima de maiusculas"><input type="number" min={30} max={100} style={inputStyle} value={config.autoMod.capsFilter.maxPercent} onChange={e => setAMSub('capsFilter', { maxPercent: parseInt(e.target.value) || 70 })} /></Field>
+                  <Field label="Comprimento minimo (caract.)"><input type="number" min={5} max={50} style={inputStyle} value={config.autoMod.capsFilter.minLength} onChange={e => setAMSub('capsFilter', { minLength: parseInt(e.target.value) || 10 })} /></Field>
+                </div>
+              </AMRuleRow>
+              <AMRuleRow ruleKey="floodControl" title="Anti-Flood — Slowmode Automatico" desc="Ativa o slowmode num canal quando deteta muitas mensagens em pouco tempo." badge="bot" enabled={!!fc.enabled} onToggle={() => setFc({ enabled: !fc.enabled })} actionLabels={['ativar slowmode no canal', 'notificar canal']} expanded={exp('floodControl')} onExpand={() => tog('floodControl')} onSave={() => saveRule('floodControl')} saving={savingRule === 'floodControl'} saved={savedRule === 'floodControl'} saveMsg={savedRule === 'floodControl' || savingRule === 'floodControl' ? ruleSaveMsg : null}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10 }}>
+                  <Field label="Max. mensagens"><input type="number" min={3} max={30} style={inputStyle} value={fc.maxMessages ?? 8} onChange={e => setFc({ maxMessages: parseInt(e.target.value) || 8 })} /></Field>
+                  <Field label="Intervalo (seg)"><input type="number" min={2} max={30} style={inputStyle} value={fc.interval ?? 5} onChange={e => setFc({ interval: parseInt(e.target.value) || 5 })} /></Field>
+                  <Field label="Slowmode (seg)"><input type="number" min={1} max={21600} style={inputStyle} value={fc.slowmode ?? 10} onChange={e => setFc({ slowmode: parseInt(e.target.value) || 10 })} /></Field>
+                  <Field label="Duracao (seg)"><input type="number" min={10} max={3600} style={inputStyle} value={fc.duration ?? 60} onChange={e => setFc({ duration: parseInt(e.target.value) || 60 })} /></Field>
+                </div>
+              </AMRuleRow>
+              <AMSectionHeader title="Excecoes" desc="Canais e cargos isentos de todas as regras acima." />
+              <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '18px 20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <Field label="Canais ignorados">
+                    <select style={inputStyle} onChange={e => { if (!e.target.value || config.autoMod.ignoredChannels.includes(e.target.value)) return; setAM('ignoredChannels', [...config.autoMod.ignoredChannels, e.target.value]); e.target.value = ''; }}><option value="">Adicionar canal...</option>{channels.filter(c => !config.autoMod.ignoredChannels.includes(c.id)).map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}</select>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>{config.autoMod.ignoredChannels.map(id => (<span key={id} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 20, padding: '3px 10px', fontSize: 12 }}>#{channels.find(c => c.id === id)?.name ?? id}<button onClick={() => setAM('ignoredChannels', config.autoMod.ignoredChannels.filter(x => x !== id))} aria-label="Remover" style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', padding: 0, lineHeight: 0, display: 'flex' }}><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg></button></span>))}</div>
+                  </Field>
+                  <Field label="Cargos isentos">
+                    <select style={inputStyle} onChange={e => { if (!e.target.value || config.autoMod.ignoredRoles.includes(e.target.value)) return; setAM('ignoredRoles', [...config.autoMod.ignoredRoles, e.target.value]); e.target.value = ''; }}><option value="">Adicionar cargo...</option>{roles.filter(r => !config.autoMod.ignoredRoles.includes(r.id)).map(r => <option key={r.id} value={r.id}>@{r.name}</option>)}</select>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>{config.autoMod.ignoredRoles.map(id => (<span key={id} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 20, padding: '3px 10px', fontSize: 12 }}>@{roles.find(r => r.id === id)?.name ?? id}<button onClick={() => setAM('ignoredRoles', config.autoMod.ignoredRoles.filter(x => x !== id))} aria-label="Remover" style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', padding: 0, lineHeight: 0, display: 'flex' }}><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg></button></span>))}</div>
+                  </Field>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
+                  <button onClick={() => saveRule('exceptions')} disabled={savingRule === 'exceptions'} style={{
+                    background: savedRule === 'exceptions' ? 'rgba(109,184,62,.15)' : 'var(--green)',
+                    color: savedRule === 'exceptions' ? 'var(--green)' : '#fff',
+                    border: 'none', borderRadius: 7, padding: '7px 18px', fontSize: 12.5, fontWeight: 600,
+                    cursor: savingRule === 'exceptions' ? 'wait' : 'pointer', transition: 'all .2s',
+                  }}>
+                    {savingRule === 'exceptions' ? 'A guardar...' : savedRule === 'exceptions' ? 'Guardado!' : 'Guardar exceções'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* BOAS-VINDAS */}
         {active === 'welcome' && (
           <WelcomeTab welcome={config.welcome} goodbye={config.goodbye} channels={channels} guildName={guildName} guildId={guildId}
-            onChange={(key, val) => setConfig(c => ({ ...c, [key]: val }))} />
+            onChange={(key, val) => setConfig(c => ({ ...c, [key]: val }))}
+            onSaveWelcome={() => saveFields('welcome-save', ['welcome'])}
+            onSaveGoodbye={() => saveFields('goodbye-save', ['goodbye'])} />
         )}
 
         {/* ROLES */}
         {active === 'roles' && (
           <RolesTab autoroles={config.autoroles} rolePanels={config.rolePanels} roles={roles}
+            channels={channels} guildId={guildId}
             onChange={(key, val) => setConfig(c => ({ ...c, [key]: val }))} />
+        )}
+
+        {/* SORTEIOS */}
+        {active === 'giveaways' && (
+          <GiveawayModule guildId={guildId} />
         )}
 
 
@@ -646,6 +934,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                     }}>
                       {Object.values(catCfg.events).every(Boolean) ? 'Desativar todos' : 'Ativar todos'}
                     </button>
+                    <SaveBtn id={`logs-${cat.id}`} saving={savingCard} saved={savedCard} onSave={() => saveFields(`logs-${cat.id}`, ['logs'])} />
                   </div>
 
                   {/* Events grid */}
@@ -676,14 +965,24 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
 
         {/* AVISOS */}
         {active === 'warns' && (
-          <div>
-            <Section title="Auto-Ação" subtitle="Aplica automaticamente uma punição quando um membro atinge X avisos.">
-              <Row label="Ativar auto-ação" desc="Quando ativado, o Laguno aplica a punição configurada ao atingir o limite.">
-                <Toggle on={config.warns.autoAction.enabled} onChange={() => setConfig(c => ({ ...c, warns: { ...c.warns, autoAction: { ...c.warns.autoAction, enabled: !c.warns.autoAction.enabled } } }))} />
-              </Row>
-              {config.warns.autoAction.enabled && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 16 }}>
-                  <Field label="Nº de avisos" hint="Ao atingir este número">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+            {/* Auto-ação + Expiração lado a lado */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+
+              <AMCard
+                title="Auto-Ação"
+                desc="Aplica uma punição automática quando um membro acumula avisos a mais."
+                badge="bot"
+                cardId="warns-auto"
+                enabled={config.warns.autoAction.enabled}
+                onToggle={() => setConfig(c => ({ ...c, warns: { ...c.warns, autoAction: { ...c.warns.autoAction, enabled: !c.warns.autoAction.enabled } } }))}
+                onSave={() => saveFields('warns-auto', ['warns'])}
+                saving={savingCard}
+                saved={savedCard}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <Field label="Nº de avisos para punir">
                     <input type="number" min={2} max={20} style={inputStyle} value={config.warns.autoAction.threshold}
                       onChange={e => setConfig(c => ({ ...c, warns: { ...c.warns, autoAction: { ...c.warns.autoAction, threshold: parseInt(e.target.value) || 3 } } }))} />
                   </Field>
@@ -710,11 +1009,16 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                     </Field>
                   )}
                 </div>
-              )}
-            </Section>
+              </AMCard>
 
-            <Section title="Expiração de Avisos" subtitle="Avisos antigos são ignorados pelo auto-mod após o prazo definido.">
-              <Field label="Expirar avisos após" hint="0 = nunca expiram">
+              <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                  <div>
+                    <p style={{ fontSize: 13.5, fontWeight: 600, marginBottom: 2 }}>Expiração de Avisos</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Avisos antigos deixam de contar para o auto-ação após o prazo.</p>
+                  </div>
+                  <SaveBtn id="warns-expiry" saving={savingCard} saved={savedCard} onSave={() => saveFields('warns-expiry', ['warns'])} />
+                </div>
                 <select style={inputStyle} value={config.warns.expiryDays}
                   onChange={e => setConfig(c => ({ ...c, warns: { ...c.warns, expiryDays: parseInt(e.target.value) } }))}>
                   <option value={0}>Nunca expirar</option>
@@ -724,17 +1028,23 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                   <option value={60}>60 dias</option>
                   <option value={90}>90 dias</option>
                 </select>
-              </Field>
-            </Section>
+              </div>
+            </div>
 
-            <Section title={`Histórico de Avisos · ${warns.length}`} subtitle="Todos os avisos registados neste servidor.">
+            {/* Histórico */}
+            <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: warns.length > 0 ? '1px solid var(--line)' : 'none' }}>
+                <div>
+                  <p style={{ fontSize: 13.5, fontWeight: 600 }}>Histórico de Avisos</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{warns.length === 0 ? 'Nenhum aviso registado' : `${warns.length} aviso${warns.length !== 1 ? 's' : ''} no servidor`}</p>
+                </div>
+              </div>
               {warns.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '32px 0' }}>
-                  <p style={{ fontSize: 13.5, color: 'var(--text-2)', fontWeight: 500, marginBottom: 4 }}>Nenhum aviso registado</p>
-                  <p style={{ fontSize: 12.5, color: 'var(--text-3)' }}>O servidor está em paz.</p>
+                <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-3)' }}>O servidor está em paz.</p>
                 </div>
               ) : warns.map((w, i, a) => (
-                <div key={w._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 0', borderBottom: i < a.length - 1 ? '1px solid var(--line)' : 'none', gap: 12 }}>
+                <div key={w._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 20px', borderBottom: i < a.length - 1 ? '1px solid var(--line)' : 'none', gap: 12 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                       <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'monospace', background: 'rgba(248,113,113,0.10)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)', padding: '2px 8px', borderRadius: 5 }}>
@@ -743,17 +1053,18 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                       <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
                         {new Date(w.createdAt).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
+                      <span style={{ fontSize: 11, color: 'var(--text-3)' }}>· por {w.moderatorId}</span>
                     </div>
-                    <p style={{ fontSize: 13.5, color: 'var(--text-1)', marginBottom: 2 }}>{w.reason}</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-3)' }}>por {w.moderatorId}</p>
+                    <p style={{ fontSize: 13, color: 'var(--text-1)' }}>{w.reason}</p>
                   </div>
                   <button onClick={async () => { await fetch(`/api/guilds/${guildId}/warns/${w._id}`, { method: 'DELETE' }); setWarns(ws => ws.filter(x => x._id !== w._id)); }}
-                    style={{ background: 'none', border: '1px solid rgba(248,113,113,0.25)', borderRadius: 7, color: '#f87171', cursor: 'pointer', padding: '5px 11px', fontSize: 12, flexShrink: 0, transition: 'all .12s' }}>
+                    style={{ background: 'none', border: '1px solid rgba(248,113,113,0.25)', borderRadius: 7, color: '#f87171', cursor: 'pointer', padding: '5px 11px', fontSize: 12, flexShrink: 0 }}>
                     Remover
                   </button>
                 </div>
               ))}
-            </Section>
+            </div>
+
           </div>
         )}
 
@@ -773,7 +1084,7 @@ function OverviewCard({ card, enabled, onVisit }: {
       padding: '22px 20px 18px', display: 'flex', flexDirection: 'column',
       transition: 'border-color .15s, box-shadow .15s', cursor: 'default',
     }}
-      onMouseEnter={e => { const d = e.currentTarget as HTMLDivElement; d.style.borderColor = 'rgba(62,207,142,.25)'; d.style.boxShadow = '0 0 0 1px rgba(62,207,142,.08)'; }}
+      onMouseEnter={e => { const d = e.currentTarget as HTMLDivElement; d.style.borderColor = 'rgba(109,184,62,.25)'; d.style.boxShadow = '0 0 0 1px rgba(109,184,62,.08)'; }}
       onMouseLeave={e => { const d = e.currentTarget as HTMLDivElement; d.style.borderColor = 'var(--line)'; d.style.boxShadow = 'none'; }}
     >
       {/* Icon */}
@@ -798,7 +1109,7 @@ function OverviewCard({ card, enabled, onVisit }: {
         color: 'var(--text-2)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
         transition: 'all .15s',
       }}
-        onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(62,207,142,.1)'; b.style.color = 'var(--green)'; b.style.borderColor = 'rgba(62,207,142,.3)'; }}
+        onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(109,184,62,.1)'; b.style.color = 'var(--green)'; b.style.borderColor = 'rgba(109,184,62,.3)'; }}
         onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'var(--elevated)'; b.style.color = 'var(--text-2)'; b.style.borderColor = 'var(--line)'; }}
       >
         Visitar
