@@ -306,6 +306,7 @@ function Content({ page }: { page: PageId }) {
             { n: 'utilizador', type: 'Membro',  req: true,  info: 'O membro a banir.' },
             { n: 'duracao',    type: 'Escolha', req: true,  info: '1h, 6h, 12h, 1d, 3d, 7d, 14d ou 30d.' },
             { n: 'motivo',     type: 'Texto',   req: false, info: 'Motivo do ban.' },
+            { n: 'dias',       type: 'Número',  req: false, info: 'Dias de mensagens a apagar (0–7).' },
           ]} />
         <Cmd slash="kick" perm="Expulsar Membros" desc="Expulsa um membro do servidor. O membro pode voltar a entrar com um novo convite."
           opts={[
