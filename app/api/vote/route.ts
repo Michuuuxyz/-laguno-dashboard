@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 
-const VOTE_CHANNEL_ID = '1520229636229959750';
-const BOT_TOKEN       = process.env.DISCORD_BOT_TOKEN!;
+const VOTE_CHANNEL_ID = process.env.VOTE_LOG_CHANNEL_ID ?? '1520229636229959750';
+const BOT_TOKEN       = (process.env.DISCORD_TOKEN ?? process.env.DISCORD_BOT_TOKEN)!;
 const WEBHOOK_SECRET  = process.env.TOPGG_WEBHOOK_SECRET!;
 const TOPGG_URL       = 'https://top.gg/bot/706487689519562833/vote';
 const DISCORD_API     = 'https://discord.com/api/v10';
@@ -74,13 +74,11 @@ export async function POST(req: NextRequest) {
   const rawBody = await req.text();
   const sig = req.headers.get('x-topgg-signature');
   const sigValid = verifySignature(rawBody, sig);
-  if (!sigValid) console.warn('[vote] Assinatura inválida ou ausente');
 
   let payload: Record<string, unknown>;
   try { payload = JSON.parse(rawBody); }
   catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
-  console.log('[vote] payload:', JSON.stringify(payload));
 
   const data     = payload.data as Record<string, unknown> | undefined;
   const userObj  = data?.user as Record<string, unknown> | undefined;
