@@ -7,6 +7,8 @@ import Link from 'next/link';
 interface ServiceStatus {
   online: boolean;
   latency?: number;
+  guilds?: number;
+  users?: number;
 }
 
 interface Status {
@@ -135,7 +137,9 @@ export default function StatusPage() {
                     }} />
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0' }}>{svc.label}</p>
-                      <p style={{ fontSize: 12, color: '#475569' }}>{svc.desc}</p>
+                      <p style={{ fontSize: 12, color: '#475569' }}>
+                        {svc.key === 'bot' && s?.guilds ? `${s.guilds} servidores · ${s.users ?? 0} membros` : svc.desc}
+                      </p>
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
