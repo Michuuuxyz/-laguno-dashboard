@@ -10,11 +10,13 @@ interface Channel { id: string; name: string; }
 interface Warn { _id: string; userId: string; reason: string; moderatorId: string; createdAt: string; }
 interface Role { id: string; name: string; color: number; }
 interface AutoMod {
-  antiSpam:    { enabled: boolean; maxMessages: number; interval: number; action: string };
-  wordFilter:  { enabled: boolean; words: string[] };
-  antiLink:    { enabled: boolean; whitelist: string[] };
-  capsFilter:  { enabled: boolean; maxPercent: number; minLength: number };
-  mentionSpam: { enabled: boolean; maxMentions: number; action: string };
+  antiSpam:      { enabled: boolean; maxMessages: number; interval: number; action: string };
+  wordFilter:    { enabled: boolean; words: string[] };
+  antiLink:      { enabled: boolean; whitelist: string[] };
+  capsFilter:    { enabled: boolean; maxPercent: number; minLength: number };
+  mentionSpam:   { enabled: boolean; maxMentions: number; action: string };
+  keywordPreset: { enabled: boolean };
+  memberProfile: { enabled: boolean };
   ignoredRoles:    string[];
   ignoredChannels: string[];
 }
@@ -152,11 +154,13 @@ const DEFAULT_BAD_WORDS = [
 ];
 
 const DEFAULT_AUTOMOD: AutoMod = {
-  antiSpam:    { enabled: false, maxMessages: 5, interval: 5, action: 'timeout' },
-  wordFilter:  { enabled: false, words: [] },
-  antiLink:    { enabled: false, whitelist: [] },
-  capsFilter:  { enabled: false, maxPercent: 70, minLength: 10 },
-  mentionSpam: { enabled: false, maxMentions: 5, action: 'delete' },
+  antiSpam:      { enabled: false, maxMessages: 5, interval: 5, action: 'timeout' },
+  wordFilter:    { enabled: false, words: [] },
+  antiLink:      { enabled: false, whitelist: [] },
+  capsFilter:    { enabled: false, maxPercent: 70, minLength: 10 },
+  mentionSpam:   { enabled: false, maxMentions: 5, action: 'delete' },
+  keywordPreset: { enabled: false },
+  memberProfile: { enabled: false },
   ignoredRoles: [], ignoredChannels: [],
 };
 const DEFAULT_MOD: ModerationCfg = { dmOnAction: true, requireReason: false, appealUrl: '', muteRoleId: null };
@@ -830,6 +834,12 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                   </div>
                   <AMTags items={config.autoMod.antiLink.whitelist} color="green" empty="Todos os links sao bloqueados." onRemove={d => setAMSub('antiLink', { whitelist: config.autoMod.antiLink.whitelist.filter(x => x !== d) })} />
                 </Field>
+              </AMRuleRow>
+              <AMRuleRow ruleKey="keywordPreset" title="Palavras Sinalizadas pelo Discord" desc="Usa as listas internas do Discord para bloquear profanidade, conteúdo sexual e slurs. Sempre atualizadas pelo Discord automaticamente." badge="discord" enabled={config.autoMod.keywordPreset?.enabled ?? false} onToggle={() => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, keywordPreset: { enabled: !(c.autoMod.keywordPreset?.enabled ?? false) } } }))} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={false} onExpand={() => {}} onSave={() => saveRule('keywordPreset')} saving={savingRule === 'keywordPreset'} saved={savedRule === 'keywordPreset'} saveMsg={null}>
+                <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.6 }}>Sem configuração adicional — o Discord gere as listas de profanidade, conteúdo sexual e slurs internamente.</p>
+              </AMRuleRow>
+              <AMRuleRow ruleKey="memberProfile" title="Filtro em Perfis de Membros" desc="Aplica o filtro de palavras proibidas a nomes de utilizador e nicknames. Usa a mesma lista do Filtro de Palavras." badge="discord" enabled={config.autoMod.memberProfile?.enabled ?? false} onToggle={() => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, memberProfile: { enabled: !(c.autoMod.memberProfile?.enabled ?? false) } } }))} actionLabels={['bloquear interações de membros']} expanded={false} onExpand={() => {}} onSave={() => saveRule('memberProfile')} saving={savingRule === 'memberProfile'} saved={savedRule === 'memberProfile'} saveMsg={null}>
+                <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.6 }}>Requer o Filtro de Palavras ativo. A lista de palavras é partilhada com essa regra.</p>
               </AMRuleRow>
               <AMSectionHeader title="Laguno Bot" desc="Regras processadas pelo bot diretamente no servidor." />
               <AMRuleRow ruleKey="capsFilter" title="Filtro de CAPS" desc="Remove mensagens com excesso de letras maiusculas. Configuravel por percentagem e comprimento minimo." badge="bot" enabled={config.autoMod.capsFilter.enabled} onToggle={() => setAMSub('capsFilter', { enabled: !config.autoMod.capsFilter.enabled })} actionLabels={['apagar mensagem', 'aviso no canal']} expanded={exp('capsFilter')} onExpand={() => tog('capsFilter')} onSave={() => saveRule('capsFilter')} saving={savingRule === 'capsFilter'} saved={savedRule === 'capsFilter'} saveMsg={savedRule === 'capsFilter' || savingRule === 'capsFilter' ? ruleSaveMsg : null}>

@@ -1,8 +1,9 @@
 const DISCORD_API = 'https://discord.com/api/v10';
 
 // Trigger types — https://docs.discord.com/developers/resources/auto-moderation
-const TRIGGER = { KEYWORD: 1, SPAM: 3, MENTION_SPAM: 5 } as const;
+const TRIGGER = { KEYWORD: 1, KEYWORD_PRESET: 2, SPAM: 3, MEMBER_PROFILE: 4, MENTION_SPAM: 5 } as const;
 const ACTION  = { BLOCK: 1, ALERT: 2, TIMEOUT: 3 } as const;
+const PRESET  = { PROFANITY: 1, SEXUAL_CONTENT: 2, SLURS: 3 } as const;
 
 const INVITE_PATTERNS = ['discord.gg/*', 'discord.com/invite/*', 'dsc.gg/*', 'discord.io/*'];
 
@@ -19,15 +20,19 @@ const RULE = {
   SPAM:    'Laguno: Anti-Spam',
   MENTION: 'Laguno: Anti-Menções',
   LINK:    'Laguno: Anti-Link',
+  PRESET:  'Laguno: Palavras Sinalizadas',
+  PROFILE: 'Laguno: Perfis de Membros',
 } as const;
 
 interface Rule { id: string; name: string; trigger_type: number; }
 
 interface AutoMod {
-  wordFilter:  { enabled: boolean; words: string[] };
-  antiSpam:    { enabled: boolean; action: string };
-  mentionSpam: { enabled: boolean; maxMentions: number; action: string };
-  antiLink:    { enabled: boolean; whitelist: string[] };
+  wordFilter:    { enabled: boolean; words: string[] };
+  antiSpam:      { enabled: boolean; action: string };
+  mentionSpam:   { enabled: boolean; maxMentions: number; action: string };
+  antiLink:      { enabled: boolean; whitelist: string[] };
+  keywordPreset: { enabled: boolean };
+  memberProfile: { enabled: boolean };
   ignoredRoles:    string[];
   ignoredChannels: string[];
 }
@@ -185,6 +190,40 @@ export async function syncAutoModRules(
     });
   } else if (mentionRule) {
     await deleteRule(guildId, mentionRule.id, token);
+  }
+
+  // ── Palavras Sinalizadas (KEYWORD_PRESET — profanity + slurs) ──────────────
+  const presetRule = byName(RULE.PRESET);
+  if (autoMod.keywordPreset?.enabled) {
+    await apply(presetRule?.id ?? null, {
+      name:             RULE.PRESET,
+      event_type:       1,
+      trigger_type:     TRIGGER.KEYWORD_PRESET,
+      trigger_metadata: { presets: [PRESET.PROFANITY, PRESET.SEXUAL_CONTENT, PRESET.SLURS] },
+      actions:          actions(),
+      enabled:          true,
+      exempt_roles:     exemptRoles,
+      exempt_channels:  exemptChannels,
+    });
+  } else if (presetRule) {
+    await deleteRule(guildId, presetRule.id, token);
+  }
+
+  // ── Perfis de Membros (MEMBER_PROFILE — palavras em nomes/nicknames) ────────
+  const profileRule = byName(RULE.PROFILE);
+  const profileKeywords = sanitizeKeywords(autoMod.wordFilter?.words ?? []);
+  if (autoMod.memberProfile?.enabled && profileKeywords.length > 0) {
+    await apply(profileRule?.id ?? null, {
+      name:             RULE.PROFILE,
+      event_type:       1,
+      trigger_type:     TRIGGER.MEMBER_PROFILE,
+      trigger_metadata: { keyword_filter: profileKeywords },
+      actions:          [{ type: ACTION.BLOCK }],
+      enabled:          true,
+      exempt_roles:     exemptRoles,
+    });
+  } else if (profileRule) {
+    await deleteRule(guildId, profileRule.id, token);
   }
 
   // ── Anti-Link (KEYWORD, identificado por nome — não colide com o Filtro) ────

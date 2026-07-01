@@ -38,12 +38,14 @@ export async function POST(_: NextRequest, { params }: { params: { guildId: stri
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const autoMod = {
-    antiSpam:    { enabled: true, maxMessages: 5, interval: 5, action: 'timeout' },
-    wordFilter:  { enabled: true, words: DEFAULT_WORDS },
-    antiLink:    { enabled: false, whitelist: [] },
-    capsFilter:  { enabled: true, maxPercent: 70, minLength: 10 },
-    mentionSpam: { enabled: true, maxMentions: 5, action: 'timeout' },
-    floodControl:{ enabled: true, maxMessages: 8, interval: 5, slowmode: 10, duration: 60 },
+    antiSpam:      { enabled: true, maxMessages: 5, interval: 5, action: 'timeout' },
+    wordFilter:    { enabled: true, words: DEFAULT_WORDS },
+    antiLink:      { enabled: false, whitelist: [] },
+    capsFilter:    { enabled: true, maxPercent: 70, minLength: 10 },
+    mentionSpam:   { enabled: true, maxMentions: 5, action: 'timeout' },
+    floodControl:  { enabled: true, maxMessages: 8, interval: 5, slowmode: 10, duration: 60 },
+    keywordPreset: { enabled: true },
+    memberProfile: { enabled: true },
     ignoredRoles: [],
     ignoredChannels: [],
   };
