@@ -15,8 +15,8 @@ function parseMessage(text: string, userId: string, guildName: string, memberCou
 }
 
 export async function POST(req: NextRequest, { params }: { params: { guildId: string } }) {
-  if (!await assertGuildAccess(params.guildId))
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const access = await assertGuildAccess(params.guildId);
+  if (!access) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json();
   const { channelId, message, accentColor } = body;
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
   const guild = guildRes.ok ? await guildRes.json() : null;
   const guildName = guild?.name ?? 'Servidor';
   const memberCount = guild?.approximate_member_count ?? 0;
-  const userId = (session.user as { id?: string }).id ?? '349527593634234370';
+  const userId = access.userId ?? '349527593634234370';
 
   const parsedMessage = `🧪 **[TESTE]** ${parseMessage(message, userId, guildName, memberCount)}`;
 
