@@ -174,7 +174,7 @@ export default async function Sobre() {
               ].map(({ icon, nome, desc }) => (
                 <div key={nome} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0', borderBottom: '1px solid var(--line)' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={icon} alt={nome} width={22} height={22} style={{ flexShrink: 0 }} />
+                  <img src={icon} alt="" width={22} height={22} style={{ flexShrink: 0 }} />
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', flex: 1 }}>{nome}</span>
                   <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{desc}</span>
                 </div>
@@ -200,7 +200,7 @@ export default async function Sobre() {
             </OrbitingCircles>
 
             {/* Órbita interior — sentido inverso */}
-            <OrbitingCircles radius={80} iconSize={30}>
+            <OrbitingCircles radius={80} iconSize={30} reverse duration={15}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="https://cdn.simpleicons.org/discord/5865F2" alt="Discord.js" width={24} height={24} />
               {/* eslint-disable-next-line @next/next/no-img-element */}
