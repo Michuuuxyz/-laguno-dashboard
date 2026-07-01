@@ -5,11 +5,11 @@ import './globals.css';
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.lagunoapp.xyz'),
   title: {
-    default: 'Laguno — O bot português com personalidade',
+    default: 'Laguno — O bot em português com personalidade',
     template: '%s | Laguno',
   },
   description: 'Moderação com personalidade, logs automáticos, boas-vindas, self-roles e sorteios. Configurado em dois minutos, a correr sem ti.',
-  keywords: ['discord bot', 'bot português', 'moderação discord', 'laguno', 'bot discord portugal'],
+  keywords: ['discord bot', 'bot português', 'bot brasileiro', 'moderação discord', 'laguno', 'bot discord portugal', 'bot discord brasil'],
   authors: [{ name: 'Michuu' }],
   creator: 'Michuu',
   openGraph: {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     locale: 'pt_PT',
     url: 'https://www.lagunoapp.xyz',
     siteName: 'Laguno',
-    title: 'Laguno — O bot português com personalidade',
+    title: 'Laguno — O bot em português com personalidade',
     description: 'Moderação com personalidade, logs automáticos, boas-vindas, self-roles e sorteios. Configurado em dois minutos, a correr sem ti.',
     images: [
       {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'Laguno — O bot português com personalidade',
+    title: 'Laguno — O bot em português com personalidade',
     description: 'Moderação com personalidade, logs automáticos, boas-vindas, self-roles e sorteios.',
     images: ['/laguno.png'],
   },

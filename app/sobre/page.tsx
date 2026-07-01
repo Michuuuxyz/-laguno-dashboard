@@ -6,10 +6,10 @@ import { OrbitingCircles } from '@/components/OrbitingCircles';
 
 export const metadata: Metadata = {
   title: 'Sobre — Laguno',
-  description: 'O Laguno foi feito por um miúdo português que se fartou de bots que não percebem a língua do servidor.',
+  description: 'O Laguno foi feito por um miúdo que se fartou de bots que não percebem a língua do servidor.',
   openGraph: {
     title: 'Sobre — Laguno',
-    description: 'O Laguno foi feito por um miúdo português que se fartou de bots que não percebem a língua do servidor.',
+    description: 'O Laguno foi feito por um miúdo que se fartou de bots que não percebem a língua do servidor.',
     url: 'https://www.lagunoapp.xyz/sobre',
   },
 };
@@ -67,7 +67,7 @@ export default async function Sobre() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 48, alignItems: 'start' }} className="sobre-intro">
           <div>
             <p style={{ fontSize: 17, color: 'var(--text-2)', lineHeight: 1.85, marginBottom: 20 }}>
-              O Laguno nasceu porque o Michu se fartou. Fartou-se de bots em inglês num servidor português.
+              O Laguno nasceu porque o Michu se fartou. Fartou-se de bots em inglês em servidores de língua portuguesa.
               Fartou-se de configurar oito bots diferentes para fazer o que um devia fazer.
               Fartou-se de mensagens de ban que pareciam saídas de um manual corporativo.
             </p>
@@ -109,11 +109,11 @@ export default async function Sobre() {
           {[
             {
               fase: 'O problema',
-              texto: 'Servidores portugueses a usar bots americanos. Comandos em inglês, mensagens em inglês, logs em inglês. O Michu queria um bot que falasse como as pessoas do servidor falavam.',
+              texto: 'Servidores de língua portuguesa a usar bots americanos. Comandos em inglês, mensagens em inglês, logs em inglês. O Michu queria um bot que falasse como as pessoas do servidor falavam.',
             },
             {
               fase: 'A primeira versão',
-              texto: 'Comandos básicos. Warn, ban, kick. Nada de especial — mas em português e com aquela vibe de "foi feito por alguém que usa Discord de verdade". Já era diferente.',
+              texto: 'Comandos básicos. Warn, ban, kick. Nada de especial — mas em português e com aquela vibe de "foi feito por alguém que usa Discord de verdade". Para PT e BR. Já era diferente.',
             },
             {
               fase: 'A personalidade',
@@ -259,7 +259,7 @@ export default async function Sobre() {
               @{michu?.username ?? 'therealmichu'}
             </p>
             <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.7 }}>
-              Desenvolvedor português. Constrói coisas para Discord porque passa demasiado tempo no Discord.
+              Desenvolvedor de língua portuguesa. Constrói coisas para Discord porque passa demasiado tempo no Discord.
               O Laguno é o projeto principal — mas não o último.
             </p>
           </div>

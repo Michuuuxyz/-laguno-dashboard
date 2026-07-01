@@ -6,10 +6,10 @@ import LightRays from '@/components/LightRays';
 
 export const metadata: Metadata = {
   title: 'Laguno — Bot de Discord em português',
-  description: 'Bane spammers. Regista tudo. Dá boas-vindas. Em português, feito por um português.',
+  description: 'Bane spammers. Regista tudo. Dá boas-vindas. Em português, para toda a comunidade lusófona.',
   openGraph: {
     title: 'Laguno — Bot de Discord em português',
-    description: 'Bane spammers. Regista tudo. Dá boas-vindas. Em português, feito por um português.',
+    description: 'Bane spammers. Regista tudo. Dá boas-vindas. Em português, para toda a comunidade lusófona.',
     url: 'https://www.lagunoapp.xyz',
   },
 };
@@ -78,7 +78,7 @@ export default function Home() {
           {/* Linha e descrição curta */}
           <div style={{ marginTop: 'clamp(32px,5vh,48px)', display: 'flex', alignItems: 'center', gap: 32, flexWrap: 'wrap' }}>
             <p style={{ fontSize: 'clamp(15px,1.6vw,18px)', color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 380 }}>
-              Bot de moderação português. Ban, logs, boas-vindas, self-roles e sorteios.
+              Bot de moderação em português. Ban, logs, boas-vindas, self-roles e sorteios.
               Tudo num dashboard. Tudo grátis.
             </p>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -104,10 +104,10 @@ export default function Home() {
             color: '#fff',
             maxWidth: 700,
           }}>
-            Feito por um português<br />para servidores portugueses.
+            Feito em português<br />para toda a comunidade lusófona.
           </p>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,.75)', lineHeight: 1.7, maxWidth: 320 }}>
-            Chega de bots em inglês. O Laguno fala como as pessoas do teu servidor falam.
+            Chega de bots em inglês. O Laguno fala a língua do teu servidor — seja de Lisboa ou de São Paulo.
           </p>
         </div>
       </section>
