@@ -86,11 +86,7 @@ export async function POST(req: NextRequest) {
       type: 17,
       accent_color: 0x6db83e,
       components: [
-        {
-          type: 9,
-          components: [{ type: 10, content: `### 💚 Novo voto!\n${mention} ${frase}` }],
-          ...(avatar ? { accessory: { type: 11, media: { url: avatar } } } : {}),
-        },
+        { type: 10, content: `### 💚 Novo voto!\n${mention} ${frase}` },
         { type: 14, divider: true, spacing: 1 },
         { type: 1, components: [{ type: 2, style: 5, label: 'Votar também', url: DBL_URL }] },
       ],
