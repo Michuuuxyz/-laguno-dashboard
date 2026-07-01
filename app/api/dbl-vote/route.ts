@@ -88,17 +88,20 @@ export async function POST(req: NextRequest) {
   ];
   const frase = FRASES[Math.floor(Math.random() * FRASES.length)];
 
+  const avatarUrl = avatar
+    ? `https://cdn.discordapp.com/avatars/${userId}/${avatar}.png?size=128`
+    : undefined;
+
+  const embed = {
+    color: 0x5865F2,
+    author: { name: 'discordbotlist.com', icon_url: 'https://www.google.com/s2/favicons?domain=discordbotlist.com&sz=64', url: 'https://discordbotlist.com/bots/706487689519562833' },
+    description: `💚 **Novo voto!**\n${mention} ${frase}`,
+    ...(avatarUrl ? { thumbnail: { url: avatarUrl } } : {}),
+    timestamp: new Date().toISOString(),
+  };
+
   const res = await discordPost(`/channels/${VOTE_CHANNEL_ID}/messages`, {
-    flags: 1 << 15,
-    components: [{
-      type: 17,
-      accent_color: 0x6db83e,
-      components: [
-        { type: 10, content: `### 💚 Novo voto!\n${mention} ${frase}` },
-        { type: 14, divider: true, spacing: 1 },
-        { type: 1, components: [{ type: 2, style: 5, label: 'Votar também', url: DBL_URL }] },
-      ],
-    }],
+    embeds: [embed],
   });
 
   if (!res.ok) {
