@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const CORS = {
+  'Access-Control-Allow-Origin': 'https://discordbotlist.com',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS });
+}
+
 const VOTE_CHANNEL_ID = process.env.VOTE_LOG_CHANNEL_ID ?? '1520229636229959750';
 const BOT_TOKEN       = (process.env.DISCORD_TOKEN ?? process.env.DISCORD_BOT_TOKEN)!;
 const DBL_SECRET      = process.env.DBL_WEBHOOK_SECRET!;
@@ -52,20 +62,20 @@ async function sendDM(userId: string, userName: string | undefined) {
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   if (DBL_SECRET && authHeader !== DBL_SECRET) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS });
   }
 
   const rawBody = await req.text();
 
   let payload: Record<string, unknown>;
   try { payload = JSON.parse(rawBody); }
-  catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
+  catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400, headers: CORS }); }
 
   const userId   = payload.id       as string | undefined;
   const userName = payload.username as string | undefined;
   const avatar   = payload.avatar   as string | undefined;
 
-  if (!userId) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+  if (!userId) return NextResponse.json({ error: 'Missing id' }, { status: 400, headers: CORS });
 
   const mention = `<@${userId}>`;
   const FRASES = [
@@ -94,10 +104,10 @@ export async function POST(req: NextRequest) {
   if (!res.ok) {
     const err = await res.text();
     console.error('[dbl-vote] Discord error:', err);
-    return NextResponse.json({ error: 'Discord error' }, { status: 500 });
+    return NextResponse.json({ error: 'Discord error' }, { status: 500, headers: CORS });
   }
 
   sendDM(userId, userName).catch(err => console.error('[dbl-vote] DM error:', err));
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true }, { headers: CORS });
 }
