@@ -16,7 +16,7 @@ interface AutoMod {
   capsFilter:    { enabled: boolean; maxPercent: number; minLength: number };
   mentionSpam:   { enabled: boolean; maxMentions: number; action: string };
   keywordPreset: { enabled: boolean };
-  memberProfile: { enabled: boolean };
+  memberProfile: { enabled: boolean; words: string[] };
   ignoredRoles:    string[];
   ignoredChannels: string[];
 }
@@ -160,7 +160,7 @@ const DEFAULT_AUTOMOD: AutoMod = {
   capsFilter:    { enabled: false, maxPercent: 70, minLength: 10 },
   mentionSpam:   { enabled: false, maxMentions: 5, action: 'delete' },
   keywordPreset: { enabled: false },
-  memberProfile: { enabled: false },
+  memberProfile: { enabled: false, words: [] },
   ignoredRoles: [], ignoredChannels: [],
 };
 const DEFAULT_MOD: ModerationCfg = { dmOnAction: true, requireReason: false, appealUrl: '', muteRoleId: null };
@@ -564,8 +564,9 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
   const [saving, setSaving]       = useState(false);
   const [saved, setSaved]         = useState(false);
   const [saveMsg, setSaveMsg]     = useState<string | null>(null);
-  const [newWord, setNewWord]     = useState('');
-  const [newDomain, setNewDomain] = useState('');
+  const [newWord, setNewWord]         = useState('');
+  const [newDomain, setNewDomain]     = useState('');
+  const [newProfileWord, setNewProfileWord] = useState('');
   const [setupStatus, setSetupStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
   const [setupMsg, setSetupMsg] = useState<string | null>(null);
   const [expandedRule, setExpandedRule] = useState<string | null>(null);
@@ -838,8 +839,19 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
               <AMRuleRow ruleKey="keywordPreset" title="Palavras Sinalizadas pelo Discord" desc="Usa as listas internas do Discord para bloquear profanidade, conteúdo sexual e slurs. Sempre atualizadas pelo Discord automaticamente." badge="discord" enabled={config.autoMod.keywordPreset?.enabled ?? false} onToggle={() => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, keywordPreset: { enabled: !(c.autoMod.keywordPreset?.enabled ?? false) } } }))} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={false} onExpand={() => {}} onSave={() => saveRule('keywordPreset')} saving={savingRule === 'keywordPreset'} saved={savedRule === 'keywordPreset'} saveMsg={null}>
                 <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.6 }}>Sem configuração adicional — o Discord gere as listas de profanidade, conteúdo sexual e slurs internamente.</p>
               </AMRuleRow>
-              <AMRuleRow ruleKey="memberProfile" title="Filtro em Perfis de Membros" desc="Aplica o filtro de palavras proibidas a nomes de utilizador e nicknames. Usa a mesma lista do Filtro de Palavras." badge="discord" enabled={config.autoMod.memberProfile?.enabled ?? false} onToggle={() => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, memberProfile: { enabled: !(c.autoMod.memberProfile?.enabled ?? false) } } }))} actionLabels={['bloquear interações de membros']} expanded={false} onExpand={() => {}} onSave={() => saveRule('memberProfile')} saving={savingRule === 'memberProfile'} saved={savedRule === 'memberProfile'} saveMsg={null}>
-                <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.6 }}>Requer o Filtro de Palavras ativo. A lista de palavras é partilhada com essa regra.</p>
+              <AMRuleRow ruleKey="memberProfile" title={`Filtro em Perfis de Membros${(config.autoMod.memberProfile?.words?.length ?? 0) > 0 ? ` (${config.autoMod.memberProfile.words.length})` : ''}`} desc="Bloqueia nomes de utilizador e nicknames com palavras proibidas (trigger MEMBER_PROFILE). Lista independente do Filtro de Palavras." badge="discord" enabled={config.autoMod.memberProfile?.enabled ?? false} onToggle={() => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, memberProfile: { ...c.autoMod.memberProfile, enabled: !(c.autoMod.memberProfile?.enabled ?? false), ...(!(c.autoMod.memberProfile?.enabled ?? false) && (c.autoMod.memberProfile?.words?.length ?? 0) === 0 ? { words: [...DEFAULT_BAD_WORDS] } : {}) } } }))} actionLabels={['bloquear interações de membros']} expanded={exp('memberProfile')} onExpand={() => tog('memberProfile')} onSave={() => saveRule('memberProfile')} saving={savingRule === 'memberProfile'} saved={savedRule === 'memberProfile'} saveMsg={savedRule === 'memberProfile' || savingRule === 'memberProfile' ? ruleSaveMsg : null}>
+                <div style={{ marginBottom: 14 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Templates rápidos</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {WORD_TEMPLATES.map(t => { const newW = t.words.filter(w => !(config.autoMod.memberProfile?.words ?? []).includes(w)); const all = newW.length === 0; return (<button key={t.id} title={t.desc} onClick={() => { if (all) return; setConfig(c => ({ ...c, autoMod: { ...c.autoMod, memberProfile: { ...c.autoMod.memberProfile, words: [...(c.autoMod.memberProfile?.words ?? []), ...newW] } } })); }} style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, cursor: all ? 'default' : 'pointer', border: all ? '1px solid var(--line)' : '1px solid rgba(109,184,62,.3)', background: all ? 'var(--surface)' : 'rgba(109,184,62,.08)', color: all ? 'var(--text-3)' : 'var(--green)' }}>{t.label}{all ? ' (adicionado)' : ` +${newW.length}`}</button>); })}
+                    <button onClick={() => { if (!(config.autoMod.memberProfile?.words?.length)) return; if (confirm('Limpar todas as palavras?')) setConfig(c => ({ ...c, autoMod: { ...c.autoMod, memberProfile: { ...c.autoMod.memberProfile, words: [] } } })); }} style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer', border: '1px solid rgba(248,113,113,.25)', background: 'rgba(248,113,113,.05)', color: '#f87171' }}>Limpar tudo</button>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                  <input style={{ ...inputStyle, flex: 1 }} placeholder="Adicionar palavra proibida em perfis" value={newProfileWord} onChange={e => setNewProfileWord(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newProfileWord.trim()) { setConfig(c => ({ ...c, autoMod: { ...c.autoMod, memberProfile: { ...c.autoMod.memberProfile, words: [...(c.autoMod.memberProfile?.words ?? []), newProfileWord.trim().toLowerCase()] } } })); setNewProfileWord(''); } }} />
+                  <button className="btn btn-primary" onClick={() => { if (!newProfileWord.trim()) return; setConfig(c => ({ ...c, autoMod: { ...c.autoMod, memberProfile: { ...c.autoMod.memberProfile, words: [...(c.autoMod.memberProfile?.words ?? []), newProfileWord.trim().toLowerCase()] } } })); setNewProfileWord(''); }}>Adicionar</button>
+                </div>
+                <AMTags items={config.autoMod.memberProfile?.words ?? []} color="red" empty="Nenhuma palavra adicionada." onRemove={w => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, memberProfile: { ...c.autoMod.memberProfile, words: (c.autoMod.memberProfile?.words ?? []).filter(x => x !== w) } } }))} />
               </AMRuleRow>
               <AMSectionHeader title="Laguno Bot" desc="Regras processadas pelo bot diretamente no servidor." />
               <AMRuleRow ruleKey="capsFilter" title="Filtro de CAPS" desc="Remove mensagens com excesso de letras maiusculas. Configuravel por percentagem e comprimento minimo." badge="bot" enabled={config.autoMod.capsFilter.enabled} onToggle={() => setAMSub('capsFilter', { enabled: !config.autoMod.capsFilter.enabled })} actionLabels={['apagar mensagem', 'aviso no canal']} expanded={exp('capsFilter')} onExpand={() => tog('capsFilter')} onSave={() => saveRule('capsFilter')} saving={savingRule === 'capsFilter'} saved={savedRule === 'capsFilter'} saveMsg={savedRule === 'capsFilter' || savingRule === 'capsFilter' ? ruleSaveMsg : null}>

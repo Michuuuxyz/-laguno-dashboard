@@ -45,7 +45,7 @@ export async function POST(_: NextRequest, { params }: { params: { guildId: stri
     mentionSpam:   { enabled: true, maxMentions: 5, action: 'timeout' },
     floodControl:  { enabled: true, maxMessages: 8, interval: 5, slowmode: 10, duration: 60 },
     keywordPreset: { enabled: true },
-    memberProfile: { enabled: true },
+    memberProfile: { enabled: true, words: [...DEFAULT_WORDS] },
     ignoredRoles: [],
     ignoredChannels: [],
   };

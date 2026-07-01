@@ -32,7 +32,7 @@ interface AutoMod {
   mentionSpam:   { enabled: boolean; maxMentions: number; action: string };
   antiLink:      { enabled: boolean; whitelist: string[] };
   keywordPreset: { enabled: boolean };
-  memberProfile: { enabled: boolean };
+  memberProfile: { enabled: boolean; words: string[] };
   ignoredRoles:    string[];
   ignoredChannels: string[];
 }
@@ -211,7 +211,7 @@ export async function syncAutoModRules(
 
   // ── Perfis de Membros (MEMBER_PROFILE — palavras em nomes/nicknames) ────────
   const profileRule = byName(RULE.PROFILE);
-  const profileKeywords = sanitizeKeywords(autoMod.wordFilter?.words ?? []);
+  const profileKeywords = sanitizeKeywords(autoMod.memberProfile?.words ?? []);
   if (autoMod.memberProfile?.enabled && profileKeywords.length > 0) {
     await apply(profileRule?.id ?? null, {
       name:             RULE.PROFILE,
