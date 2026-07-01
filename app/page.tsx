@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Navbar } from '@/components/Navbar';
 import LightRays from '@/components/LightRays';
+import { TypingHero } from '@/components/TypingHero';
 
 export const metadata: Metadata = {
   title: 'Laguno — Bot de Discord em português',
@@ -43,18 +44,7 @@ export default function Home() {
 
         <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 1200, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
           {/* Título gigante */}
-          <h1 style={{
-            fontSize: 'clamp(52px,10vw,130px)',
-            fontWeight: 900,
-            letterSpacing: '-.06em',
-            lineHeight: 0.95,
-            color: 'var(--text-1)',
-            marginBottom: 0,
-          }}>
-            O teu<br />
-            servidor<br />
-            <span style={{ color: 'var(--green)', WebkitTextStroke: '0px' }}>sem caos.</span>
-          </h1>
+          <TypingHero />
 
           {/* Figurinha sobreposta no título */}
           <div style={{
