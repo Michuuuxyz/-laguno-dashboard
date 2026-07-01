@@ -158,7 +158,7 @@ function Content({ page }: { page: PageId }) {
         <div style={{ marginBottom: 24 }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: G, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 8 }}>Documentação</p>
           <H1>Bem-vindo ao Laguno</H1>
-          <P>O <strong style={{ color: 'var(--text-1)' }}>Laguno</strong> é um bot para Discord desenvolvido em Portugal. Oferece moderação com personalidade, logs automáticos, boas-vindas, auto-moderação, self-roles e sorteios — tudo configurado num dashboard web sem escrever uma linha de código.</P>
+          <P>O <strong style={{ color: 'var(--text-1)' }}>Laguno</strong> é um bot para Discord em português para toda a comunidade lusófona. Oferece moderação com personalidade, logs automáticos, boas-vindas, auto-moderação, self-roles e sorteios — tudo configurado num dashboard web sem escrever uma linha de código.</P>
           <P>Esta documentação cobre todos os módulos e comandos. Navega pela barra lateral para encontrar o que precisas.</P>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px,1fr))', gap: 12, marginBottom: 28 }}>
@@ -300,6 +300,12 @@ function Content({ page }: { page: PageId }) {
           opts={[
             { n: 'id',     type: 'Texto', req: true,  info: 'ID do utilizador banido.' },
             { n: 'motivo', type: 'Texto', req: false, info: 'Motivo do unban.' },
+          ]} />
+        <Cmd slash="tempban" perm="Banir Membros" desc="Bane um membro temporariamente — é desbanido automaticamente ao fim da duração escolhida."
+          opts={[
+            { n: 'utilizador', type: 'Membro',  req: true,  info: 'O membro a banir.' },
+            { n: 'duracao',    type: 'Escolha', req: true,  info: '1h, 6h, 12h, 1d, 3d, 7d, 14d ou 30d.' },
+            { n: 'motivo',     type: 'Texto',   req: false, info: 'Motivo do ban.' },
           ]} />
         <Cmd slash="kick" perm="Expulsar Membros" desc="Expulsa um membro do servidor. O membro pode voltar a entrar com um novo convite."
           opts={[
