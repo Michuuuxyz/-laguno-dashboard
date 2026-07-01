@@ -107,7 +107,7 @@ export default function Home() {
             Feito em português<br />para toda a comunidade lusófona.
           </p>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,.75)', lineHeight: 1.7, maxWidth: 320 }}>
-            Chega de bots em inglês. O Laguno fala a língua do teu servidor — seja de Lisboa ou de São Paulo.
+            Em português. Com personalidade. Sem desculpas.
           </p>
         </div>
       </section>
