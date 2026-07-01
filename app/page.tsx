@@ -24,18 +24,30 @@ export default function Home() {
       <Navbar />
 
       {/* ── HERO — título que domina, figurinha integrada ── */}
-      <section style={{ position: 'relative', overflow: 'hidden', minHeight: '92vh', display: 'flex', alignItems: 'center' }}>
-        <div style={{ width: '100%', maxWidth: 1200, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
-          {/* Título gigante */}
-          <TypingHero />
+      <section style={{ minHeight: '92vh', display: 'flex', alignItems: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 1200, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 40 }}>
 
-          {/* Figurinha sobreposta no título */}
-          <div style={{
-            position: 'absolute',
-            right: 'clamp(20px,4vw,56px)',
-            top: '50%',
-            transform: 'translateY(-55%)',
-          }} className="hero-fig">
+          {/* Esquerda: texto */}
+          <div style={{ flex: '1 1 0', minWidth: 0 }}>
+            <TypingHero />
+            <div style={{ marginTop: 'clamp(32px,5vh,48px)', display: 'flex', alignItems: 'center', gap: 32, flexWrap: 'wrap' }}>
+              <p style={{ fontSize: 'clamp(15px,1.6vw,18px)', color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 380 }}>
+                Bot de moderação em português. Ban, logs, boas-vindas, self-roles e sorteios.
+                Tudo num dashboard. Tudo grátis.
+              </p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 15, padding: '.8rem 2rem', fontWeight: 700 }}>
+                  Adicionar
+                </a>
+                <Link href="/features" className="nav-cta-outline" style={{ fontSize: 15, padding: '.8rem 2rem' }}>
+                  Ver mais
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Direita: figurinha */}
+          <div className="hero-fig" style={{ flexShrink: 0 }}>
             <Image
               src="/fig3.png"
               alt="Laguno"
@@ -46,22 +58,6 @@ export default function Home() {
                 transform: 'rotate(6deg)',
               }}
             />
-          </div>
-
-          {/* Linha e descrição curta */}
-          <div style={{ marginTop: 'clamp(32px,5vh,48px)', display: 'flex', alignItems: 'center', gap: 32, flexWrap: 'wrap' }}>
-            <p style={{ fontSize: 'clamp(15px,1.6vw,18px)', color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 380 }}>
-              Bot de moderação em português. Ban, logs, boas-vindas, self-roles e sorteios.
-              Tudo num dashboard. Tudo grátis.
-            </p>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 15, padding: '.8rem 2rem', fontWeight: 700 }}>
-                Adicionar
-              </a>
-              <Link href="/features" className="nav-cta-outline" style={{ fontSize: 15, padding: '.8rem 2rem' }}>
-                Ver mais
-              </Link>
-            </div>
           </div>
         </div>
       </section>
