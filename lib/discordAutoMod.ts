@@ -122,16 +122,29 @@ export async function syncAutoModRules(
   const other = existing.filter(r => !r.name.startsWith('Laguno:'));
   const byName = (name: string) => mine.find(r => r.name === name) ?? null;
 
-  // Apaga regras não-Laguno que ocupam trigger types que vamos gerir,
-  // para libertar slots antes de criar as nossas.
+  // Para regras não-Laguno com trigger types que gerimos (KEYWORD_PRESET, MEMBER_PROFILE),
+  // fazemos PATCH para as renomear e tomar conta delas — mais fiável do que apagar
+  // porque algumas são regras de sistema que o Discord não permite eliminar.
   const MANAGED_TRIGGERS = new Set<number>([
-    TRIGGER.KEYWORD_PRESET,  // só pode existir 1 por servidor
-    TRIGGER.MEMBER_PROFILE,  // só pode existir 1 por servidor
+    TRIGGER.KEYWORD_PRESET,
+    TRIGGER.MEMBER_PROFILE,
   ]);
   for (const r of other) {
     if (MANAGED_TRIGGERS.has(r.trigger_type)) {
-      console.log(`[syncAutoMod] A apagar regra não-Laguno "${r.name}" (trigger ${r.trigger_type}) para libertar slot`);
-      await deleteRule(guildId, r.id, token);
+      const newName = r.trigger_type === TRIGGER.MEMBER_PROFILE ? RULE.PROFILE : RULE.PRESET;
+      console.log(`[syncAutoMod] A tomar conta da regra "${r.name}" → "${newName}"`);
+      const res = await fetch(`${DISCORD_API}/guilds/${guildId}/auto-moderation/rules/${r.id}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName }),
+      });
+      if (res.ok) {
+        // Adiciona à lista "mine" com o novo nome para o upsert abaixo a encontrar
+        mine.push({ id: r.id, name: newName, trigger_type: r.trigger_type });
+      } else {
+        // Se não conseguiu fazer patch, tenta apagar
+        await deleteRule(guildId, r.id, token);
+      }
     }
   }
 
