@@ -12,9 +12,9 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/:path*',
+        source: '/((?!api/).*)',
         has: [{ type: 'host', value: 'lagunoapp.xyz' }],
-        destination: 'https://www.lagunoapp.xyz/:path*',
+        destination: 'https://www.lagunoapp.xyz/$1',
         permanent: true,
       },
     ];
