@@ -8,7 +8,7 @@ export function middleware(req: NextRequest) {
       headers: {
         'Access-Control-Allow-Origin': 'https://discordbotlist.com',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-dbl-signature',
       },
     });
   }
