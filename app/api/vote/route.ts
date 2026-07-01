@@ -74,6 +74,7 @@ export async function POST(req: NextRequest) {
   const rawBody = await req.text();
   const sig = req.headers.get('x-topgg-signature');
   const sigValid = verifySignature(rawBody, sig);
+  if (!sigValid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   let payload: Record<string, unknown>;
   try { payload = JSON.parse(rawBody); }
@@ -122,9 +123,8 @@ export async function POST(req: NextRequest) {
   });
 
   if (!res.ok) {
-    const err = await res.text();
-    console.error('[vote] Discord error:', err);
-    return NextResponse.json({ error: 'Discord error', detail: err }, { status: 500 });
+    console.error('[vote] Discord error:', await res.text());
+    return NextResponse.json({ error: 'Discord error' }, { status: 500 });
   }
 
   if (userId) {

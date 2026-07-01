@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { assertGuildAccess } from '@/lib/guildAuth';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
@@ -9,6 +10,7 @@ type Params = { params: { guildId: string; giveawayId: string } };
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!await assertGuildAccess(params.guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const client = await clientPromise;
   const result = await client.db().collection('giveaways').deleteOne({
@@ -24,6 +26,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 export async function PATCH(req: NextRequest, { params }: Params) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!await assertGuildAccess(params.guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json() as { scheduledRerollAt?: string };
   const client = await clientPromise;

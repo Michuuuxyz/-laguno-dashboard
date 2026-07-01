@@ -1,37 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
 import { syncAutoModRules } from '@/lib/discordAutoMod';
+import clientPromise from '@/lib/mongodb';
 
-const MONGO_URI = process.env.MONGODB_URI!;
-
-async function getDb() {
-  const { MongoClient } = await import('mongodb');
-  const client = new MongoClient(MONGO_URI);
-  await client.connect();
-  return { client, db: client.db('laguno') };
-}
+const ALLOWED_KEYS = new Set([
+  'prefix', 'language', 'enabledModules', 'customCommands',
+  'moderation', 'autoMod', 'logs', 'logChannelId',
+  'welcome', 'goodbye', 'autoroles', 'giveaways',
+]);
 
 export async function GET(_: NextRequest, { params }: { params: { guildId: string } }) {
   if (!await assertGuildAccess(params.guildId))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const { client, db } = await getDb();
-  try {
-    const config = await db.collection('guildconfigs').findOne({ guildId: params.guildId });
-    return NextResponse.json(config ?? { prefix: '!', language: 'pt', enabledModules: ['moderation', 'fun', 'utility', 'config'], customCommands: [] });
-  } finally {
-    await client.close();
-  }
+  const client = await clientPromise;
+  const config = await client.db().collection('guildconfigs').findOne({ guildId: params.guildId });
+  return NextResponse.json(config ?? { prefix: '!', language: 'pt', enabledModules: ['moderation', 'fun', 'utility', 'config'], customCommands: [] });
 }
 
 export async function POST(req: NextRequest, { params }: { params: { guildId: string } }) {
   if (!await assertGuildAccess(params.guildId))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const body = await req.json();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { _id, __v, createdAt, ...safeBody } = body;
-  const { client, db } = await getDb();
+  let body: Record<string, unknown>;
+  try { body = await req.json(); }
+  catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
+
+  const safeBody = Object.fromEntries(
+    Object.entries(body).filter(([k]) => ALLOWED_KEYS.has(k))
+  );
+
+  const client = await clientPromise;
+  const db = client.db();
   try {
     await db.collection('guildconfigs').updateOne(
       { guildId: params.guildId },
@@ -74,7 +74,8 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
     }
 
     return NextResponse.json({ ok: true, autoModWarning });
-  } finally {
-    await client.close();
+  } catch (err) {
+    console.error('[config POST]', err);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

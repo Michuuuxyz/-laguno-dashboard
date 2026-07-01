@@ -61,7 +61,7 @@ async function sendDM(userId: string, userName: string | undefined) {
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
-  if (DBL_SECRET && authHeader !== DBL_SECRET) {
+  if (!DBL_SECRET || authHeader !== DBL_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS });
   }
 
