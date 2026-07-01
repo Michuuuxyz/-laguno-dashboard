@@ -182,42 +182,33 @@ export default async function Sobre() {
             </div>
           </div>
 
-          {/* Direita: grid de ícones animados */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, flexShrink: 0 }}>
-            {[
-              { icon: 'https://cdn.simpleicons.org/typescript/3178C6', nome: 'TypeScript',  delay: '0s' },
-              { icon: 'https://cdn.simpleicons.org/discord/5865F2',    nome: 'Discord.js',  delay: '.3s' },
-              { icon: 'https://cdn.simpleicons.org/nextdotjs/ffffff',  nome: 'Next.js',     delay: '.6s' },
-              { icon: 'https://cdn.simpleicons.org/mongodb/47A248',    nome: 'MongoDB',     delay: '.9s' },
-              { icon: 'https://cdn.simpleicons.org/vercel/ffffff',     nome: 'Vercel',      delay: '1.2s' },
-              { icon: 'https://cdn.simpleicons.org/nodedotjs/339933',  nome: 'Node.js',     delay: '1.5s' },
-            ].map(({ icon, nome, delay }) => (
-              <div key={nome} style={{
-                background: 'var(--surface-2, #1a1d21)',
-                border: '1px solid var(--line)',
-                borderRadius: 12,
-                padding: '18px 12px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 8,
-                animation: `float 3s ease-in-out ${delay} infinite`,
-              }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={icon} alt="" width={28} height={28} />
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textAlign: 'center' }}>{nome}</span>
-              </div>
-            ))}
+          {/* Direita: orbiting circles estático */}
+          <div style={{ position: 'relative', width: 340, height: 340, flexShrink: 0 }}>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1 }}>
+              <Image src="/laguno.png" alt="Laguno" width={56} height={56} style={{ objectFit: 'contain' }} />
+            </div>
+            <OrbitingCircles radius={140} iconSize={36}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://cdn.simpleicons.org/typescript/3178C6" alt="" width={28} height={28} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://cdn.simpleicons.org/nextdotjs/ffffff" alt="" width={28} height={28} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://cdn.simpleicons.org/mongodb/47A248" alt="" width={28} height={28} />
+            </OrbitingCircles>
+            <OrbitingCircles radius={80} iconSize={30}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://cdn.simpleicons.org/discord/5865F2" alt="" width={24} height={24} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://cdn.simpleicons.org/vercel/ffffff" alt="" width={24} height={24} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://cdn.simpleicons.org/nodedotjs/339933" alt="" width={24} height={24} />
+            </OrbitingCircles>
           </div>
         </div>
       </section>
 
       <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50%       { transform: translateY(-8px); }
-        }
-        @media (max-width: 700px) {
+@media (max-width: 700px) {
           .stack-grid { grid-template-columns: 1fr !important; }
           .stack-grid > div:last-child { display: none; }
         }
