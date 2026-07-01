@@ -18,7 +18,7 @@ export async function GET(_: NextRequest, { params }: { params: { guildId: strin
   const { client, db } = await getDb();
   try {
     const config = await db.collection('guildconfigs').findOne({ guildId: params.guildId });
-    return NextResponse.json(config ?? { prefix: '!', language: 'pt', enabledModules: ['moderation', 'fun'], customCommands: [] });
+    return NextResponse.json(config ?? { prefix: '!', language: 'pt', enabledModules: ['moderation', 'fun', 'utility', 'config'], customCommands: [] });
   } finally {
     await client.close();
   }
