@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Navbar } from '@/components/Navbar';
+import { ScrollReveal } from '@/components/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'Funcionalidades',
@@ -109,7 +110,7 @@ function FeatureSection({ id, accent, tag, title, desc, mock, reverse = false }:
       alignItems: 'center',
       direction: reverse ? 'rtl' : 'ltr',
     }} className="feat-section">
-      <div style={{ direction: 'ltr' }}>
+      <ScrollReveal style={{ direction: 'ltr' }}>
         <p style={{ fontSize: 10.5, fontWeight: 700, color: accent, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 14 }}>
           {tag}
         </p>
@@ -119,10 +120,10 @@ function FeatureSection({ id, accent, tag, title, desc, mock, reverse = false }:
         <p style={{ fontSize: 15.5, color: 'var(--text-2)', lineHeight: 1.8 }}>
           {desc}
         </p>
-      </div>
-      <div style={{ direction: 'ltr', background: DC.bg, borderRadius: 12, padding: 18, border: '1px solid rgba(0,0,0,.4)', boxShadow: '0 20px 60px rgba(0,0,0,.5)' }}>
+      </ScrollReveal>
+      <ScrollReveal delay={0.12} style={{ direction: 'ltr', background: DC.bg, borderRadius: 12, padding: 18, border: '1px solid rgba(0,0,0,.4)', boxShadow: '0 20px 60px rgba(0,0,0,.5)' }}>
         {mock}
-      </div>
+      </ScrollReveal>
     </section>
   );
 }
@@ -134,7 +135,7 @@ export default function Features() {
       <Navbar />
 
       {/* ── PAGE HEADER ── */}
-      <div style={{ textAlign: 'center', padding: 'clamp(64px,10vh,100px) clamp(20px,4vw,56px) 0', maxWidth: 640, margin: '0 auto' }}>
+      <ScrollReveal style={{ textAlign: 'center', padding: 'clamp(64px,10vh,100px) clamp(20px,4vw,56px) 0', maxWidth: 640, margin: '0 auto' }}>
         <h1 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 700, letterSpacing: '-.04em', lineHeight: 1.1, marginBottom: 20 }}>
           Funcionalidades
         </h1>
@@ -142,7 +143,7 @@ export default function Features() {
           Moderação com personalidade, boas‑vindas automáticas, registos completos, self‑roles e sorteios.
           Tudo configurado no dashboard, tudo a correr sem ti.
         </p>
-      </div>
+      </ScrollReveal>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
         <div style={{ height: 1, background: 'var(--line)', marginTop: 'clamp(48px,7vh,80px)' }} />
@@ -306,7 +307,7 @@ export default function Features() {
 
       {/* ── CTA ── */}
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(20px,4vw,56px) clamp(80px,12vh,120px)' }}>
-        <div style={{ borderTop: '1px solid var(--line)', paddingTop: 'clamp(40px,6vh,64px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
+        <ScrollReveal style={{ borderTop: '1px solid var(--line)', paddingTop: 'clamp(40px,6vh,64px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
           <div>
             <h2 style={{ fontSize: 'clamp(18px,2.5vw,24px)', fontWeight: 700, letterSpacing: '-.03em', marginBottom: 6 }}>
               Pronto para experimentar?
@@ -323,7 +324,7 @@ export default function Features() {
               Abrir dashboard
             </Link>
           </div>
-        </div>
+        </ScrollReveal>
       </div>
 
       {/* ── Footer ── */}
