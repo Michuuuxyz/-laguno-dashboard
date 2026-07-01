@@ -1,194 +1,177 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import Image from 'next/image';
+import { useSession, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
 
-interface Props {
-  user?: { name?: string | null; image?: string | null };
-  guildName?: string;
-  guildIcon?: string | null;
+const CLIENT_ID    = process.env.NEXT_PUBLIC_CLIENT_ID;
+const BOT_INVITE   = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`;
+const SERVER_INVITE = 'https://discord.gg/tVyHSRjEY9';
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+      style={{ transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
 }
 
-const ChevronDown = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9"/>
-  </svg>
-);
+function DropItem({ href, external, icon, title, desc, onClick }: {
+  href: string; external?: boolean; onClick?: () => void;
+  icon: React.ReactNode; title: string; desc: string;
+}) {
+  const props = external ? { target: '_blank', rel: 'noreferrer' } : {};
+  return (
+    <a href={href} {...props} onClick={onClick}
+      style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 10px', borderRadius: 8, textDecoration: 'none', transition: 'background .12s' }}
+      onMouseEnter={e => (e.currentTarget.style.background = 'var(--hover)')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+    >
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--green-muted)', border: '1px solid var(--green-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--green)' }}>
+        {icon}
+      </div>
+      <div>
+        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 1 }}>{title}</p>
+        <p style={{ fontSize: 11.5, color: 'var(--text-2)', lineHeight: 1.4 }}>{desc}</p>
+      </div>
+    </a>
+  );
+}
 
-const GridIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-  </svg>
-);
-
-const LogoutIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-  </svg>
-);
-
-const ChevronRight = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9 18 15 12 9 6"/>
-  </svg>
-);
-
-export function Navbar({ user, guildName, guildIcon }: Props) {
-  const path = usePathname();
-  const [open, setOpen] = useState(false);
-  const ref  = useRef<HTMLDivElement>(null);
-
-  const isGuildPage = /^\/dashboard\/.+/.test(path);
+export function Navbar() {
+  const { data: session } = useSession();
+  const [suporteOpen, setSuporteOpen] = useState(false);
+  const [userOpen, setUserOpen]       = useState(false);
+  const suporteRef = useRef<HTMLDivElement>(null);
+  const userRef    = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const h = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
+    const handler = (e: MouseEvent) => {
+      if (suporteRef.current && !suporteRef.current.contains(e.target as Node)) setSuporteOpen(false);
+      if (userRef.current    && !userRef.current.contains(e.target as Node))    setUserOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   return (
-    <nav className="glass" style={{
-      position: 'sticky', top: 0, zIndex: 100,
-      background: 'rgba(13,13,15,.92)',
-      borderBottom: '1px solid var(--line)',
-      height: 52,
-      display: 'flex', alignItems: 'center',
-      padding: '0 20px', gap: 16,
-    }}>
+    <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(13,13,15,.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--line)' }}>
+      <style>{`@keyframes dropdown-in { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }`}</style>
+      <div style={{ height: 58, display: 'flex', alignItems: 'center', padding: '0 clamp(16px,4vw,48px)', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
 
-      {/* Logo */}
-      <Link href="/" style={{
-        display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
-        padding: '0 12px 0 0', borderRight: '1px solid var(--line)',
-        height: '100%',
-      }}>
-        <div style={{ width: 24, height: 24, borderRadius: '50%', overflow: 'hidden', border: '1px solid rgba(62,207,142,.2)' }}>
-          <Image src="/laguno.png" alt="Laguno" width={24} height={24} style={{ objectFit: 'cover' }} />
-        </div>
-        <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: '-.02em', color: 'var(--text-1)' }}>Laguno</span>
-      </Link>
-
-      {/* Breadcrumb */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, overflow: 'hidden' }}>
-        <Link href="/dashboard" style={{
-          fontSize: 13.5,
-          color: isGuildPage ? 'var(--text-3)' : 'var(--text-2)',
-          fontWeight: isGuildPage ? 400 : 500,
-          transition: 'color .14s',
-          whiteSpace: 'nowrap',
-        }}>
-          Dashboard
+        {/* Logo */}
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', flexShrink: 0, marginRight: 32 }}>
+          <Image src="/laguno.png" alt="Laguno" width={52} height={52} style={{ objectFit: 'contain', flexShrink: 0 }} />
+          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-.02em' }}>Laguno</span>
         </Link>
 
-        {isGuildPage && guildName && (
-          <>
-            <span style={{ color: 'var(--text-3)', flexShrink: 0 }}><ChevronRight /></span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-              {guildIcon && (
-                <Image src={guildIcon} alt={guildName} width={18} height={18}
-                  style={{ borderRadius: '50%', flexShrink: 0, border: '1px solid var(--line)' }}
-                  unoptimized={guildIcon.endsWith('.gif')} />
-              )}
-              <span style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {guildName}
-              </span>
-            </div>
-          </>
-        )}
-      </div>
+        {/* Center nav */}
+        <nav style={{ display: 'flex', gap: 2, flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Link href="/features" className="nav-link">Funcionalidades</Link>
+          <Link href="/docs" className="nav-link">Documentação</Link>
+          <Link href="/sobre" className="nav-link">Sobre</Link>
 
-      {/* External link */}
-      <a href={`https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&scope=bot+applications.commands&permissions=8`}
-        target="_blank" rel="noreferrer"
-        className="btn btn-secondary"
-        style={{ fontSize: 12.5, padding: '.38rem .85rem', flexShrink: 0 }}>
-        Adicionar ao Discord
-      </a>
+          {/* Suporte dropdown */}
+          <div ref={suporteRef} style={{ position: 'relative' }}>
+            <button onClick={() => setSuporteOpen(o => !o)} style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              fontSize: 13.5, fontWeight: 500, color: suporteOpen ? 'var(--text-1)' : 'var(--text-2)',
+              padding: '6px 14px', borderRadius: 6, border: 'none',
+              background: suporteOpen ? 'var(--elevated)' : 'transparent',
+              cursor: 'pointer', transition: 'color .12s, background .12s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-1)'; e.currentTarget.style.background = 'var(--elevated)'; }}
+              onMouseLeave={e => { if (!suporteOpen) { e.currentTarget.style.color = 'var(--text-2)'; e.currentTarget.style.background = 'transparent'; } }}
+            >
+              Suporte <Chevron open={suporteOpen} />
+            </button>
 
-      {/* User */}
-      <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
-        <button onClick={() => setOpen(v => !v)} style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          background: open ? 'var(--elevated)' : 'transparent',
-          border: `1px solid ${open ? 'var(--line-hover)' : 'transparent'}`,
-          borderRadius: 8, padding: '4px 8px 4px 4px',
-          cursor: 'pointer', transition: 'all .14s',
-        }}>
-          {user?.image ? (
-            <Image src={user.image} alt="" width={24} height={24}
-              style={{ borderRadius: '50%', border: '1px solid rgba(62,207,142,.3)' }}
-              unoptimized={user.image.endsWith('.gif')} />
-          ) : (
-            <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--green-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff' }}>
-              {user?.name?.charAt(0).toUpperCase() ?? '?'}
-            </div>
-          )}
-          <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>
-            {user?.name?.split(' ')[0]}
-          </span>
-          <span style={{ color: 'var(--text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .14s' }}>
-            <ChevronDown />
-          </span>
-        </button>
-
-        {open && (
-          <div className="card appear" style={{
-            position: 'absolute', right: 0, top: 'calc(100% + 6px)',
-            minWidth: 186, padding: 0, overflow: 'hidden',
-            boxShadow: '0 8px 24px rgba(0,0,0,.5)',
-          }}>
-            {/* User info */}
-            <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid var(--line)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                {user?.image ? (
-                  <Image src={user.image} alt="" width={30} height={30}
-                    style={{ borderRadius: '50%', border: '1px solid var(--line)' }}
-                    unoptimized={user.image.endsWith('.gif')} />
-                ) : (
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--green-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>
-                    {user?.name?.charAt(0) ?? '?'}
-                  </div>
-                )}
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.3 }}>{user?.name}</p>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>Discord</p>
-                </div>
+            {suporteOpen && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+                background: 'var(--card)', border: '1px solid var(--line)',
+                borderRadius: 12, padding: 6, minWidth: 260,
+                boxShadow: '0 12px 40px rgba(0,0,0,.6)',
+                animation: 'dropdown-in .15s ease both',
+              }}>
+                <DropItem
+                  href={SERVER_INVITE} external
+                  onClick={() => setSuporteOpen(false)}
+                  icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>}
+                  title="Servidor Discord"
+                  desc="Junta-te à comunidade do Laguno"
+                />
+                <div style={{ height: 1, background: 'var(--line)', margin: '4px 0' }} />
+                <DropItem
+                  href="/legal?tab=terms"
+                  onClick={() => setSuporteOpen(false)}
+                  icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>}
+                  title="Termos de Serviço"
+                  desc="Condições de utilização do bot"
+                />
+                <DropItem
+                  href="/legal?tab=privacy"
+                  onClick={() => setSuporteOpen(false)}
+                  icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
+                  title="Política de Privacidade"
+                  desc="Como tratamos os teus dados"
+                />
               </div>
-            </div>
-
-            {/* Menu items */}
-            <div style={{ padding: '5px 5px' }}>
-              <Link href="/dashboard" onClick={() => setOpen(false)} style={{
-                display: 'flex', alignItems: 'center', gap: 9,
-                padding: '7px 10px', borderRadius: 6, fontSize: 13,
-                color: 'var(--text-2)', transition: 'all .12s',
-              }}
-                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'var(--hover)'; (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-1)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-2)'; }}
-              >
-                <GridIcon /> Meus servidores
-              </Link>
-
-              <div style={{ margin: '4px 0', borderTop: '1px solid var(--line)' }} />
-
-              <button onClick={() => signOut({ callbackUrl: '/' })} style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 9,
-                padding: '7px 10px', borderRadius: 6, border: 'none',
-                background: 'transparent', color: '#f87171', fontSize: 13,
-                cursor: 'pointer', transition: 'background .12s',
-              }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(248,113,113,.07)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-              >
-                <LogoutIcon /> Terminar sessão
-              </button>
-            </div>
+            )}
           </div>
-        )}
+        </nav>
+
+        {/* Right */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+          {session?.user ? (
+            <div ref={userRef} style={{ position: 'relative' }}>
+              <button onClick={() => setUserOpen(o => !o)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 8 }}
+              >
+                <div style={{ width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(109,184,62,.4)', flexShrink: 0 }}>
+                  {session.user.image
+                    ? <Image src={session.user.image} alt={session.user.name ?? ''} width={34} height={34} style={{ objectFit: 'cover' }} />
+                    : <div style={{ width: 34, height: 34, background: '#5865f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff' }}>{(session.user.name ?? 'U')[0].toUpperCase()}</div>
+                  }
+                </div>
+                <Chevron open={userOpen} />
+              </button>
+
+              {userOpen && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+                  background: 'var(--card)', border: '1px solid var(--line)',
+                  borderRadius: 10, padding: 6, minWidth: 180,
+                  boxShadow: '0 8px 32px rgba(0,0,0,.5)',
+                  animation: 'dropdown-in .15s ease both',
+                }}>
+                  <div style={{ padding: '8px 10px 10px', borderBottom: '1px solid var(--line)', marginBottom: 4 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 1 }}>{session.user.name}</p>
+                    <p style={{ fontSize: 11.5, color: 'var(--text-2)' }}>Discord</p>
+                  </div>
+                  <Link href="/dashboard" onClick={() => setUserOpen(false)}
+                    style={{ display: 'block', padding: '7px 10px', borderRadius: 6, fontSize: 13, color: 'var(--text-1)', textDecoration: 'none' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--hover)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >Dashboard</Link>
+                  <button onClick={() => { setUserOpen(false); signOut({ callbackUrl: '/' }); }}
+                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 6, fontSize: 13, color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,.08)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >Terminar sessão</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link href="/dashboard" className="nav-cta-outline">Dashboard</Link>
+              <a href={BOT_INVITE} target="_blank" rel="noreferrer" className="nav-cta-green">Adicionar grátis</a>
+            </>
+          )}
+        </div>
       </div>
-    </nav>
+    </header>
   );
 }
