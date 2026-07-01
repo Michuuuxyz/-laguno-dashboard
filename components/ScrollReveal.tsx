@@ -1,40 +1,65 @@
 'use client';
 
-import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { motion, useInView } from 'framer-motion';
+import { useRef } from 'react';
 
-export function ScrollReveal() {
-  const pathname = usePathname();
+interface Props {
+  children: React.ReactNode;
+  delay?: number;
+  style?: React.CSSProperties;
+  className?: string;
+}
 
-  useEffect(() => {
-    // Reset all reveals on page change so they animate again
-    document.querySelectorAll<HTMLElement>('[data-reveal].revealed').forEach((el) => {
-      el.classList.remove('revealed');
-      el.style.transitionDelay = '';
-    });
+export function ScrollReveal({ children, delay = 0, style, className }: Props) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-80px 0px' });
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const el = entry.target as HTMLElement;
-            el.style.transitionDelay = `${el.dataset.delay ?? '0'}ms`;
-            el.classList.add('revealed');
-            observer.unobserve(el);
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
-    );
+  return (
+    <motion.div
+      ref={ref}
+      style={style}
+      className={className}
+      initial={{ opacity: 0, y: 24 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay, ease: [0.25, 0.1, 0.25, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
-    const observe = () => {
-      document.querySelectorAll<HTMLElement>('[data-reveal]:not(.revealed)').forEach((el) => observer.observe(el));
-    };
+export function ScrollRevealList({ children, style, className }: Omit<Props, 'delay'>) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-60px 0px' });
 
-    observe();
-    const t = setTimeout(observe, 80);
-    return () => { clearTimeout(t); observer.disconnect(); };
-  }, [pathname]);
+  return (
+    <motion.div
+      ref={ref}
+      style={style}
+      className={className}
+      initial="hidden"
+      animate={inView ? 'visible' : 'hidden'}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.09 } },
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
-  return null;
+export function ScrollRevealItem({ children, style, className }: Omit<Props, 'delay'>) {
+  return (
+    <motion.div
+      style={style}
+      className={className}
+      variants={{
+        hidden: { opacity: 0, y: 22 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.25, 0.1, 0.25, 1] } },
+      }}
+    >
+      {children}
+    </motion.div>
+  );
 }

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Navbar } from '@/components/Navbar';
 import LightRays from '@/components/LightRays';
 import { TypingHero } from '@/components/TypingHero';
+import { ScrollReveal, ScrollRevealList, ScrollRevealItem } from '@/components/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'Laguno — Bot de Discord em português',
@@ -85,7 +86,7 @@ export default function Home() {
 
       {/* ── BLOCO VERDE — declaração forte ── */}
       <section style={{ background: 'var(--green)', padding: 'clamp(48px,7vh,80px) clamp(20px,4vw,56px)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
+        <ScrollReveal style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
           <p style={{
             fontSize: 'clamp(24px,4vw,52px)',
             fontWeight: 900,
@@ -99,7 +100,7 @@ export default function Home() {
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,.75)', lineHeight: 1.7, maxWidth: 320 }}>
             Em português. Com personalidade. Sem desculpas.
           </p>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* ── MÓDULOS — lista direta, sem floreados ── */}
@@ -129,8 +130,8 @@ export default function Home() {
             />
           </div>
 
-          {/* Direita: lista de módulos */}
-          <div>
+          {/* Direita: lista de módulos com stagger */}
+          <ScrollRevealList>
             {[
               { n: 'Moderação',      t: 'Ban, kick, mute, warn, timeout, purge, lock. Com histórico e ações automáticas.' },
               { n: 'Auto-Mod',       t: 'Filtros de palavras, anti-spam, anti-flood, bloqueio de links. Configuras uma vez.' },
@@ -139,21 +140,23 @@ export default function Home() {
               { n: 'Self-Roles',     t: 'Painéis de botões para membros escolherem cargos. Sem trabalho teu.' },
               { n: 'Sorteios',       t: 'Crias no dashboard, o Laguno publica e sorteia. Re-roll com um clique.' },
             ].map(({ n, t }, i) => (
-              <div key={n} style={{
-                padding: 'clamp(20px,3vh,28px) 0',
-                borderBottom: '1px solid var(--line)',
-                display: 'grid',
-                gridTemplateColumns: '140px 1fr',
-                gap: 24,
-                alignItems: 'baseline',
-              }}>
-                <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--green)', letterSpacing: '-.01em' }}>
-                  {String(i + 1).padStart(2, '0')} {n}
-                </span>
-                <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{t}</p>
-              </div>
+              <ScrollRevealItem key={n}>
+                <div style={{
+                  padding: 'clamp(20px,3vh,28px) 0',
+                  borderBottom: '1px solid var(--line)',
+                  display: 'grid',
+                  gridTemplateColumns: '140px 1fr',
+                  gap: 24,
+                  alignItems: 'baseline',
+                }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--green)', letterSpacing: '-.01em' }}>
+                    {String(i + 1).padStart(2, '0')} {n}
+                  </span>
+                  <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{t}</p>
+                </div>
+              </ScrollRevealItem>
             ))}
-          </div>
+          </ScrollRevealList>
         </div>
       </section>
 
@@ -161,20 +164,22 @@ export default function Home() {
       <section style={{ borderTop: '1px solid var(--line)', overflow: 'hidden' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(64px,9vh,100px) clamp(20px,4vw,56px)' }}>
 
-          <div style={{ display: 'flex', gap: 16, marginBottom: 48, flexWrap: 'wrap' }}>
-            {['stressado', 'sonolento', 'entediado', 'animado', 'feliz'].map((m, i) => (
-              <span key={m} style={{
-                fontSize: 12,
-                fontWeight: 700,
-                padding: '4px 12px',
-                borderRadius: 99,
-                border: '1px solid var(--line)',
-                color: i === 0 ? '#ef4444' : i === 3 ? '#fbbf24' : i === 4 ? 'var(--green)' : 'var(--text-3)',
-              }}>{m}</span>
-            ))}
-          </div>
+          <ScrollReveal>
+            <div style={{ display: 'flex', gap: 16, marginBottom: 48, flexWrap: 'wrap' }}>
+              {['stressado', 'sonolento', 'entediado', 'animado', 'feliz'].map((m, i) => (
+                <span key={m} style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: '4px 12px',
+                  borderRadius: 99,
+                  border: '1px solid var(--line)',
+                  color: i === 0 ? '#ef4444' : i === 3 ? '#fbbf24' : i === 4 ? 'var(--green)' : 'var(--text-3)',
+                }}>{m}</span>
+              ))}
+            </div>
+          </ScrollReveal>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 'clamp(40px,6vw,96px)', alignItems: 'center' }} className="mood-grid">
+          <ScrollReveal delay={0.1} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 'clamp(40px,6vw,96px)', alignItems: 'center' }} className="mood-grid">
             <Image
               src="/fig1.png"
               alt="Laguno"
@@ -209,7 +214,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -220,24 +225,26 @@ export default function Home() {
         padding: 'clamp(80px,12vh,140px) clamp(20px,4vw,56px)',
         textAlign: 'center',
       }}>
-        <h2 style={{
-          fontSize: 'clamp(36px,7vw,88px)',
-          fontWeight: 900,
-          letterSpacing: '-.05em',
-          lineHeight: 1.0,
-          marginBottom: 32,
-        }}>
-          É grátis.<br />
-          <span style={{ color: 'var(--green)' }}>Adiciona já.</span>
-        </h2>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 16, padding: '.9rem 2.5rem', fontWeight: 800 }}>
-            Adicionar ao servidor
-          </a>
-          <Link href="/docs" className="nav-cta-outline" style={{ fontSize: 16, padding: '.9rem 2.5rem' }}>
-            Documentação
-          </Link>
-        </div>
+        <ScrollReveal>
+          <h2 style={{
+            fontSize: 'clamp(36px,7vw,88px)',
+            fontWeight: 900,
+            letterSpacing: '-.05em',
+            lineHeight: 1.0,
+            marginBottom: 32,
+          }}>
+            É grátis.<br />
+            <span style={{ color: 'var(--green)' }}>Adiciona já.</span>
+          </h2>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 16, padding: '.9rem 2.5rem', fontWeight: 800 }}>
+              Adicionar ao servidor
+            </a>
+            <Link href="/docs" className="nav-cta-outline" style={{ fontSize: 16, padding: '.9rem 2.5rem' }}>
+              Documentação
+            </Link>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* ── Footer ── */}
