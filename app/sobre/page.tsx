@@ -149,41 +149,11 @@ export default async function Sobre() {
 
       {/* ── STACK ── */}
       <section style={{ borderTop: '1px solid var(--line)', background: 'var(--surface)' }}>
-        <div style={{
-          maxWidth: 860, margin: '0 auto',
-          padding: 'clamp(40px,6vh,72px) clamp(20px,4vw,56px)',
-          display: 'grid',
-          gridTemplateColumns: '1fr 340px',
-          gap: 48,
-          alignItems: 'center',
-        }} className="stack-grid">
-
-          {/* Esquerda: lista */}
-          <div>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 24 }}>
-              O que está por baixo
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {[
-                { icon: 'https://cdn.simpleicons.org/typescript/3178C6', nome: 'TypeScript',  desc: 'linguagem base' },
-                { icon: 'https://cdn.simpleicons.org/discord/5865F2',    nome: 'Discord.js',  desc: 'interação com Discord' },
-                { icon: 'https://cdn.simpleicons.org/nextdotjs/ffffff',  nome: 'Next.js 14',  desc: 'dashboard (App Router)' },
-                { icon: 'https://cdn.simpleicons.org/mongodb/47A248',    nome: 'MongoDB',     desc: 'base de dados' },
-                { icon: 'https://cdn.simpleicons.org/vercel/ffffff',     nome: 'Vercel',      desc: 'deploy do dashboard' },
-                { icon: 'https://cdn.simpleicons.org/nodedotjs/339933',  nome: 'Node.js',     desc: 'runtime do bot' },
-              ].map(({ icon, nome, desc }) => (
-                <div key={nome} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0', borderBottom: '1px solid var(--line)' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={icon} alt="" width={22} height={22} style={{ flexShrink: 0 }} />
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', flex: 1 }}>{nome}</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{desc}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Direita: orbiting circles estático */}
-          <div style={{ position: 'relative', width: 340, height: 340, flexShrink: 0 }}>
+        <div style={{ maxWidth: 860, margin: '0 auto', padding: 'clamp(40px,6vh,72px) clamp(20px,4vw,56px)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '.12em', textTransform: 'uppercase' }}>
+            O que está por baixo
+          </p>
+          <div style={{ position: 'relative', width: 340, height: 340 }}>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1 }}>
               <Image src="/laguno.png" alt="Laguno" width={56} height={56} style={{ objectFit: 'contain' }} />
             </div>
@@ -206,13 +176,6 @@ export default async function Sobre() {
           </div>
         </div>
       </section>
-
-      <style>{`
-@media (max-width: 700px) {
-          .stack-grid { grid-template-columns: 1fr !important; }
-          .stack-grid > div:last-child { display: none; }
-        }
-      `}</style>
 
       {/* ── MICHUU ── */}
       <section style={{
