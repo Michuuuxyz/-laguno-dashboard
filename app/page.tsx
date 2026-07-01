@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Navbar } from '@/components/Navbar';
-import LightRays from '@/components/LightRays';
 import { TypingHero } from '@/components/TypingHero';
 import { ScrollReveal, ScrollRevealList, ScrollRevealItem } from '@/components/ScrollReveal';
 
@@ -26,24 +25,7 @@ export default function Home() {
 
       {/* ── HERO — título que domina, figurinha integrada ── */}
       <section style={{ position: 'relative', overflow: 'hidden', minHeight: '92vh', display: 'flex', alignItems: 'center' }}>
-        <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-          <LightRays
-            raysOrigin="top-center"
-            raysColor="#328a30"
-            raysSpeed={1}
-            lightSpread={0.5}
-            rayLength={3}
-            followMouse={true}
-            mouseInfluence={0.1}
-            noiseAmount={0}
-            distortion={0}
-            pulsating={false}
-            fadeDistance={1}
-            saturation={1}
-          />
-        </div>
-
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 1200, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
+        <div style={{ width: '100%', maxWidth: 1200, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
           {/* Título gigante */}
           <TypingHero />
 
