@@ -118,8 +118,22 @@ export async function syncAutoModRules(
     return { ok: false, error: 'list_failed', failures: [] };
   }
 
-  const mine = existing.filter(r => r.name.startsWith('Laguno:'));
+  const mine  = existing.filter(r =>  r.name.startsWith('Laguno:'));
+  const other = existing.filter(r => !r.name.startsWith('Laguno:'));
   const byName = (name: string) => mine.find(r => r.name === name) ?? null;
+
+  // Apaga regras não-Laguno que ocupam trigger types que vamos gerir,
+  // para libertar slots antes de criar as nossas.
+  const MANAGED_TRIGGERS = new Set<number>([
+    TRIGGER.KEYWORD_PRESET,  // só pode existir 1 por servidor
+    TRIGGER.MEMBER_PROFILE,  // só pode existir 1 por servidor
+  ]);
+  for (const r of other) {
+    if (MANAGED_TRIGGERS.has(r.trigger_type)) {
+      console.log(`[syncAutoMod] A apagar regra não-Laguno "${r.name}" (trigger ${r.trigger_type}) para libertar slot`);
+      await deleteRule(guildId, r.id, token);
+    }
+  }
 
   const exemptRoles    = autoMod.ignoredRoles    ?? [];
   const exemptChannels = autoMod.ignoredChannels ?? [];
