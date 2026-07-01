@@ -105,21 +105,16 @@ export async function POST(req: NextRequest) {
   ];
   const frase = FRASES[Math.floor(Math.random() * FRASES.length)];
 
+  const embed = {
+    color: 0xFF3366,
+    author: { name: 'top.gg', icon_url: 'https://top.gg/favicon.ico', url: 'https://top.gg/bot/706487689519562833' },
+    description: `💚 **Novo voto!**\n${mention} ${frase}${weekendMsg}${testMsg}`,
+    ...(avatar ? { thumbnail: { url: avatar } } : {}),
+    timestamp: new Date().toISOString(),
+  };
+
   const res = await discordPost(`/channels/${VOTE_CHANNEL_ID}/messages`, {
-    flags: 1 << 15,
-    components: [{
-      type: 17,
-      accent_color: 0x6db83e,
-      components: [
-        {
-          type: 9,
-          components: [{ type: 10, content: `### 💚 Novo voto!\n${mention} ${frase}${weekendMsg}${testMsg}` }],
-          ...(avatar ? { accessory: { type: 11, media: { url: avatar } } } : {}),
-        },
-        { type: 14, divider: true, spacing: 1 },
-        { type: 1, components: [{ type: 2, style: 5, label: 'Votar também', url: TOPGG_URL }] },
-      ],
-    }],
+    embeds: [embed],
   });
 
   if (!res.ok) {
