@@ -1,8 +1,12 @@
 const DISCORD_API = 'https://discord.com/api/v10';
 
 // Trigger types — https://docs.discord.com/developers/resources/auto-moderation
-const TRIGGER = { KEYWORD: 1, SPAM: 3, MEMBER_PROFILE: 4, MENTION_SPAM: 5, KEYWORD_PRESET: 6 } as const;
-const ACTION  = { BLOCK: 1, ALERT: 2, TIMEOUT: 3 } as const;
+// KEYWORD=1, SPAM=3, KEYWORD_PRESET=4, MENTION_SPAM=5, MEMBER_PROFILE=6
+const TRIGGER = { KEYWORD: 1, SPAM: 3, KEYWORD_PRESET: 4, MENTION_SPAM: 5, MEMBER_PROFILE: 6 } as const;
+// Action types: BLOCK_MESSAGE=1, SEND_ALERT_MESSAGE=2, TIMEOUT=3, BLOCK_MEMBER_INTERACTION=4
+// TIMEOUT only allowed for KEYWORD and MENTION_SPAM
+// BLOCK_MEMBER_INTERACTION only for MEMBER_PROFILE
+const ACTION  = { BLOCK: 1, ALERT: 2, TIMEOUT: 3, BLOCK_MEMBER: 4 } as const;
 const PRESET  = { PROFANITY: 1, SEXUAL_CONTENT: 2, SLURS: 3 } as const;
 
 const INVITE_PATTERNS = ['discord.gg/*', 'discord.com/invite/*', 'dsc.gg/*', 'discord.io/*'];
@@ -70,7 +74,7 @@ async function upsertRule(guildId: string, token: string, existingId: string | n
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    const msg = `${(body as { name?: string }).name ?? 'regra'}: ${res.status} ${JSON.stringify(err)}`;
+    const msg = `${(body as Record<string, unknown>).name ?? 'regra'}: ${res.status} ${JSON.stringify(err)}`;
     console.error('[syncAutoMod] Falha ao criar/atualizar regra:', guildId, msg);
     return { ok: false, error: msg };
   }
@@ -172,7 +176,7 @@ export async function syncAutoModRules(
     return list;
   }
 
-  async function apply(existing: Rule | null, body: object & { trigger_type: number }) {
+  async function apply(existing: Rule | null, body: Record<string, unknown> & { trigger_type: number }) {
     // Se a regra existe mas tem trigger_type errado, apaga primeiro e recria
     if (existing && existing.trigger_type !== body.trigger_type) {
       console.log(`[syncAutoMod] trigger_type errado em "${existing.name}" (${existing.trigger_type} → ${body.trigger_type}) — a recriar`);
@@ -238,7 +242,7 @@ export async function syncAutoModRules(
   }
 
   // ── Palavras Sinalizadas (KEYWORD_PRESET — profanity + slurs) ──────────────
-  // Nota: trigger_type 6 (KEYWORD_PRESET) NÃO suporta ação BLOCK (tipo 1) — só ALERT e TIMEOUT
+  // Nota: trigger_type 4 (KEYWORD_PRESET) NÃO suporta ação BLOCK (tipo 1) — só ALERT e TIMEOUT
   const presetRule = byName(RULE.PRESET);
   if (autoMod.keywordPreset?.enabled && alertChannelId) {
     const presetActions: object[] = [{ type: ACTION.ALERT, metadata: { channel_id: alertChannelId } }];
@@ -265,7 +269,7 @@ export async function syncAutoModRules(
       event_type:       1,
       trigger_type:     TRIGGER.MEMBER_PROFILE,
       trigger_metadata: { keyword_filter: profileKeywords },
-      actions:          [{ type: ACTION.BLOCK }],
+      actions:          [{ type: ACTION.BLOCK_MEMBER }],
       enabled:          true,
       exempt_roles:     exemptRoles,
     });
