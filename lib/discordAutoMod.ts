@@ -24,7 +24,7 @@ const RULE = {
   PROFILE: 'Laguno: Perfis de Membros',
 } as const;
 
-interface Rule { id: string; name: string; trigger_type: number; }
+interface Rule { id: string; name: string; trigger_type: number; enabled?: boolean; }
 
 interface AutoMod {
   wordFilter:    { enabled: boolean; words: string[] };
@@ -172,8 +172,14 @@ export async function syncAutoModRules(
     return list;
   }
 
-  async function apply(existingId: string | null, body: object) {
-    const r = await upsertRule(guildId, token!, existingId, body);
+  async function apply(existing: Rule | null, body: object & { trigger_type: number }) {
+    // Se a regra existe mas tem trigger_type errado, apaga primeiro e recria
+    if (existing && existing.trigger_type !== body.trigger_type) {
+      console.log(`[syncAutoMod] trigger_type errado em "${existing.name}" (${existing.trigger_type} → ${body.trigger_type}) — a recriar`);
+      await deleteRule(guildId, existing.id, token!);
+      existing = null;
+    }
+    const r = await upsertRule(guildId, token!, existing?.id ?? null, body);
     if (!r.ok && r.error) failures.push(r.error);
   }
 
@@ -181,7 +187,7 @@ export async function syncAutoModRules(
   const wordRule = byName(RULE.WORD);
   const keywords = sanitizeKeywords(autoMod.wordFilter.words ?? []);
   if (autoMod.wordFilter.enabled && keywords.length > 0) {
-    await apply(wordRule?.id ?? null, {
+    await apply(wordRule ?? null, {
       name:             RULE.WORD,
       event_type:       1,
       trigger_type:     TRIGGER.KEYWORD,
@@ -196,10 +202,9 @@ export async function syncAutoModRules(
   }
 
   // ── Anti-Spam (SPAM) ────────────────────────────────────────────────────────
-  // Nota: o trigger SPAM NÃO aceita a ação TIMEOUT (tipo 3) — só BLOCK e ALERT.
   const spamRule = byName(RULE.SPAM);
   if (autoMod.antiSpam.enabled) {
-    await apply(spamRule?.id ?? null, {
+    await apply(spamRule ?? null, {
       name:             RULE.SPAM,
       event_type:       1,
       trigger_type:     TRIGGER.SPAM,
@@ -218,7 +223,7 @@ export async function syncAutoModRules(
   if (autoMod.mentionSpam.enabled) {
     const limit = Math.min(Math.max(autoMod.mentionSpam.maxMentions || 5, 1), MAX_MENTIONS);
     const timeoutSecs = autoMod.mentionSpam.action === 'timeout' ? 600 : undefined;
-    await apply(mentionRule?.id ?? null, {
+    await apply(mentionRule ?? null, {
       name:             RULE.MENTION,
       event_type:       1,
       trigger_type:     TRIGGER.MENTION_SPAM,
@@ -237,7 +242,7 @@ export async function syncAutoModRules(
   const presetRule = byName(RULE.PRESET);
   if (autoMod.keywordPreset?.enabled && alertChannelId) {
     const presetActions: object[] = [{ type: ACTION.ALERT, metadata: { channel_id: alertChannelId } }];
-    await apply(presetRule?.id ?? null, {
+    await apply(presetRule ?? null, {
       name:             RULE.PRESET,
       event_type:       1,
       trigger_type:     TRIGGER.KEYWORD_PRESET,
@@ -255,7 +260,7 @@ export async function syncAutoModRules(
   const profileRule = byName(RULE.PROFILE);
   const profileKeywords = sanitizeKeywords(autoMod.memberProfile?.words ?? []);
   if (autoMod.memberProfile?.enabled && profileKeywords.length > 0) {
-    await apply(profileRule?.id ?? null, {
+    await apply(profileRule ?? null, {
       name:             RULE.PROFILE,
       event_type:       1,
       trigger_type:     TRIGGER.MEMBER_PROFILE,
@@ -277,7 +282,7 @@ export async function syncAutoModRules(
     const allowList = whitelist.length > 0
       ? Array.from(new Set(whitelist.map(d => `*${d}*`))).slice(0, MAX_ALLOWLIST)
       : undefined;
-    await apply(linkRule?.id ?? null, {
+    await apply(linkRule ?? null, {
       name:             RULE.LINK,
       event_type:       1,
       trigger_type:     TRIGGER.KEYWORD,
