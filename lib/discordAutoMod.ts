@@ -122,28 +122,41 @@ export async function syncAutoModRules(
   const other = existing.filter(r => !r.name.startsWith('Laguno:'));
   const byName = (name: string) => mine.find(r => r.name === name) ?? null;
 
-  // Para regras não-Laguno com trigger types que gerimos (KEYWORD_PRESET, MEMBER_PROFILE),
-  // fazemos PATCH para as renomear e tomar conta delas — mais fiável do que apagar
-  // porque algumas são regras de sistema que o Discord não permite eliminar.
+  // Para regras não-Laguno com trigger types que gerimos exclusivamente,
+  // tentamos apagar para libertar o slot. Se não for possível (regra de sistema),
+  // registamos apenas — as nossas próprias regras já existem ou serão criadas.
   const MANAGED_TRIGGERS = new Set<number>([
     TRIGGER.KEYWORD_PRESET,
     TRIGGER.MEMBER_PROFILE,
   ]);
   for (const r of other) {
-    if (MANAGED_TRIGGERS.has(r.trigger_type)) {
-      const newName = r.trigger_type === TRIGGER.MEMBER_PROFILE ? RULE.PROFILE : RULE.PRESET;
-      console.log(`[syncAutoMod] A tomar conta da regra "${r.name}" → "${newName}"`);
-      const res = await fetch(`${DISCORD_API}/guilds/${guildId}/auto-moderation/rules/${r.id}`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName }),
-      });
-      if (res.ok) {
-        // Adiciona à lista "mine" com o novo nome para o upsert abaixo a encontrar
-        mine.push({ id: r.id, name: newName, trigger_type: r.trigger_type });
-      } else {
-        // Se não conseguiu fazer patch, tenta apagar
-        await deleteRule(guildId, r.id, token);
+    if (!MANAGED_TRIGGERS.has(r.trigger_type)) continue;
+
+    // Se já temos uma regra Laguno com este trigger type, a não-Laguno é redundante
+    const alreadyHaveOurs = mine.some(m => m.trigger_type === r.trigger_type);
+
+    const delRes = await fetch(`${DISCORD_API}/guilds/${guildId}/auto-moderation/rules/${r.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bot ${token}` },
+    });
+
+    if (delRes.ok || delRes.status === 404) {
+      console.log(`[syncAutoMod] Regra "${r.name}" apagada para libertar slot`);
+    } else {
+      // Não conseguiu apagar — tenta editar para assumir controlo
+      console.warn(`[syncAutoMod] Não foi possível apagar "${r.name}" (${delRes.status}) — a tentar editar`);
+      if (!alreadyHaveOurs) {
+        // Só tenta tomar conta se ainda não temos uma regra Laguno deste tipo
+        const newName = r.trigger_type === TRIGGER.MEMBER_PROFILE ? RULE.PROFILE : RULE.PRESET;
+        const patchRes = await fetch(`${DISCORD_API}/guilds/${guildId}/auto-moderation/rules/${r.id}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newName, enabled: true }),
+        });
+        if (patchRes.ok) {
+          mine.push({ id: r.id, name: newName, trigger_type: r.trigger_type });
+          console.log(`[syncAutoMod] Tomou conta de "${r.name}" → "${newName}"`);
+        }
       }
     }
   }
