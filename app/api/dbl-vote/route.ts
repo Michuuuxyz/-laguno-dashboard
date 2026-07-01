@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const VOTE_CHANNEL_ID = '1520229636229959750';
-const BOT_TOKEN       = process.env.DISCORD_BOT_TOKEN!;
+const BOT_TOKEN       = (process.env.DISCORD_TOKEN ?? process.env.DISCORD_BOT_TOKEN)!;
 const DBL_SECRET      = process.env.DBL_WEBHOOK_SECRET!;
 const DBL_URL         = 'https://discordbotlist.com/bots/706487689519562833/upvote';
 const DISCORD_API     = 'https://discord.com/api/v10';
@@ -51,12 +51,16 @@ async function sendDM(userId: string, userName: string | undefined) {
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
+  console.log('[dbl-vote] auth:', authHeader, '| secret set:', !!DBL_SECRET);
   if (DBL_SECRET && authHeader !== DBL_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const rawBody = await req.text();
+  console.log('[dbl-vote] payload:', rawBody);
+
   let payload: Record<string, unknown>;
-  try { payload = JSON.parse(await req.text()); }
+  try { payload = JSON.parse(rawBody); }
   catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
   const userId   = payload.id       as string | undefined;
