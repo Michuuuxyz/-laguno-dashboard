@@ -1,7 +1,7 @@
 const DISCORD_API = 'https://discord.com/api/v10';
 
 // Trigger types — https://docs.discord.com/developers/resources/auto-moderation
-const TRIGGER = { KEYWORD: 1, KEYWORD_PRESET: 2, SPAM: 3, MEMBER_PROFILE: 4, MENTION_SPAM: 5 } as const;
+const TRIGGER = { KEYWORD: 1, SPAM: 3, MEMBER_PROFILE: 4, MENTION_SPAM: 5, KEYWORD_PRESET: 6 } as const;
 const ACTION  = { BLOCK: 1, ALERT: 2, TIMEOUT: 3 } as const;
 const PRESET  = { PROFANITY: 1, SEXUAL_CONTENT: 2, SLURS: 3 } as const;
 
