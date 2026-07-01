@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
 
   const embed = {
     color: 0xFF3366,
-    author: { name: 'top.gg', icon_url: 'https://top.gg/favicon.ico', url: 'https://top.gg/bot/706487689519562833' },
+    author: { name: 'top.gg', icon_url: 'https://www.google.com/s2/favicons?domain=top.gg&sz=64', url: 'https://top.gg/bot/706487689519562833' },
     description: `💚 **Novo voto!**\n${mention} ${frase}${weekendMsg}${testMsg}`,
     ...(avatar ? { thumbnail: { url: avatar } } : {}),
     timestamp: new Date().toISOString(),
