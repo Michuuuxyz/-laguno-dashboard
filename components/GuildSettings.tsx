@@ -700,7 +700,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                   <div>
                     <p style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 3 }}>Configuracao Rapida</p>
-                    <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5 }}>Ativa todas as regras com os valores recomendados — inclui +120 palavras bloqueadas (PT + EN + discriminacao).</p>
+                    <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5 }}>Ativa as 6 regras nativas do AutoMod com maxima cobertura — +300 palavras bloqueadas de todas as categorias (PT, EN, discriminacao, NSFW e spam).</p>
                   </div>
                   <button disabled={setupStatus === 'loading'} onClick={async () => {
                     setSetupStatus('loading'); setSetupMsg(null);
