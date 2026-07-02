@@ -707,10 +707,14 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                     try {
                       const res = await fetch(`/api/guilds/${guildId}/automod/setup`, { method: 'POST' });
                       const data = await res.json().catch(() => ({}));
-                      if (res.ok && data.ok) {
-                        setSetupStatus('ok');
+                      // A config e guardada mesmo quando a sincronizacao com o Discord tem avisos.
+                      // Atualiza os toggles sempre que houve gravacao (data.ok ou data.saved).
+                      if (data.ok || data.saved) {
                         const cfg = await fetch(`/api/guilds/${guildId}/config`).then(r => r.json());
                         if (cfg?.autoMod) setConfig(c => ({ ...c, autoMod: { ...DEFAULT_AUTOMOD, ...cfg.autoMod } }));
+                      }
+                      if (res.ok && data.ok) {
+                        setSetupStatus('ok');
                       } else {
                         setSetupStatus('err');
                         setSetupMsg(data.reason ?? data.error ?? 'Nao foi possivel ativar. Tenta de novo.');
