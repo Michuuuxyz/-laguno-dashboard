@@ -180,7 +180,7 @@ function Content({ page }: { page: PageId }) {
             { l: 'Moderação', d: 'Warn, ban, kick, mute, timeout, purge, lock e mais.' },
             { l: 'Boas-vindas', d: 'Mensagens automáticas de entrada e despedida.' },
             { l: 'Registos', d: 'Logs completos de moderação, membros, canais e voz.' },
-            { l: 'Auto-Moderação', d: 'Filtros de palavras, links, spam e flood.' },
+            { l: 'Auto-Moderação', d: '6 regras nativas do Discord + filtro de CAPS e anti-flood.' },
             { l: 'Self-Roles', d: 'Painéis de botões para membros escolherem cargos.' },
             { l: 'Sorteios', d: 'Criação e gestão de giveaways pelo dashboard.' },
           ].map(m => (
@@ -215,7 +215,9 @@ function Content({ page }: { page: PageId }) {
             ['Banir Membros', 'Para executar o comando /ban.'],
             ['Expulsar Membros', 'Para executar o comando /kick.'],
             ['Moderar Membros', 'Para aplicar timeouts e mutes.'],
-            ['Gerir Mensagens', 'Para o comando /purge e AutoMod.'],
+            ['Gerir Mensagens', 'Para o comando /purge e filtros do bot.'],
+            ['Gerir Servidor', 'Para criar as regras nativas de AutoMod no Discord.'],
+            ['Gerir Expressões', 'Para o comando /addemoji.'],
             ['Gerir Canais', 'Para /lock, /unlock e /slowmode.'],
             ['Ler e Enviar Mensagens', 'Para responder a comandos e enviar logs.'],
             ['Gerir Cargos', 'Para atribuir e remover cargos (self-roles e mute).'],
@@ -550,14 +552,31 @@ function Content({ page }: { page: PageId }) {
     case 'automod': return (
       <div>
         <H1>Auto-Moderação</H1>
-        <P>O AutoMod filtra mensagens automaticamente sem precisar de moderadores online. Podes configurar o nível de rigor de cada filtro.</P>
+        <P>O AutoMod filtra mensagens automaticamente, sem precisar de moderadores online. O Laguno usa <strong style={{ color: 'var(--text-1)' }}>dois motores</strong> que trabalham em conjunto — cada regra tem um só dono, sem duplicação.</P>
 
-        <H2>Filtros disponíveis</H2>
+        <Note type="tip">Carrega em <strong style={{ color: 'var(--text-1)' }}>Ativar tudo</strong> no dashboard para configurar as 6 regras nativas de uma vez, com máxima cobertura de palavras (mais de 300, de todas as categorias).</Note>
+
+        <H2>Regras nativas do Discord</H2>
+        <P>Aplicadas instantaneamente pela API de AutoMod do Discord, sem passar pelo bot. Rápidas e fiáveis.</P>
         {[
-          { t: 'Filtro de palavras',   c: '#ef4444', d: 'Apaga mensagens que contenham palavras da lista negra. Inclui templates pré-definidos (Português básico, insultos, inglês, discriminação, NSFW, spam/scam) que podes adicionar com um clique.' },
-          { t: 'Filtro de links',      c: '#f59e0b', d: 'Bloqueia mensagens com URLs. Podes criar uma lista de domínios permitidos (whitelist) para exceções como youtube.com ou twitch.tv.' },
-          { t: 'Anti-spam',            c: '#5865f2', d: 'Detecta e remove mensagens repetidas enviadas pelo mesmo utilizador em sequência.' },
-          { t: 'Anti-flood',           c: '#ec4899', d: 'Bloqueia membros que enviem muitas mensagens num curto espaço de tempo.' },
+          { t: 'Filtro de palavras',        c: '#ef4444', d: 'Bloqueia mensagens com palavras da lista negra. Inclui 6 templates (PT básico, insultos, inglês, discriminação, NSFW, spam/scam) que adicionas com um clique. Até 1000 palavras.' },
+          { t: 'Anti-Convites',             c: '#f59e0b', d: 'Bloqueia convites para outros servidores (discord.gg, discord.com/invite e afins). Gifs e links normais NÃO são afetados. Podes permitir domínios específicos.' },
+          { t: 'Anti-spam',                 c: '#5865f2', d: 'Deteta e remove mensagens repetidas enviadas em sequência pelo mesmo utilizador.' },
+          { t: 'Anti-menções',              c: '#3b82f6', d: 'Bloqueia mensagens que excedam um número máximo de menções, evitando ataques de menção em massa.' },
+          { t: 'Palavras sinalizadas',      c: '#a855f7', d: 'Usa as listas de conteúdo do próprio Discord (profanidade, conteúdo sexual e insultos) — mantidas e atualizadas pelo Discord.' },
+          { t: 'Perfis de membros',         c: '#ec4899', d: 'Impede que membros usem palavras proibidas no nome ou apelido (nickname).' },
+        ].map(f => (
+          <div key={f.t} style={{ borderLeft: `3px solid ${f.c}`, padding: '12px 16px', background: 'var(--surface)', borderRadius: '0 8px 8px 0', marginBottom: 10 }}>
+            <p style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-1)', marginBottom: 5 }}>{f.t}</p>
+            <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{f.d}</p>
+          </div>
+        ))}
+
+        <H2>Regras do Laguno</H2>
+        <P>Processadas pelo bot — fazem o que a API do Discord não consegue.</P>
+        {[
+          { t: 'Filtro de CAPS',            c: '#14b8a6', d: 'Remove mensagens com excesso de maiúsculas. Configurável por percentagem e comprimento mínimo.' },
+          { t: 'Anti-flood (auto-slowmode)',c: '#6db83e', d: 'Ativa slowmode automaticamente num canal quando deteta muitas mensagens em pouco tempo. Remove-o sozinho ao fim de um período.' },
         ].map(f => (
           <div key={f.t} style={{ borderLeft: `3px solid ${f.c}`, padding: '12px 16px', background: 'var(--surface)', borderRadius: '0 8px 8px 0', marginBottom: 10 }}>
             <p style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-1)', marginBottom: 5 }}>{f.t}</p>
