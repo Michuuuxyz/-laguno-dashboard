@@ -72,9 +72,9 @@ export function AuditLogTab({ guildId }: Props) {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-.02em', marginBottom: 4 }}>Audit Log</h2>
+        <h2 style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-.02em', marginBottom: 4 }}>Registo de Auditoria</h2>
         <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-          Registo de tudo o que acontece no servidor — entradas, saídas, mensagens, canais, cargos e voz. {total > 0 && <strong style={{ color: 'var(--text-2)' }}>{total} evento{total !== 1 ? 's' : ''}.</strong>} <span style={{ color: 'var(--text-3)' }}>Guardado por 30 dias.</span>
+          Tudo o que acontece no servidor, como no registo de auditoria do Discord — entradas, saídas, mensagens, canais, cargos, voz e moderação. {total > 0 && <strong style={{ color: 'var(--text-2)' }}>{total} evento{total !== 1 ? 's' : ''}.</strong>} <span style={{ color: 'var(--text-3)' }}>Mantido durante 30 dias.</span>
         </p>
       </div>
 

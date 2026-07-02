@@ -18,8 +18,7 @@ const NAV_MODULES = [
   { id: 'moderation', label: 'Moderação',       section: 'MODERAÇÃO' },
   { id: 'automod',    label: 'Auto-Mod',        section: 'MODERAÇÃO' },
   { id: 'warns',      label: 'Avisos',          section: 'MODERAÇÃO' },
-  { id: 'modlogs',    label: 'Histórico',       section: 'MODERAÇÃO' },
-  { id: 'auditlog',   label: 'Audit Log',       section: 'ADMINISTRAÇÃO' },
+  { id: 'auditlog',   label: 'Registo de Auditoria', section: 'ADMINISTRAÇÃO' },
   { id: 'logs',       label: 'Logs',            section: 'ADMINISTRAÇÃO' },
 ];
 const SECTIONS = ['GERAL', 'MÓDULOS', 'MODERAÇÃO', 'ADMINISTRAÇÃO'];
