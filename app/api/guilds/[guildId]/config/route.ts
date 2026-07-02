@@ -7,6 +7,7 @@ const ALLOWED_KEYS = new Set([
   'prefix', 'language', 'enabledModules', 'customCommands',
   'moderation', 'autoMod', 'logs', 'logChannelId',
   'welcome', 'goodbye', 'autoroles', 'giveaways',
+  'warns', 'rolePanels',
 ]);
 
 export async function GET(_: NextRequest, { params }: { params: { guildId: string } }) {

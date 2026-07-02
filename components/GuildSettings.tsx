@@ -225,18 +225,6 @@ const NAV = [
   },
 ];
 
-/* ── Overview cards ── */
-const OVERVIEW_CARDS = [
-  { id: 'settings',   label: 'Configurações',  desc: 'Canal de logs e configuração geral.',                              icon: <IconSettings /> },
-  { id: 'logs',       label: 'Logs',           desc: '7 categorias de eventos — mensagens, membros, voz e mais.',        icon: <IconFile /> },
-  { id: 'moderation', label: 'Moderação',      desc: '/ban, /kick, /warn, /timeout — controlo total do servidor.',       icon: <IconShield /> },
-  { id: 'automod',    label: 'Auto-Moderação', desc: 'Anti-spam, filtro de palavras e bloqueio de links.',               icon: <IconBolt /> },
-  { id: 'welcome',    label: 'Boas-Vindas',    desc: 'Mensagem de entrada e saída com variáveis dinâmicas.',             icon: <IconUsers /> },
-  { id: 'roles',      label: 'Roles & Painéis',desc: 'Auto-roles na entrada e painéis de cargos com botões.',            icon: <IconTag /> },
-  { id: 'warns',      label: 'Avisos',         desc: 'Histórico de warns emitidos neste servidor.',                      icon: <IconWarn /> },
-  { id: 'giveaways',  label: 'Sorteios',       desc: 'Cria sorteios com prémios, banners, cargos e rerolls agendados.',   icon: <IconGift /> },
-];
-
 /* ── Helpers ── */
 function mergeDeep(base: Record<string, unknown>, override: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = { ...base };
@@ -506,6 +494,41 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
   const setActive = (tab: string) => router.push(`?tab=${tab}`, { scroll: false });
   const [loading, setLoading]     = useState(true);
 
+  // Barra de "alterações por guardar" (estilo Discord)
+  const [savedSnapshot, setSavedSnapshot] = useState<Config | null>(null);
+  const [savingAll, setSavingAll] = useState(false);
+  const [saveToast, setSaveToast] = useState<string | null>(null);
+  const dirty = savedSnapshot !== null && JSON.stringify(config) !== JSON.stringify(savedSnapshot);
+
+  // Captura o snapshot inicial assim que a config carrega
+  useEffect(() => {
+    if (!loading && savedSnapshot === null) setSavedSnapshot(config);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
+
+  async function saveAll() {
+    setSavingAll(true);
+    try {
+      const res = await fetch(`/api/guilds/${guildId}/config`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      const data = await res.json().catch(() => ({}));
+      setSavedSnapshot(config);
+      setSaveToast(data.autoModWarning ?? 'Alterações guardadas.');
+      setTimeout(() => setSaveToast(null), data.autoModWarning ? 8000 : 3000);
+    } catch {
+      setSaveToast('Erro ao guardar. Tenta de novo.');
+      setTimeout(() => setSaveToast(null), 4000);
+    } finally {
+      setSavingAll(false);
+    }
+  }
+
+  function resetAll() {
+    if (savedSnapshot) setConfig(savedSnapshot);
+  }
+
   // Limpa avisos/estado de guardado ao trocar de secção
   useEffect(() => { setSaveMsg(null); setSaved(false); }, [active]);
 
@@ -542,6 +565,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }).catch(() => null);
+    setSavedSnapshot(s => s ? { ...s, ...(Object.fromEntries(keys.map(k => [k, config[k]])) as Partial<Config>) } : s);
     setSavingCard(null); setSavedCard(cardKey);
     setTimeout(() => setSavedCard(c => c === cardKey ? null : c), 2500);
   }
@@ -556,6 +580,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
       });
       const data = await res.json().catch(() => ({}));
       if (data.autoModWarning) setRuleSaveMsg(data.autoModWarning);
+      setSavedSnapshot(s => s ? { ...s, autoMod: config.autoMod } : s);
       setSavedRule(key);
       setTimeout(() => setSavedRule(null), 2500);
     } finally {
@@ -582,19 +607,117 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
     <div style={{ position: 'relative' }}>
 
         {/* OVERVIEW */}
-        {active === 'overview' && (
+        {active === 'overview' && (() => {
+          const amOn = !!(config.autoMod.wordFilter?.enabled || config.autoMod.antiSpam?.enabled
+            || config.autoMod.mentionSpam?.enabled || config.autoMod.antiLink?.enabled
+            || config.autoMod.keywordPreset?.enabled || config.autoMod.memberProfile?.enabled
+            || config.autoMod.capsFilter?.enabled);
+          const logsOn  = Object.values(config.logs).some(c => (c as LogCategory)?.channelId);
+          const rolesOn = config.autoroles.length > 0 || config.rolePanels.length > 0;
+          const modules = [
+            { id: 'moderation', label: 'Moderação',   icon: <IconShield />,  on: true,  desc: 'Comandos /ban, /kick, /warn e mais.', always: true },
+            { id: 'automod',    label: 'Auto-Mod',    icon: <IconBolt />,    on: amOn,  desc: amOn ? 'Regras ativas a proteger o servidor.' : 'Nenhuma regra ativa. Ativa em 1 clique.' },
+            { id: 'welcome',    label: 'Boas-Vindas', icon: <IconUsers />,   on: !!(config.welcome?.enabled || config.goodbye?.enabled), desc: 'Mensagens de entrada e saída.' },
+            { id: 'logs',       label: 'Logs',        icon: <IconFile />,    on: logsOn, desc: logsOn ? 'Eventos a serem registados.' : 'Sem canal de logs configurado.' },
+            { id: 'roles',      label: 'Self-Roles',  icon: <IconTag />,     on: rolesOn, desc: `${config.autoroles.length} auto-role${config.autoroles.length !== 1 ? 's' : ''} · ${config.rolePanels.length} painel${config.rolePanels.length !== 1 ? 'éis' : ''}` },
+            { id: 'warns',      label: 'Auto-ação de Avisos', icon: <IconWarn />, on: !!config.warns.autoAction?.enabled, desc: config.warns.autoAction?.enabled ? `${config.warns.autoAction.action} ao fim de ${config.warns.autoAction.threshold} avisos.` : 'Sem ação automática configurada.' },
+          ];
+          const recentWarns = warns.slice(0, 3);
+          return (
           <div>
-            <div style={{ marginBottom: 28 }}>
+            <div style={{ marginBottom: 24 }}>
               <h2 style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-.02em', marginBottom: 4 }}>Visão Geral</h2>
-              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Todas as funcionalidades do Laguno neste servidor.</p>
+              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>O estado do Laguno em <strong style={{ color: 'var(--text-2)' }}>{guildName}</strong>, num relance.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: 10 }}>
-              {OVERVIEW_CARDS.map(card => (
-                <OverviewCard key={card.id} card={card} enabled={true} onVisit={() => setActive(card.id)} />
+
+            {/* Stats */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px,1fr))', gap: 10, marginBottom: 22 }}>
+              {[
+                { label: 'Avisos',     value: warns.length },
+                { label: 'Auto-roles', value: config.autoroles.length },
+                { label: 'Painéis',    value: config.rolePanels.length },
+                { label: 'Canais',     value: channels.length },
+                { label: 'Cargos',     value: roles.length },
+              ].map(s => (
+                <div key={s.label} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: '14px 16px' }}>
+                  <p style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-.03em', color: 'var(--green)', fontVariantNumeric: 'tabular-nums' }}>{s.value}</p>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2 }}>{s.label}</p>
+                </div>
               ))}
             </div>
+
+            {/* Estado dos módulos */}
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '.07em', textTransform: 'uppercase', marginBottom: 10 }}>Estado dos módulos</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px,1fr))', gap: 10, marginBottom: 26 }}>
+              {modules.map(m => (
+                <button key={m.id} onClick={() => setActive(m.id)} style={{
+                  textAlign: 'left', background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12,
+                  padding: '15px 16px', cursor: 'pointer', transition: 'border-color .15s',
+                  display: 'flex', flexDirection: 'column', gap: 8,
+                }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(109,184,62,.35)')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--line)')}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                    <span style={{ display: 'flex', color: m.on ? 'var(--green)' : 'var(--text-3)' }}>{m.icon}</span>
+                    <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>{m.label}</span>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, letterSpacing: '.05em', padding: '2px 8px', borderRadius: 20,
+                      background: m.on ? 'rgba(109,184,62,.12)' : 'var(--surface)',
+                      color: m.on ? 'var(--green)' : 'var(--text-3)',
+                      border: m.on ? '1px solid rgba(109,184,62,.3)' : '1px solid var(--line)',
+                    }}>{m.always ? 'SEMPRE' : m.on ? 'ATIVO' : 'OFF'}</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>{m.desc}</p>
+                </button>
+              ))}
+            </div>
+
+            {/* Últimos avisos + ações rápidas */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12 }} className="overview-bottom">
+              <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 18px', borderBottom: '1px solid var(--line)' }}>
+                  <p style={{ fontSize: 13, fontWeight: 600 }}>Últimos avisos</p>
+                  {warns.length > 0 && (
+                    <button onClick={() => setActive('warns')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>Ver todos →</button>
+                  )}
+                </div>
+                {recentWarns.length === 0 ? (
+                  <p style={{ fontSize: 12.5, color: 'var(--text-3)', padding: '26px 18px', textAlign: 'center' }}>O servidor está em paz. Nenhum aviso registado.</p>
+                ) : recentWarns.map((w, i, a) => (
+                  <div key={w._id} style={{ padding: '11px 18px', borderBottom: i < a.length - 1 ? '1px solid var(--line)' : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'monospace', color: '#f87171' }}>@{w.userId}</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{new Date(w.createdAt).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <p style={{ fontSize: 12.5, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.reason}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '.07em', textTransform: 'uppercase' }}>Ações rápidas</p>
+                {[
+                  { label: amOn ? 'Rever Auto-Mod' : 'Ativar Auto-Mod', tab: 'automod' },
+                  { label: 'Criar sorteio',            tab: 'giveaways' },
+                  { label: 'Configurar boas-vindas',   tab: 'welcome' },
+                  { label: 'Escolher canal de logs',   tab: 'logs' },
+                ].map(a => (
+                  <button key={a.tab} onClick={() => setActive(a.tab)} style={{
+                    textAlign: 'left', background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10,
+                    padding: '11px 14px', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: 'var(--text-1)',
+                    transition: 'border-color .15s, background .15s',
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(109,184,62,.35)'; e.currentTarget.style.background = 'rgba(109,184,62,.04)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = 'var(--card)'; }}
+                  >{a.label} <span style={{ color: 'var(--green)' }}>→</span></button>
+                ))}
+              </div>
+            </div>
+            <style>{`@media (max-width: 760px) { .overview-bottom { grid-template-columns: 1fr !important; } }`}</style>
           </div>
-        )}
+          );
+        })()}
 
         {/* SETTINGS */}
         {active === 'settings' && (
@@ -714,7 +837,11 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                       // Atualiza os toggles sempre que houve gravacao (data.ok ou data.saved).
                       if (data.ok || data.saved) {
                         const cfg = await fetch(`/api/guilds/${guildId}/config`).then(r => r.json());
-                        if (cfg?.autoMod) setConfig(c => ({ ...c, autoMod: { ...DEFAULT_AUTOMOD, ...cfg.autoMod } }));
+                        if (cfg?.autoMod) {
+                          const freshAM = { ...DEFAULT_AUTOMOD, ...cfg.autoMod };
+                          setConfig(c => ({ ...c, autoMod: freshAM }));
+                          setSavedSnapshot(s => s ? { ...s, autoMod: freshAM } : s);
+                        }
                       }
                       if (res.ok && data.ok) {
                         setSetupStatus('ok');
@@ -1020,53 +1147,63 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
           </div>
         )}
 
+        {/* Barra de alterações por guardar (estilo Discord) */}
+        {dirty && (
+          <div className="unsaved-bar">
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+              background: 'var(--elevated)', border: '1px solid var(--line)',
+              borderRadius: 12, padding: '10px 12px 10px 18px',
+              boxShadow: '0 12px 40px rgba(0,0,0,.55)',
+              maxWidth: 720, margin: '0 auto',
+            }}>
+              <p style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-1)' }}>
+                Cuidado — tens alterações por guardar!
+              </p>
+              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                <button onClick={resetAll} disabled={savingAll} style={{
+                  background: 'transparent', border: 'none', borderRadius: 8,
+                  padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  color: 'var(--text-2)', textDecoration: 'underline',
+                }}>Repor</button>
+                <button onClick={saveAll} disabled={savingAll} style={{
+                  background: 'var(--green)', color: '#fff', border: 'none', borderRadius: 8,
+                  padding: '8px 20px', fontSize: 13, fontWeight: 700,
+                  cursor: savingAll ? 'wait' : 'pointer', minWidth: 160, transition: 'opacity .15s',
+                  opacity: savingAll ? .7 : 1,
+                }}>{savingAll ? 'A guardar...' : 'Guardar alterações'}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Toast de confirmação */}
+        {saveToast && (
+          <div className="save-toast" style={{
+            background: 'var(--elevated)', border: '1px solid var(--line)',
+            borderLeft: '3px solid var(--green)',
+            borderRadius: 10, padding: '11px 16px', fontSize: 13, color: 'var(--text-1)',
+            boxShadow: '0 8px 30px rgba(0,0,0,.5)', maxWidth: 380,
+          }}>
+            {saveToast}
+          </div>
+        )}
+
+        <style>{`
+          .unsaved-bar {
+            position: fixed; bottom: 20px; left: 300px; right: 0; z-index: 90;
+            padding: 0 24px;
+            animation: unsaved-in .22s cubic-bezier(.2,.9,.3,1.2) both;
+          }
+          .save-toast {
+            position: fixed; bottom: 20px; right: 24px; z-index: 95;
+            animation: unsaved-in .2s ease both;
+          }
+          @keyframes unsaved-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+          @media (max-width: 860px) { .unsaved-bar { left: 0; } }
+        `}</style>
+
     </div>
   );
 }
 
-/* ── Overview card component ── */
-function OverviewCard({ card, enabled, onVisit }: {
-  card: { id: string; label: string; desc: string; icon: React.ReactNode };
-  enabled: boolean;
-  onVisit: () => void;
-}) {
-  return (
-    <div style={{
-      background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12,
-      padding: '22px 20px 18px', display: 'flex', flexDirection: 'column',
-      transition: 'border-color .15s, box-shadow .15s', cursor: 'default',
-    }}
-      onMouseEnter={e => { const d = e.currentTarget as HTMLDivElement; d.style.borderColor = 'rgba(109,184,62,.25)'; d.style.boxShadow = '0 0 0 1px rgba(109,184,62,.08)'; }}
-      onMouseLeave={e => { const d = e.currentTarget as HTMLDivElement; d.style.borderColor = 'var(--line)'; d.style.boxShadow = 'none'; }}
-    >
-      {/* Icon */}
-      <div style={{
-        width: 44, height: 44, borderRadius: 11,
-        background: 'var(--elevated)', border: '1px solid var(--line)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'var(--green)', flexShrink: 0, marginBottom: 16,
-      }}>
-        {card.icon}
-      </div>
-
-      {/* Text */}
-      <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 6, letterSpacing: '-.01em' }}>{card.label}</p>
-      <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.7, flex: 1, marginBottom: 18 }}>{card.desc}</p>
-
-      {/* Visit button */}
-      <button onClick={onVisit} style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-        width: '100%', padding: '8px 0', borderRadius: 8,
-        background: 'var(--elevated)', border: '1px solid var(--line)',
-        color: 'var(--text-2)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-        transition: 'all .15s',
-      }}
-        onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(109,184,62,.1)'; b.style.color = 'var(--green)'; b.style.borderColor = 'rgba(109,184,62,.3)'; }}
-        onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'var(--elevated)'; b.style.color = 'var(--text-2)'; b.style.borderColor = 'var(--line)'; }}
-      >
-        Visitar
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-  );
-}
