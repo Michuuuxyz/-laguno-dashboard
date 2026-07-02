@@ -12,14 +12,18 @@ interface AuditEntry {
 
 interface Props { guildId: string; }
 
-const CATEGORIES: { id: string; label: string; icon: string; color: string }[] = [
-  { id: 'moderation', label: 'Moderação', icon: '🛡️', color: '#f87171' },
-  { id: 'members',    label: 'Membros',   icon: '👥', color: '#4ade80' },
-  { id: 'messages',   label: 'Mensagens', icon: '💬', color: '#60a5fa' },
-  { id: 'channels',   label: 'Canais',    icon: '📁', color: '#fbbf24' },
-  { id: 'roles',      label: 'Cargos',    icon: '🏷️', color: '#a78bfa' },
-  { id: 'voice',      label: 'Voz',       icon: '🔊', color: '#f472b6' },
-  { id: 'server',     label: 'Servidor',  icon: '⚙️', color: '#94a3b8' },
+const S = (p: React.ReactNode) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{p}</svg>
+);
+
+const CATEGORIES: { id: string; label: string; icon: React.ReactNode; color: string }[] = [
+  { id: 'moderation', label: 'Moderação', color: '#f87171', icon: S(<><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></>) },
+  { id: 'members',    label: 'Membros',   color: '#4ade80', icon: S(<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3.2"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></>) },
+  { id: 'messages',   label: 'Mensagens', color: '#60a5fa', icon: S(<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>) },
+  { id: 'channels',   label: 'Canais',    color: '#fbbf24', icon: S(<path d="M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>) },
+  { id: 'roles',      label: 'Cargos',    color: '#a78bfa', icon: S(<><path d="M20.6 13.4L13 21a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 2.6 12l.4-6a2 2 0 0 1 2-2l6-.4a2 2 0 0 1 1.6.6l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="8.5" r="1.3"/></>) },
+  { id: 'voice',      label: 'Voz',       color: '#f472b6', icon: S(<><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14"/></>) },
+  { id: 'server',     label: 'Servidor',  color: '#94a3b8', icon: S(<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 6 9.4l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 11 4.6V4.5a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 2.82 1.17l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 11h.1a2 2 0 1 1 0 4h-.1z"/></>) },
 ];
 
 const CAT_MAP = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
@@ -111,7 +115,7 @@ export function AuditLogTab({ guildId }: Props) {
             const { title, body } = parseContent(e.content);
             return (
               <div key={e._id} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <span style={{ fontSize: 15, flexShrink: 0, marginTop: 1 }}>{cat.icon}</span>
+                <span style={{ flexShrink: 0, marginTop: 2, width: 26, height: 26, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', background: cat.color + '1a', color: cat.color }}>{cat.icon}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 13, fontWeight: 600 }}>{title}</span>
