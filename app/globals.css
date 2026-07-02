@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -69,6 +69,67 @@ body {
 }
 
 a { color: inherit; text-decoration: none; }
+
+/* ── Display type (títulos com carácter) ─────── */
+.display {
+  font-family: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+  font-optical-sizing: auto;
+}
+
+/* ── A linha de água — assinatura do Laguno ───── */
+/* Divide as secções como a superfície da lagoa. Os "olhos" espreitam à tona. */
+.waterline {
+  position: relative;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(109,184,62,.10) 12%,
+    rgba(109,184,62,.45) 50%,
+    rgba(109,184,62,.10) 88%,
+    transparent);
+  overflow: visible;
+}
+.waterline::after {
+  /* brilho que percorre a linha, como luz na água */
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 18%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(163,230,110,.7), transparent);
+  animation: waterline-drift 7s ease-in-out infinite alternate;
+}
+@keyframes waterline-drift {
+  from { left: 8%; }
+  to   { left: 74%; }
+}
+.waterline-eyes {
+  position: absolute; top: -5px; left: var(--eyes-x, 72%);
+  display: flex; gap: 7px;
+}
+.waterline-eyes span {
+  width: 6px; height: 6px; border-radius: 50% 50% 0 0;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(109,184,62,.8);
+  animation: eyes-blink 5.5s infinite;
+  transform-origin: bottom;
+}
+@keyframes eyes-blink {
+  0%, 91%, 100% { transform: scaleY(1); }
+  93%, 97%      { transform: scaleY(.12); }
+}
+
+/* ── Marcador de profundidade ─────────────────── */
+.depth-label {
+  font-size: 10.5px; font-weight: 600;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.depth-label::before {
+  content: '';
+  width: 26px; height: 1px;
+  background: rgba(109,184,62,.45);
+}
 
 /* ── Detalhes premium ────────────────────────── */
 ::selection { background: rgba(109,184,62,.30); color: #fff; }

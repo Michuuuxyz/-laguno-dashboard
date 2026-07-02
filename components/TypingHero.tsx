@@ -35,10 +35,10 @@ export function TypingHero() {
   }, [lineIdx, charIdx, done]);
 
   return (
-    <h1 style={{
+    <h1 className="display" style={{
       fontSize: 'clamp(52px,10vw,130px)',
-      fontWeight: 900,
-      letterSpacing: '-.06em',
+      fontWeight: 800,
+      letterSpacing: '-.04em',
       lineHeight: 0.95,
       color: 'var(--text-1)',
       marginBottom: 0,

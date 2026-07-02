@@ -53,10 +53,10 @@ export default async function Sobre() {
         <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--green)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 20 }}>
           Sobre o projeto
         </p>
-        <h1 style={{
+        <h1 className="display" style={{
           fontSize: 'clamp(36px,6vw,72px)',
           fontWeight: 800,
-          letterSpacing: '-.05em',
+          letterSpacing: '-.03em',
           lineHeight: 1.0,
           marginBottom: 36,
         }}>

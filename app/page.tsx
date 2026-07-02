@@ -101,13 +101,21 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── A linha de água — daqui para baixo, mergulhas ── */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
+        <div className="waterline" style={{ ['--eyes-x' as string]: '76%' } as React.CSSProperties}>
+          <span className="waterline-eyes"><span /><span /></span>
+        </div>
+        <p className="depth-label" style={{ marginTop: 14 }}>Superfície · a lagoa do Laguno</p>
+      </div>
+
       {/* ── BLOCO VERDE — declaração forte ── */}
-      <section style={{ background: 'var(--green)', padding: 'clamp(48px,7vh,80px) clamp(20px,4vw,56px)' }}>
+      <section style={{ background: 'var(--green)', padding: 'clamp(48px,7vh,80px) clamp(20px,4vw,56px)', marginTop: 'clamp(32px,5vh,56px)' }}>
         <ScrollReveal style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
-          <p style={{
+          <p className="display" style={{
             fontSize: 'clamp(24px,4vw,52px)',
-            fontWeight: 900,
-            letterSpacing: '-.04em',
+            fontWeight: 800,
+            letterSpacing: '-.03em',
             lineHeight: 1.1,
             color: '#fff',
             maxWidth: 700,
@@ -120,16 +128,18 @@ export default function Home() {
         </ScrollReveal>
       </section>
 
-      {/* ── MÓDULOS — lista direta, sem floreados ── */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(64px,9vh,100px) clamp(20px,4vw,56px)' }}>
+      {/* ── MÓDULOS — a 2 metros de profundidade ── */}
+      <section style={{ background: '#0b0b0d', borderBottom: '1px solid var(--line)' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(64px,9vh,100px) clamp(20px,4vw,56px)' }}>
+        <p className="depth-label" style={{ marginBottom: 'clamp(32px,5vh,48px)' }}>−2 m · os módulos</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(32px,5vw,80px)', alignItems: 'start' }} className="modules-split">
 
           {/* Esquerda: título */}
           <div style={{ position: 'sticky', top: 100 }}>
-            <h2 style={{
+            <h2 className="display" style={{
               fontSize: 'clamp(32px,5vw,64px)',
-              fontWeight: 900,
-              letterSpacing: '-.05em',
+              fontWeight: 800,
+              letterSpacing: '-.03em',
               lineHeight: 1.0,
               marginBottom: 24,
             }}>
@@ -184,11 +194,13 @@ export default function Home() {
             ))}
           </ScrollRevealList>
         </div>
+      </div>
       </section>
 
-      {/* ── PERSONALIDADE — sem simetria ── */}
-      <section style={{ borderTop: '1px solid var(--line)', overflow: 'hidden' }}>
+      {/* ── PERSONALIDADE — a 10 metros, onde vive o humor ── */}
+      <section style={{ background: '#09090b', overflow: 'hidden' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(64px,9vh,100px) clamp(20px,4vw,56px)' }}>
+          <p className="depth-label" style={{ marginBottom: 'clamp(28px,4vh,40px)' }}>−10 m · a personalidade</p>
 
           <ScrollReveal>
             <div style={{ display: 'flex', gap: 16, marginBottom: 48, flexWrap: 'wrap' }}>
@@ -215,10 +227,10 @@ export default function Home() {
               className="fig-story"
             />
             <div>
-              <h2 style={{
+              <h2 className="display" style={{
                 fontSize: 'clamp(28px,5vw,60px)',
-                fontWeight: 900,
-                letterSpacing: '-.05em',
+                fontWeight: 800,
+                letterSpacing: '-.03em',
                 lineHeight: 1.05,
                 marginBottom: 24,
               }}>
@@ -244,18 +256,24 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CTA FINAL — simples, direto ── */}
+      {/* ── CTA FINAL — o leito da lagoa ── */}
       <section style={{
-        background: '#0a0a0b',
-        borderTop: '1px solid var(--line)',
-        padding: 'clamp(80px,12vh,140px) clamp(20px,4vw,56px)',
+        background: 'radial-gradient(ellipse 70% 60% at 50% 100%, rgba(109,184,62,.07), transparent), #060607',
+        padding: 'clamp(80px,12vh,140px) clamp(20px,4vw,56px) clamp(64px,10vh,110px)',
         textAlign: 'center',
+        position: 'relative',
       }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', position: 'absolute', top: 0, left: 0, right: 0, padding: '0 clamp(20px,4vw,56px)' }}>
+          <div className="waterline" style={{ ['--eyes-x' as string]: '22%' } as React.CSSProperties}>
+            <span className="waterline-eyes"><span /><span /></span>
+          </div>
+        </div>
         <ScrollReveal>
-          <h2 style={{
+          <p className="depth-label" style={{ justifyContent: 'center', marginBottom: 28 }}>leito da lagoa · o fim</p>
+          <h2 className="display" style={{
             fontSize: 'clamp(36px,7vw,88px)',
-            fontWeight: 900,
-            letterSpacing: '-.05em',
+            fontWeight: 800,
+            letterSpacing: '-.03em',
             lineHeight: 1.0,
             marginBottom: 32,
           }}>

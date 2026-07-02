@@ -158,7 +158,7 @@ export default function Features() {
 
       {/* ── PAGE HEADER ── */}
       <ScrollReveal style={{ textAlign: 'center', padding: 'clamp(64px,10vh,100px) clamp(20px,4vw,56px) 0', maxWidth: 640, margin: '0 auto' }}>
-        <h1 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 700, letterSpacing: '-.04em', lineHeight: 1.1, marginBottom: 20 }}>
+        <h1 className="display" style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1.1, marginBottom: 20 }}>
           Funcionalidades
         </h1>
         <p style={{ fontSize: 16, color: 'var(--text-2)', lineHeight: 1.75 }}>
