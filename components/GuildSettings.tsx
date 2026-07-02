@@ -92,9 +92,12 @@ const DEFAULT_LOG_CAT = (events: string[]): LogCategory => ({
   channelId: null,
   events: Object.fromEntries(events.map(e => [e, true])),
 });
-const LOG_CATEGORIES: { id: keyof LogsConfig; label: string; icon: string; events: { id: string; label: string; desc: string }[] }[] = [
+const logIc = (p: React.ReactNode) => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{p}</svg>
+);
+const LOG_CATEGORIES: { id: keyof LogsConfig; label: string; icon: React.ReactNode; color: string; events: { id: string; label: string; desc: string }[] }[] = [
   {
-    id: 'moderation', label: 'Moderação', icon: '🛡️',
+    id: 'moderation', label: 'Moderação', color: '#f87171', icon: logIc(<><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></>),
     events: [
       { id: 'purge',          label: 'Purge',            desc: 'Mensagens apagadas em bulk.' },
       { id: 'ban',            label: 'Ban',              desc: 'Utilizador banido do servidor.' },
@@ -107,7 +110,7 @@ const LOG_CATEGORIES: { id: keyof LogsConfig; label: string; icon: string; event
     ],
   },
   {
-    id: 'messages', label: 'Mensagens', icon: '💬',
+    id: 'messages', label: 'Mensagens', color: '#60a5fa', icon: logIc(<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>),
     events: [
       { id: 'messageDelete',  label: 'Mensagem eliminada', desc: 'Conteúdo da mensagem apagada.' },
       { id: 'messageEdit',    label: 'Mensagem editada',   desc: 'Antes e depois da edição.' },
@@ -116,7 +119,7 @@ const LOG_CATEGORIES: { id: keyof LogsConfig; label: string; icon: string; event
     ],
   },
   {
-    id: 'members', label: 'Membros', icon: '👥',
+    id: 'members', label: 'Membros', color: '#4ade80', icon: logIc(<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3.2"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></>),
     events: [
       { id: 'memberJoin',     label: 'Entrada',           desc: 'Novo membro entrou no servidor.' },
       { id: 'memberLeave',    label: 'Saída',             desc: 'Membro saiu ou foi expulso.' },
@@ -126,7 +129,7 @@ const LOG_CATEGORIES: { id: keyof LogsConfig; label: string; icon: string; event
     ],
   },
   {
-    id: 'channels', label: 'Canais', icon: '#️⃣',
+    id: 'channels', label: 'Canais', color: '#fbbf24', icon: logIc(<path d="M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>),
     events: [
       { id: 'channelCreate',  label: 'Canal criado',      desc: 'Novo canal de texto ou voz.' },
       { id: 'channelDelete',  label: 'Canal eliminado',   desc: 'Canal apagado do servidor.' },
@@ -134,7 +137,7 @@ const LOG_CATEGORIES: { id: keyof LogsConfig; label: string; icon: string; event
     ],
   },
   {
-    id: 'roles', label: 'Cargos', icon: '🏷️',
+    id: 'roles', label: 'Cargos', color: '#a78bfa', icon: logIc(<><path d="M20.6 13.4L13 21a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 2.6 12l.4-6a2 2 0 0 1 2-2l6-.4a2 2 0 0 1 1.6.6l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="8.5" r="1.3"/></>),
     events: [
       { id: 'roleCreate',     label: 'Cargo criado',      desc: 'Novo cargo adicionado.' },
       { id: 'roleDelete',     label: 'Cargo eliminado',   desc: 'Cargo removido do servidor.' },
@@ -144,7 +147,7 @@ const LOG_CATEGORIES: { id: keyof LogsConfig; label: string; icon: string; event
     ],
   },
   {
-    id: 'voice', label: 'Voz', icon: '🔊',
+    id: 'voice', label: 'Voz', color: '#f472b6', icon: logIc(<><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14"/></>),
     events: [
       { id: 'voiceJoin',      label: 'Entrou em voz',     desc: 'Membro entrou num canal de voz.' },
       { id: 'voiceLeave',     label: 'Saiu de voz',       desc: 'Membro saiu de canal de voz.' },
@@ -153,7 +156,7 @@ const LOG_CATEGORIES: { id: keyof LogsConfig; label: string; icon: string; event
     ],
   },
   {
-    id: 'server', label: 'Servidor', icon: '⚙️',
+    id: 'server', label: 'Servidor', color: '#94a3b8', icon: logIc(<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 6 9.4l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 11 4.6V4.5a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 2.82 1.17l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 11h.1a2 2 0 1 1 0 4h-.1z"/></>),
     events: [
       { id: 'serverEdit',     label: 'Servidor editado',  desc: 'Nome, ícone ou região alterados.' },
       { id: 'emojiCreate',    label: 'Emoji criado',      desc: 'Novo emoji adicionado.' },
@@ -864,7 +867,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                 <div key={cat.id} style={{ marginBottom: 12, background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden' }}>
                   {/* Category header */}
                   <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--line)', background: 'var(--surface)' }}>
-                    <span style={{ fontSize: 16 }}>{cat.icon}</span>
+                    <span style={{ width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: cat.color + '1a', color: cat.color, flexShrink: 0 }}>{cat.icon}</span>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-1)' }}>{cat.label}</p>
                       <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 1 }}>
