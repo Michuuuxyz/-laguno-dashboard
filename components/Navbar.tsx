@@ -29,7 +29,7 @@ function DropItem({ href, external, icon, title, desc, onClick }: {
       onMouseEnter={e => (e.currentTarget.style.background = 'var(--hover)')}
       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
     >
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--green-muted)', border: '1px solid var(--green-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--green)' }}>
+      <div style={{ width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--green)', marginTop: 1 }}>
         {icon}
       </div>
       <div>
