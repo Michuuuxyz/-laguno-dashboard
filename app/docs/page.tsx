@@ -37,6 +37,9 @@ type PageId =
 
 /* ─────────────────────────────── SMALL ATOMS ─── */
 const G = '#6db83e';
+const dic = (p: React.ReactNode) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{p}</svg>
+);
 
 function Tag({ children, color = G }: { children: string; color?: string }) {
   return (
@@ -524,16 +527,19 @@ function Content({ page }: { page: PageId }) {
 
         <H2>Categorias de eventos</H2>
         {[
-          { label: '🛡 Moderação', events: ['Purge', 'Ban', 'Unban', 'Kick', 'Warn', 'Warn removido', 'Timeout', 'Timeout removido'] },
-          { label: '💬 Mensagens', events: ['Mensagem eliminada', 'Mensagem editada', 'Bulk delete', 'Mensagem fixada'] },
-          { label: '👥 Membros',   events: ['Entrada', 'Saída', 'Atualização de nick/avatar', 'Boost', 'Boost terminado'] },
-          { label: '# Canais',     events: ['Canal criado', 'Canal eliminado', 'Canal editado'] },
-          { label: '🏷 Cargos',    events: ['Cargo criado', 'Cargo eliminado', 'Cargo editado', 'Cargo atribuído', 'Cargo removido'] },
-          { label: '🔊 Voz',       events: ['Entrou em voz', 'Saiu de voz', 'Movido entre canais', 'Mute/unmute'] },
-          { label: '⚙️ Servidor',  events: ['Servidor editado', 'Emoji criado', 'Emoji eliminado', 'Invite criado'] },
+          { label: 'Moderação', color: '#f87171', icon: dic(<><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></>), events: ['Purge', 'Ban', 'Unban', 'Kick', 'Warn', 'Warn removido', 'Timeout', 'Timeout removido'] },
+          { label: 'Mensagens', color: '#60a5fa', icon: dic(<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>), events: ['Mensagem eliminada', 'Mensagem editada', 'Bulk delete', 'Mensagem fixada'] },
+          { label: 'Membros',   color: '#4ade80', icon: dic(<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3.2"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></>), events: ['Entrada', 'Saída', 'Atualização de nick/avatar', 'Boost', 'Boost terminado'] },
+          { label: 'Canais',    color: '#fbbf24', icon: dic(<path d="M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>), events: ['Canal criado', 'Canal eliminado', 'Canal editado'] },
+          { label: 'Cargos',    color: '#a78bfa', icon: dic(<><path d="M20.6 13.4L13 21a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 2.6 12l.4-6a2 2 0 0 1 2-2l6-.4a2 2 0 0 1 1.6.6l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="8.5" r="1.3"/></>), events: ['Cargo criado', 'Cargo eliminado', 'Cargo editado', 'Cargo atribuído', 'Cargo removido'] },
+          { label: 'Voz',       color: '#f472b6', icon: dic(<><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14"/></>), events: ['Entrou em voz', 'Saiu de voz', 'Movido entre canais', 'Mute/unmute'] },
+          { label: 'Servidor',  color: '#94a3b8', icon: dic(<><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M22 12h-3M5 12H2"/></>), events: ['Servidor editado', 'Emoji criado', 'Emoji eliminado', 'Invite criado'] },
         ].map(cat => (
           <div key={cat.label} style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>{cat.label}</p>
+            <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>
+              <span style={{ display: 'inline-flex', width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center', background: cat.color + '1a', color: cat.color }}>{cat.icon}</span>
+              {cat.label}
+            </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
               {cat.events.map(e => (
                 <div key={e} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', padding: '6px 12px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 6 }}>
