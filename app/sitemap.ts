@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://www.lagunoapp.xyz';
+  const base = 'https://lagunoapp.xyz';
   const lastModified = new Date();
   return [
     { url: base,               lastModified, changeFrequency: 'weekly',  priority: 1   },

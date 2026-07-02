@@ -13,8 +13,8 @@ const nextConfig = {
     return [
       {
         source: '/((?!api/).*)',
-        has: [{ type: 'host', value: 'lagunoapp.xyz' }],
-        destination: 'https://www.lagunoapp.xyz/$1',
+        has: [{ type: 'host', value: 'www.lagunoapp.xyz' }],
+        destination: 'https://lagunoapp.xyz/$1',
         permanent: true,
       },
     ];

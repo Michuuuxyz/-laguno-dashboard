@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Sobre — Laguno',
     description: 'O Laguno foi feito por um miúdo que se fartou de bots que não percebem a língua do servidor.',
-    url: 'https://www.lagunoapp.xyz/sobre',
+    url: 'https://lagunoapp.xyz/sobre',
   },
 };
 

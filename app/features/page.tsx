@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Funcionalidades | Laguno',
     description: 'Descobre tudo o que o Laguno pode fazer pelo teu servidor — moderação, boas-vindas, logs, self-roles e sorteios.',
-    url: 'https://www.lagunoapp.xyz/features',
+    url: 'https://lagunoapp.xyz/features',
   },
 };
 

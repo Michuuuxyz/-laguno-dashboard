@@ -4,7 +4,7 @@ import { PageTransition } from '@/components/PageTransition';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.lagunoapp.xyz'),
+  metadataBase: new URL('https://lagunoapp.xyz'),
   title: {
     default: 'Laguno — O bot em português com personalidade',
     template: '%s | Laguno',
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'pt_PT',
-    url: 'https://www.lagunoapp.xyz',
+    url: 'https://lagunoapp.xyz',
     siteName: 'Laguno',
     title: 'Laguno — O bot em português com personalidade',
     description: 'Moderação com personalidade, logs automáticos, boas-vindas, self-roles e sorteios. Configurado em dois minutos, a correr sem ti.',
