@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { WelcomeTab } from './WelcomeTab';
 import { RolesTab } from './RolesTab';
 import { GiveawayModule } from './modules/GiveawayModule';
+import { WORD_TEMPLATE_WORDS } from '@/lib/wordTemplates';
 
 interface Channel { id: string; name: string; }
 interface Warn { _id: string; userId: string; reason: string; moderatorId: string; createdAt: string; }
@@ -59,98 +60,19 @@ interface Config {
 
 /* ── Filtro de palavras: templates e lista por defeito ── */
 const WORD_TEMPLATES: { id: string; label: string; desc: string; words: string[] }[] = [
-  {
-    id: 'pt_basico',
-    label: 'Português — Básico',
-    desc: 'Palavrões comuns em português.',
-    words: [
-      'merda','caralho','porra','foda','fodase','foda-se','puta','putaria','cu','cuzão',
-      'buceta','piroca','pau','rola','bosta','cuzinho','boceta','xota','xana','pentelho',
-      'culhão','carai','cacete','vsf','fdp','puta merda','puta que pariu','vai se foder',
-      'filho da puta','filha da puta','arrombado','arrombada','desgraçado','desgraçada',
-      'miserável','safado','safada','canalha','sacanagem','punheta','cagalhão','boquete',
-      'gozar','gozo','trolha','cona','caralha','raios','carago','merda de','vai à merda',
-      'fodido','fodida','fudido','fudida','porra de','que se foda','que merda','sua mãe',
-      'tua mãe','vai tomar no cu','toma no cu','vai se fuder','fuder','fuderão','puta vida',
-    ],
-  },
-  {
-    id: 'pt_insultos',
-    label: 'Português — Insultos',
-    desc: 'Insultos e ofensas em português.',
-    words: [
-      'idiota','imbecil','retardado','retardada','cretino','cretina','babaca','otário','otaria',
-      'corno','cornudo','cornuda','prostituta','vagabundo','vagabunda','lixo','inútil','burro',
-      'burra','animal','palhaço','estúpido','estúpida','parvo','parva','tolo','tola','bêbado',
-      'drogado','viado','viadinho','viada','traveco','paneleiro','bicha','bocó','atrasado',
-      'atrasada','ignorante','maldito','maldita','desgraça','podre','nojento','nojenta',
-      'canalha','safado','safada','mentiroso','mentirosa','ladrão','ladra','louco','louca',
-      'psicopata','infeliz','miserável','coitado','sem vergonha','vergonha','ridículo',
-    ],
-  },
-  {
-    id: 'en_basico',
-    label: 'Inglês — Básico',
-    desc: 'Common English profanity.',
-    words: [
-      'fuck','shit','bitch','asshole','bastard','cunt','whore','slut','dick','cock',
-      'pussy','ass','faggot','retard','idiot','moron','dumbass','motherfucker','fucker',
-      'bullshit','jackass','prick','twat','wanker','crap','damn','hell','bloody hell',
-      'fuckoff','fuck off','shut up','son of a bitch','piece of shit','go to hell',
-      'screw you','asshat','dipshit','numbnuts','shithead','fuckwit','arsehole','arse',
-      'bollocks','tosser','wankface','shitface','douchebag','douche','jerkoff','jerk',
-    ],
-  },
-  {
-    id: 'discriminacao',
-    label: 'Discriminação & Ódio',
-    desc: 'Slurs racistas, homofóbicos e discriminatórios.',
-    words: [
-      'nigga','nigger','negro','preto sujo','macaco','macaca','nazi','hitler','fascista',
-      'judeu sujo','árabe sujo','terrorista','islamofobia','racista','xenófobo','homofóbico',
-      'transfóbico','lésbica','maricão','travesti','ftm','mtf','refugo','imigrante sujo',
-      'foda-se os pretos','morte aos gays','gay de merda','bicha do caralho','viado do cu',
-      'chink','gook','spic','wetback','towelhead','sandnigger','cracker','honky','kike',
-      'dyke','tranny','shemale','rape','rapar','aborto','holocausto','câmara de gás',
-      'kkk','ku klux','white power','heil hitler','88','1488','escravo','escrava',
-    ],
-  },
-  {
-    id: 'nsfw',
-    label: 'NSFW',
-    desc: 'Conteúdo sexual explícito.',
-    words: [
-      'pornografia','porno','porn','xxx','sexo','sex','oral','anal','vaginal','ejacular',
-      'ejaculação','orgasmo','masturbação','masturbar','vibrador','dildo','fetiche','bdsm',
-      'nude','nudes','pelado','pelada','nu','nua','seios','peito','mamilo','escrotum',
-      'testículos','pénis','penis','vagina','ânus','anus','clitóris','clitoris','cama',
-      'foder','fodendo','transando','trepar','transar','gozar no','mamar','mamar no',
-      'chupar','sugar','handjob','blowjob','creampie','cum','cumshot','jizz','sperm',
-      'semen','lick','licking','fingering','fingerfuck','deepthroat','gangbang','threesome',
-      'orgia','onlyfans','stripper','escort','prostituição','puteiro','bordel','cafetão',
-    ],
-  },
-  {
-    id: 'spam_scam',
-    label: 'Spam & Scam',
-    desc: 'Termos usados em spam, scams e publicidade indesejada.',
-    words: [
-      'free nitro','nitro grátis','clica aqui','click here','ganhe dinheiro','earn money',
-      'crypto','bitcoin grátis','free bitcoin','nft grátis','free nft','win prize',
-      'ganha prémio','you won','ganhou','congratulations','parabéns você foi selecionado',
-      'robux grátis','free robux','v-bucks grátis','free vbucks','paypal grátis',
-      'trabalho em casa','trabalho online','renda extra','ganhe r$','earn $','make money',
-      'buy followers','compra seguidores','boost server','servidor boost grátis',
-      'discord server','join my server','entra no meu servidor','promo','promoção',
-    ],
-  },
+  { id: 'pt_basico',     label: 'Português — Básico',   desc: 'Palavrões comuns em português.',               words: [...WORD_TEMPLATE_WORDS.pt_basico] },
+  { id: 'pt_insultos',   label: 'Português — Insultos', desc: 'Insultos e ofensas em português.',              words: [...WORD_TEMPLATE_WORDS.pt_insultos] },
+  { id: 'en_basico',     label: 'Inglês — Básico',      desc: 'Common English profanity.',                    words: [...WORD_TEMPLATE_WORDS.en_basico] },
+  { id: 'discriminacao', label: 'Discriminação & Ódio', desc: 'Slurs racistas, homofóbicos e discriminatórios.', words: [...WORD_TEMPLATE_WORDS.discriminacao] },
+  { id: 'nsfw',          label: 'NSFW',                 desc: 'Conteúdo sexual explícito.',                   words: [...WORD_TEMPLATE_WORDS.nsfw] },
+  { id: 'spam_scam',     label: 'Spam & Scam',          desc: 'Termos usados em spam, scams e publicidade indesejada.', words: [...WORD_TEMPLATE_WORDS.spam_scam] },
 ];
 
 const DEFAULT_BAD_WORDS = [
-  ...WORD_TEMPLATES.find(t => t.id === 'pt_basico')!.words,
-  ...WORD_TEMPLATES.find(t => t.id === 'pt_insultos')!.words,
-  ...WORD_TEMPLATES.find(t => t.id === 'en_basico')!.words,
-  ...WORD_TEMPLATES.find(t => t.id === 'discriminacao')!.words,
+  ...WORD_TEMPLATE_WORDS.pt_basico,
+  ...WORD_TEMPLATE_WORDS.pt_insultos,
+  ...WORD_TEMPLATE_WORDS.en_basico,
+  ...WORD_TEMPLATE_WORDS.discriminacao,
 ];
 
 const DEFAULT_AUTOMOD: AutoMod = {

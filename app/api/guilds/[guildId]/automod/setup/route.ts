@@ -1,37 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
 import { syncAutoModRules } from '@/lib/discordAutoMod';
+import { ALL_TEMPLATE_WORDS } from '@/lib/wordTemplates';
 import { MongoClient } from 'mongodb';
 
-const PT_BASICO = [
-  'merda','caralho','porra','foda','fodase','foda-se','puta','putaria','cu','cuzão',
-  'buceta','piroca','pau','rola','bosta','cuzinho','boceta','xota','xana','pentelho',
-  'culhão','carai','cacete','vsf','fdp','filho da puta','filha da puta','arrombado',
-  'arrombada','desgraçado','desgraçada','miserável','safado','safada','canalha',
-  'sacanagem','punheta','boquete','trolha','cona','fodido','fodida','vai à merda',
-];
-const PT_INSULTOS = [
-  'idiota','imbecil','retardado','retardada','cretino','cretina','babaca','otário',
-  'otaria','corno','cornudo','cornuda','lixo','inútil','burro','burra','palhaço',
-  'estúpido','estúpida','parvo','parva','ignorante','maldito','maldita','ridículo',
-];
-const EN_BASICO = [
-  'fuck','shit','bitch','asshole','bastard','cunt','whore','slut','dick','cock',
-  'pussy','faggot','retard','idiot','moron','dumbass','motherfucker','bullshit',
-  'jackass','prick','twat','wanker','douchebag','jerk',
-];
-const DISCRIMINACAO = [
-  'nigga','nigger','nazi','hitler','fascista','racista','xenófobo','homofóbico',
-  'transfóbico','maricão','chink','gook','spic','wetback','kike','dyke','tranny',
-  'white power','heil hitler','kkk','ku klux',
-];
-const SCAM = [
-  'free nitro','nitro grátis','clica aqui','click here','ganhe dinheiro',
-  'crypto grátis','free bitcoin','nft grátis','robux grátis','free robux',
-  'v-bucks grátis','discord server boost grátis',
-];
-
-const DEFAULT_WORDS = [...PT_BASICO, ...PT_INSULTOS, ...EN_BASICO, ...DISCRIMINACAO, ...SCAM];
+// "Ativar tudo" = máxima AutoMod: todas as palavras de todas as templates
+const DEFAULT_WORDS = ALL_TEMPLATE_WORDS;
 
 export async function POST(_: NextRequest, { params }: { params: { guildId: string } }) {
   if (!await assertGuildAccess(params.guildId))
@@ -40,7 +14,7 @@ export async function POST(_: NextRequest, { params }: { params: { guildId: stri
   const autoMod = {
     antiSpam:      { enabled: true, maxMessages: 5, interval: 5, action: 'timeout' },
     wordFilter:    { enabled: true, words: DEFAULT_WORDS },
-    antiLink:      { enabled: false, whitelist: [] },
+    antiLink:      { enabled: true, whitelist: [] },
     capsFilter:    { enabled: true, maxPercent: 70, minLength: 10 },
     mentionSpam:   { enabled: true, maxMentions: 5, action: 'timeout' },
     floodControl:  { enabled: true, maxMessages: 8, interval: 5, slowmode: 10, duration: 60 },

@@ -242,10 +242,11 @@ export async function syncAutoModRules(
   }
 
   // ── Palavras Sinalizadas (KEYWORD_PRESET — profanity + slurs) ──────────────
-  // Nota: trigger_type 4 (KEYWORD_PRESET) NÃO suporta ação BLOCK (tipo 1) — só ALERT e TIMEOUT
+  // trigger_type 4 (KEYWORD_PRESET) suporta BLOCK; ALERT é opcional (só se houver canal)
   const presetRule = byName(RULE.PRESET);
-  if (autoMod.keywordPreset?.enabled && alertChannelId) {
-    const presetActions: object[] = [{ type: ACTION.ALERT, metadata: { channel_id: alertChannelId } }];
+  if (autoMod.keywordPreset?.enabled) {
+    const presetActions: object[] = [{ type: ACTION.BLOCK }];
+    if (alertChannelId) presetActions.push({ type: ACTION.ALERT, metadata: { channel_id: alertChannelId } });
     await apply(presetRule ?? null, {
       name:             RULE.PRESET,
       event_type:       1,
