@@ -5,7 +5,7 @@ import { MongoClient } from 'mongodb';
 const DISCORD_API = 'https://discord.com/api/v10';
 
 interface RoleEntry { roleId: string; label: string; emoji?: string; }
-interface RolePanel  { id: string; title: string; description?: string; roles: RoleEntry[]; }
+interface RolePanel  { id: string; title: string; description?: string; roles: RoleEntry[]; accentColor?: string; bannerUrl?: string; }
 
 export async function POST(req: NextRequest, { params }: { params: { guildId: string } }) {
   if (!await assertGuildAccess(params.guildId))
@@ -42,12 +42,18 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
     '-# Clica num botão para receber ou remover o cargo.',
   ].filter((l, i) => i !== 1 || panel!.description).join('\n');
 
+  const accentInt = panel.accentColor ? parseInt(panel.accentColor.replace('#', ''), 16) : NaN;
+  const innerComponents: unknown[] = [];
+  if (panel.bannerUrl?.trim()) {
+    innerComponents.push({ type: 12, items: [{ media: { url: panel.bannerUrl.trim() } }] });
+  }
+  innerComponents.push({ type: 10, content: textContent });
+  innerComponents.push({ type: 14, spacing: 1, divider: true });
+
   const container = {
     type: 17,
-    components: [
-      { type: 10, content: textContent },
-      { type: 14, spacing: 1, divider: true },
-    ],
+    ...(isNaN(accentInt) ? {} : { accent_color: accentInt }),
+    components: innerComponents,
   };
 
   const chunks: RoleEntry[][] = [];

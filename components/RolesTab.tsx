@@ -5,7 +5,7 @@ import { useState } from 'react';
 interface Channel  { id: string; name: string; }
 interface Role     { id: string; name: string; color: number; }
 interface RoleEntry { roleId: string; label: string; emoji: string; }
-interface RolePanel { id: string; title: string; description: string; roles: RoleEntry[]; }
+interface RolePanel { id: string; title: string; description: string; roles: RoleEntry[]; accentColor?: string; bannerUrl?: string; }
 
 interface Props {
   autoroles:  string[];
@@ -37,7 +37,14 @@ function PanelPreview({ panel }: { panel: RolePanel }) {
     <div style={{
       background: '#2b2d31', borderRadius: 12, padding: '1px',
       border: '1px solid #3f4147', overflow: 'hidden',
+      borderLeft: panel.accentColor ? `4px solid ${panel.accentColor}` : '1px solid #3f4147',
     }}>
+      {/* Banner */}
+      {panel.bannerUrl?.trim() ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={panel.bannerUrl} alt="" style={{ width: '100%', maxHeight: 120, objectFit: 'cover', display: 'block' }}
+          onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+      ) : null}
       {/* Container card */}
       <div style={{ background: '#232428', borderRadius: 11, padding: '16px 18px' }}>
         <p style={{ fontSize: 16, fontWeight: 700, color: '#f2f3f5', marginBottom: panel.description ? 4 : 0, lineHeight: 1.3 }}>
@@ -366,6 +373,20 @@ export function RolesTab({ autoroles, rolePanels, roles, channels, guildId, onCh
                   <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.04em', display: 'block', marginBottom: 6 }}>Descrição <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></label>
                   <input style={field} placeholder="Clica num botão para receber um cargo" value={editingPanel.description}
                     onChange={e => setEditingPanel({ ...editingPanel, description: e.target.value })} />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 8, alignItems: 'end' }}>
+                  <div>
+                    <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.04em', display: 'block', marginBottom: 6 }}>Cor</label>
+                    <input type="color" value={editingPanel.accentColor || '#6db83e'}
+                      onChange={e => setEditingPanel({ ...editingPanel, accentColor: e.target.value })}
+                      style={{ width: 38, height: 34, borderRadius: 8, border: '1px solid var(--line)', background: 'none', cursor: 'pointer', padding: 2 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.04em', display: 'block', marginBottom: 6 }}>Banner <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(URL de imagem, opcional)</span></label>
+                    <input style={field} placeholder="https://exemplo.com/banner.png" value={editingPanel.bannerUrl ?? ''}
+                      onChange={e => setEditingPanel({ ...editingPanel, bannerUrl: e.target.value })} />
+                  </div>
                 </div>
 
                 <div style={{ borderTop: '1px solid var(--line)', paddingTop: 12 }}>

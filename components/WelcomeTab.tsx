@@ -12,6 +12,9 @@ export interface WelcomeConfig {
   accentColor: string;
   dmEnabled:   boolean;
   dmMessage:   string;
+  bannerUrl?:  string;
+  showAvatar?: boolean;
+  footer?:     string;
 }
 
 export interface GoodbyeConfig {
@@ -22,6 +25,15 @@ export interface GoodbyeConfig {
   accentColor:       string;
   banMessageEnabled: boolean;
   banMessage:        string;
+  bannerUrl?:        string;
+  showAvatar?:       boolean;
+  footer?:           string;
+}
+
+export interface ContainerExtras {
+  bannerUrl:  string;
+  showAvatar: boolean;
+  footer:     string;
 }
 
 interface Props {
@@ -111,8 +123,8 @@ function mdToHtml(text: string): string {
 }
 
 /* ─── Discord-like message preview ─── */
-function DiscordPreview({ message, accentColor, guildName }: {
-  message: string; accentColor: string; guildName: string;
+function DiscordPreview({ message, accentColor, guildName, extras }: {
+  message: string; accentColor: string; guildName: string; extras?: ContainerExtras;
 }) {
   const accent = accentColor || '#6db83e';
   const parsed = parsePreview(message, guildName);
@@ -132,14 +144,34 @@ function DiscordPreview({ message, accentColor, guildName }: {
             <span style={{ fontSize: 11, color: '#80848e' }}>Hoje às 10:46</span>
           </div>
           <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `3px solid ${accent}`, overflow: 'hidden', maxWidth: 400 }}>
-            <div style={{ padding: '10px 13px' }}>
-              {message ? (
-                <p style={{ fontSize: 13.5, color: '#dbdee1', lineHeight: 1.65, margin: 0 }}
-                  dangerouslySetInnerHTML={{ __html: mdToHtml(parsed) }} />
-              ) : (
-                <p style={{ fontSize: 13, color: '#80848e', fontStyle: 'italic' }}>A tua mensagem aparece aqui...</p>
+            {/* Banner */}
+            {extras?.bannerUrl?.trim() ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={extras.bannerUrl} alt="" style={{ width: '100%', maxHeight: 140, objectFit: 'cover', display: 'block' }}
+                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+            ) : null}
+            <div style={{ padding: '10px 13px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {message ? (
+                  <p style={{ fontSize: 13.5, color: '#dbdee1', lineHeight: 1.65, margin: 0 }}
+                    dangerouslySetInnerHTML={{ __html: mdToHtml(parsed) }} />
+                ) : (
+                  <p style={{ fontSize: 13, color: '#80848e', fontStyle: 'italic' }}>A tua mensagem aparece aqui...</p>
+                )}
+              </div>
+              {/* Avatar do membro (thumbnail) */}
+              {extras?.showAvatar && (
+                <div style={{ width: 44, height: 44, borderRadius: 10, flexShrink: 0, background: 'linear-gradient(135deg,#5865f2,#3b3f8f)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 700, color: '#fff' }}>M</div>
               )}
             </div>
+            {/* Rodapé */}
+            {extras?.footer?.trim() ? (
+              <div style={{ padding: '0 13px 10px' }}>
+                <div style={{ height: 1, background: 'rgba(255,255,255,.08)', margin: '2px 0 8px' }} />
+                <p style={{ fontSize: 11, color: '#80848e', margin: 0 }}
+                  dangerouslySetInnerHTML={{ __html: mdToHtml(parsePreview(extras.footer, guildName)) }} />
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -148,16 +180,19 @@ function DiscordPreview({ message, accentColor, guildName }: {
 }
 
 /* ─── Message Editor Modal ─── */
-function MessageEditor({ message, accentColor, guildName, onSave, onClose, title }: {
+function MessageEditor({ message, accentColor, guildName, onSave, onClose, title, extras: initialExtras, onSaveExtras }: {
   message: string;
   accentColor: string;
   guildName: string;
   onSave: (msg: string, accent: string) => void;
   onClose: () => void;
   title: string;
+  extras?: ContainerExtras;
+  onSaveExtras?: (e: ContainerExtras) => void;
 }) {
   const [msg, setMsg] = useState(message);
   const [accent, setAccent] = useState(accentColor || '#6db83e');
+  const [extras, setExtras] = useState<ContainerExtras>(initialExtras ?? { bannerUrl: '', showAvatar: false, footer: '' });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   function insertVar(tag: string) {
@@ -233,12 +268,37 @@ function MessageEditor({ message, accentColor, guildName, onSave, onClose, title
                   value={accent} onChange={e => setAccent(e.target.value)} placeholder="#6db83e" />
               </div>
             </div>
+
+            {/* Personalização do container (banner, avatar, rodapé) */}
+            {onSaveExtras && (
+              <>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Banner (URL de imagem)</p>
+                  <input style={{ ...inputStyle, fontSize: 13 }} placeholder="https://exemplo.com/banner.png"
+                    value={extras.bannerUrl} onChange={e => setExtras(x => ({ ...x, bannerUrl: e.target.value }))} />
+                  <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5, lineHeight: 1.5 }}>Imagem no topo do container (png, jpg ou gif). Deixa vazio para não usar.</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <div>
+                    <p style={{ fontSize: 12.5, fontWeight: 600 }}>Mostrar avatar do membro</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>Foto do membro ao lado da mensagem, como thumbnail.</p>
+                  </div>
+                  <Toggle on={extras.showAvatar} onChange={() => setExtras(x => ({ ...x, showAvatar: !x.showAvatar }))} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Rodapé</p>
+                  <input style={{ ...inputStyle, fontSize: 13 }} placeholder="Membro nº {count} · diverte-te!"
+                    value={extras.footer} onChange={e => setExtras(x => ({ ...x, footer: e.target.value }))} />
+                  <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5, lineHeight: 1.5 }}>Linha pequena no fundo, separada por divisória. Aceita as mesmas variáveis.</p>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Right: preview */}
           <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', background: 'var(--bg)' }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pré-visualização da Mensagem</p>
-            <DiscordPreview message={msg} accentColor={accent} guildName={guildName} />
+            <DiscordPreview message={msg} accentColor={accent} guildName={guildName} extras={onSaveExtras ? extras : undefined} />
           </div>
         </div>
 
@@ -248,7 +308,7 @@ function MessageEditor({ message, accentColor, guildName, onSave, onClose, title
             padding: '8px 18px', borderRadius: 8, border: '1px solid var(--line)',
             background: 'var(--elevated)', color: 'var(--text-2)', fontSize: 13, cursor: 'pointer',
           }}>Fechar</button>
-          <button onClick={() => { onSave(msg, accent); onClose(); }} style={{
+          <button onClick={() => { onSave(msg, accent); onSaveExtras?.(extras); onClose(); }} style={{
             padding: '8px 22px', borderRadius: 8, border: 'none',
             background: 'var(--green)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
           }}>Guardar</button>
@@ -337,7 +397,10 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
       const res = await fetch(`/api/guilds/${guildId}/welcome/test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelId: cfg.channelId, message: cfg.message, accentColor: cfg.accentColor, type }),
+        body: JSON.stringify({
+          channelId: cfg.channelId, message: cfg.message, accentColor: cfg.accentColor, type,
+          bannerUrl: cfg.bannerUrl ?? '', showAvatar: cfg.showAvatar ?? false, footer: cfg.footer ?? '',
+        }),
       });
       set(res.ok ? 'ok' : 'err');
     } catch { set('err'); }
@@ -490,6 +553,8 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
           message={welcome.message}
           accentColor={welcome.accentColor}
           guildName={guildName}
+          extras={{ bannerUrl: welcome.bannerUrl ?? '', showAvatar: welcome.showAvatar ?? false, footer: welcome.footer ?? '' }}
+          onSaveExtras={e => setW({ bannerUrl: e.bannerUrl, showAvatar: e.showAvatar, footer: e.footer })}
           onSave={(msg, accent) => setW({ message: msg, accentColor: accent })}
           onClose={() => setEditingModal(null)}
         />
@@ -510,6 +575,8 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
           message={goodbye.message}
           accentColor={goodbye.accentColor}
           guildName={guildName}
+          extras={{ bannerUrl: goodbye.bannerUrl ?? '', showAvatar: goodbye.showAvatar ?? false, footer: goodbye.footer ?? '' }}
+          onSaveExtras={e => setG({ bannerUrl: e.bannerUrl, showAvatar: e.showAvatar, footer: e.footer })}
           onSave={(msg, accent) => setG({ message: msg, accentColor: accent })}
           onClose={() => setEditingModal(null)}
         />

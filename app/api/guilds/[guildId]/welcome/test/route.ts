@@ -19,7 +19,10 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
   if (!access) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json();
-  const { channelId, message, accentColor } = body;
+  const { channelId, message, accentColor, bannerUrl, showAvatar, footer } = body as {
+    channelId?: string; message?: string; accentColor?: string;
+    bannerUrl?: string; showAvatar?: boolean; footer?: string;
+  };
 
   if (!channelId || !message) {
     return NextResponse.json({ error: 'channelId e message são obrigatórios' }, { status: 400 });
@@ -42,6 +45,31 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
   // Build accent color as integer
   const accentInt = accentColor ? parseInt(accentColor.replace('#', ''), 16) : 0x6db83e;
 
+  // Componentes internos do container (banner → texto+avatar → rodapé)
+  const inner: unknown[] = [];
+  if (bannerUrl?.trim()) {
+    inner.push({ type: 12, items: [{ media: { url: bannerUrl.trim() } }] }); // MediaGallery
+  }
+  const textComp = { type: 10, content: parsedMessage };
+  if (showAvatar) {
+    // Avatar do utilizador que testa, como thumbnail
+    let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
+    try {
+      const uRes = await fetch(`${DISCORD_API}/users/${userId}`, { headers: { Authorization: `Bot ${token}` } });
+      if (uRes.ok) {
+        const u = await uRes.json() as { avatar?: string };
+        if (u.avatar) avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${u.avatar}.png?size=256`;
+      }
+    } catch { /* usa o default */ }
+    inner.push({ type: 9, components: [textComp], accessory: { type: 11, media: { url: avatarUrl } } }); // Section + Thumbnail
+  } else {
+    inner.push(textComp);
+  }
+  if (footer?.trim()) {
+    inner.push({ type: 14, divider: true, spacing: 1 }); // Separator
+    inner.push({ type: 10, content: `-# ${parseMessage(footer, userId, guildName, memberCount)}` });
+  }
+
   // Send via Discord REST API using Components V2
   const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
     method: 'POST',
@@ -54,10 +82,7 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
       components: [{
         type: 17, // Container
         accent_color: isNaN(accentInt) ? 0x6db83e : accentInt,
-        components: [{
-          type: 10, // TextDisplay
-          content: parsedMessage,
-        }],
+        components: inner,
       }],
     }),
   });
