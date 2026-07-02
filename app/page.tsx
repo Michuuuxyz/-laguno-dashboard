@@ -18,6 +18,19 @@ export const metadata: Metadata = {
 const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID;
 const INVITE    = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`;
 
+/* ── Ícones clássicos (linha, feitos à mão) ── */
+const svg = (p: React.ReactNode) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{p}</svg>
+);
+const MODULE_ICONS: Record<string, React.ReactNode> = {
+  Moderação:    svg(<><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></>),
+  'Auto-Mod':   svg(<><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></>),
+  Registos:     svg(<><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5h7M8.5 9.5h3"/></>),
+  'Boas-vindas':svg(<><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="9" cy="7" r="3.2"/><path d="M17 11l2 2 4-4"/></>),
+  'Self-Roles': svg(<><path d="M20.6 13.4L13 21a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 2.6 12l.4-6a2 2 0 0 1 2-2l6-.4a2 2 0 0 1 1.6.6l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="8.5" r="1.4"/></>),
+  Sorteios:     svg(<><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v8h14v-8M12 8v13"/><path d="M12 8S10.5 3 7.8 3.6C6 4 6 6.5 8 7.4 9.4 8 12 8 12 8zM12 8s1.5-5 4.2-4.4C18 4 18 6.5 16 7.4 14.6 8 12 8 12 8z"/></>),
+};
+
 export default function Home() {
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -119,16 +132,25 @@ export default function Home() {
               { n: 'Sorteios',       t: 'Crias no dashboard, o Laguno publica e sorteia. Re-roll com um clique.' },
             ].map(({ n, t }, i) => (
               <ScrollRevealItem key={n}>
-                <div style={{
+                <div className="module-row" style={{
                   padding: 'clamp(20px,3vh,28px) 0',
                   borderBottom: '1px solid var(--line)',
                   display: 'grid',
-                  gridTemplateColumns: '140px 1fr',
-                  gap: 24,
-                  alignItems: 'baseline',
+                  gridTemplateColumns: '44px 150px 1fr',
+                  gap: 20,
+                  alignItems: 'center',
                 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--green)', letterSpacing: '-.01em' }}>
-                    {String(i + 1).padStart(2, '0')} {n}
+                  <span className="module-icon" style={{
+                    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'var(--card)', border: '1px solid var(--line)',
+                    color: 'var(--green)', transition: 'all .18s',
+                  }}>
+                    {MODULE_ICONS[n]}
+                  </span>
+                  <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-.02em', color: 'var(--text-1)' }}>
+                    <span style={{ color: 'var(--green)', fontSize: 12, fontWeight: 700, marginRight: 8, fontVariantNumeric: 'tabular-nums' }}>{String(i + 1).padStart(2, '0')}</span>
+                    {n}
                   </span>
                   <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{t}</p>
                 </div>
@@ -247,6 +269,11 @@ export default function Home() {
 
       <style>{`
         .fig-story:hover { transform: rotate(-5deg) scale(1.04) !important; }
+        .module-row:hover .module-icon {
+          border-color: var(--green);
+          background: rgba(109,184,62,.08);
+          transform: translateY(-2px);
+        }
 
         @media (max-width: 860px) {
           .hero-fig { display: none; }
@@ -254,6 +281,10 @@ export default function Home() {
           .modules-split > div:first-child { position: static !important; }
           .mood-grid { grid-template-columns: 1fr !important; }
           .mood-grid > img { display: none; }
+        }
+        @media (max-width: 560px) {
+          .module-row { grid-template-columns: 40px 1fr !important; row-gap: 6px !important; }
+          .module-row > p { grid-column: 1 / -1; }
         }
       `}</style>
     </div>
