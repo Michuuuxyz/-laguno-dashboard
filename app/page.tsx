@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Navbar } from '@/components/Navbar';
 import { TypingHero } from '@/components/TypingHero';
+import { SiteFooter } from '@/components/SiteFooter';
 import { ScrollReveal, ScrollRevealList, ScrollRevealItem } from '@/components/ScrollReveal';
 
 export const metadata: Metadata = {
@@ -73,7 +74,7 @@ export default function Home() {
                 </div>
                 {/* Linha de confiança */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, color: 'var(--text-3)', flexWrap: 'wrap' }}>
-                  {['Sem cartão', 'Configura em 2 min', 'Open source'].map(t => (
+                  {['Grátis, sem cartão', 'Pronto em 2 minutos', '100% em português'].map(t => (
                     <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                       {t}
@@ -272,25 +273,7 @@ export default function Home() {
         </ScrollReveal>
       </section>
 
-      {/* ── Footer ── */}
-      <footer style={{ borderTop: '1px solid var(--line)', padding: '18px clamp(20px,4vw,56px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--line)' }}>
-            <Image src="/laguno.png" alt="" width={20} height={20} style={{ objectFit: 'cover' }} />
-          </div>
-          <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>Laguno</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Link href="/sobre"             style={{ fontSize: 12, color: 'var(--text-3)' }}>Sobre</Link>
-          <Link href="/docs"              style={{ fontSize: 12, color: 'var(--text-3)' }}>Documentação</Link>
-          <Link href="/legal?tab=terms"   style={{ fontSize: 12, color: 'var(--text-3)' }}>Termos</Link>
-          <Link href="/legal?tab=privacy" style={{ fontSize: 12, color: 'var(--text-3)' }}>Privacidade</Link>
-          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-            by <span style={{ color: 'var(--text-2)', fontWeight: 500 }}>Michuu</span>
-            <span style={{ margin: '0 6px' }}>·</span>© 2026
-          </span>
-        </div>
-      </footer>
+      <SiteFooter />
 
       <style>{`
         .fig-story:hover { transform: rotate(-5deg) scale(1.04) !important; }

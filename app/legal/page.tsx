@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
+import { SiteFooter } from '@/components/SiteFooter';
 
 export const metadata: Metadata = {
   title: 'Legal',
@@ -282,27 +283,7 @@ export default function LegalPage({ searchParams }: { searchParams: { tab?: stri
       </main>
 
       {/* Footer */}
-      <footer style={{
-        borderTop: '1px solid var(--line)',
-        padding: '18px clamp(16px,4vw,64px)',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--line)' }}>
-            <Image src="/laguno.png" alt="" width={20} height={20} style={{ objectFit: 'cover' }} />
-          </div>
-          <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>Laguno</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Link href="/legal?tab=terms"   style={{ fontSize: 12, color: tab === 'terms'   ? 'var(--green)' : 'var(--text-3)', textDecoration: 'none' }}>Termos</Link>
-          <Link href="/legal?tab=privacy" style={{ fontSize: 12, color: tab === 'privacy' ? 'var(--green)' : 'var(--text-3)', textDecoration: 'none' }}>Privacidade</Link>
-          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-            by <span style={{ color: 'var(--text-2)', fontWeight: 500 }}>Michuu</span>
-            <span style={{ margin: '0 6px' }}>·</span>
-            © 2026
-          </span>
-        </div>
-      </footer>
+      <SiteFooter />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Navbar } from '@/components/Navbar';
+import { SiteFooter } from '@/components/SiteFooter';
 import { OrbitingCircles } from '@/components/OrbitingCircles';
 
 export const metadata: Metadata = {
@@ -249,25 +250,7 @@ export default async function Sobre() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer style={{ borderTop: '1px solid var(--line)', padding: '18px clamp(20px,4vw,56px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--line)' }}>
-            <Image src="/laguno.png" alt="" width={20} height={20} style={{ objectFit: 'cover' }} />
-          </div>
-          <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>Laguno</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Link href="/features"          style={{ fontSize: 12, color: 'var(--text-3)' }}>Funcionalidades</Link>
-          <Link href="/docs"              style={{ fontSize: 12, color: 'var(--text-3)' }}>Documentação</Link>
-          <Link href="/legal?tab=terms"   style={{ fontSize: 12, color: 'var(--text-3)' }}>Termos</Link>
-          <Link href="/legal?tab=privacy" style={{ fontSize: 12, color: 'var(--text-3)' }}>Privacidade</Link>
-          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-            by <span style={{ color: 'var(--text-2)', fontWeight: 500 }}>Michuu</span>
-            <span style={{ margin: '0 6px' }}>·</span>© 2026
-          </span>
-        </div>
-      </footer>
+      <SiteFooter />
 
       <style>{`
         @media (max-width: 700px) {
