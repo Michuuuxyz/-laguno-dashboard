@@ -42,19 +42,44 @@ export default function Home() {
 
           {/* Esquerda: texto */}
           <div style={{ flex: '1 1 0', minWidth: 0 }}>
+            {/* Eyebrow badge */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '5px 12px 5px 8px', borderRadius: 99, marginBottom: 24,
+              background: 'var(--card)', border: '1px solid var(--line)',
+            }}>
+              <span style={{ display: 'inline-flex', width: 18, height: 18, borderRadius: '50%', background: 'rgba(109,184,62,.15)', alignItems: 'center', justifyContent: 'center', color: 'var(--green)' }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3z"/></svg>
+              </span>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-2)', letterSpacing: '-.01em' }}>
+                Moderação em português · <span style={{ color: 'var(--green)' }}>grátis</span>
+              </span>
+            </div>
+
             <TypingHero />
             <div style={{ marginTop: 'clamp(32px,5vh,48px)', display: 'flex', alignItems: 'center', gap: 32, flexWrap: 'wrap' }}>
               <p style={{ fontSize: 'clamp(15px,1.6vw,18px)', color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 380 }}>
                 Bot de moderação em português. Ban, logs, boas-vindas, self-roles e sorteios.
                 Tudo num dashboard. Tudo grátis.
               </p>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 15, padding: '.8rem 2rem', fontWeight: 700 }}>
-                  Adicionar
-                </a>
-                <Link href="/features" className="nav-cta-outline" style={{ fontSize: 15, padding: '.8rem 2rem' }}>
-                  Ver mais
-                </Link>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 15, padding: '.8rem 2rem', fontWeight: 700 }}>
+                    Adicionar
+                  </a>
+                  <Link href="/features" className="nav-cta-outline" style={{ fontSize: 15, padding: '.8rem 2rem' }}>
+                    Ver mais
+                  </Link>
+                </div>
+                {/* Linha de confiança */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, color: 'var(--text-3)', flexWrap: 'wrap' }}>
+                  {['Sem cartão', 'Configura em 2 min', 'Open source'].map(t => (
+                    <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      {t}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
