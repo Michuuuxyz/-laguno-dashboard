@@ -56,8 +56,8 @@ export function AuditLogTab({ guildId }: Props) {
   const [total, setTotal]     = useState(0);
   const [category, setCategory] = useState('');
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     const params = new URLSearchParams({ page: String(page) });
     if (category) params.set('category', category);
     try {
@@ -66,17 +66,33 @@ export function AuditLogTab({ guildId }: Props) {
       setEntries(data.items ?? []);
       setPages(data.pages ?? 1);
       setTotal(data.total ?? 0);
-    } catch { setEntries([]); }
-    setLoading(false);
+    } catch { if (!silent) setEntries([]); }
+    if (!silent) setLoading(false);
   }, [guildId, page, category]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { setPage(0); }, [category]);
 
+  // Ao vivo — atualiza sozinho a cada 10s quando estás na primeira página
+  useEffect(() => {
+    if (page !== 0) return;
+    const t = setInterval(() => load(true), 10_000);
+    return () => clearInterval(t);
+  }, [page, load]);
+
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-.02em', marginBottom: 4 }}>Registo de Auditoria</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+          <h2 style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-.02em' }}>Registo de Auditoria</h2>
+          {page === 0 && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', color: 'var(--green)', background: 'rgba(109,184,62,.1)', border: '1px solid rgba(109,184,62,.25)', borderRadius: 99, padding: '2px 9px', textTransform: 'uppercase' }}>
+              <span className="live-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)' }} />
+              Ao vivo
+            </span>
+          )}
+        </div>
+        <style>{`@keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } } .live-dot { animation: livePulse 1.6s ease-in-out infinite; }`}</style>
         <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
           Tudo o que acontece no servidor, como no registo de auditoria do Discord — entradas, saídas, mensagens, canais, cargos, voz e moderação. {total > 0 && <strong style={{ color: 'var(--text-2)' }}>{total} evento{total !== 1 ? 's' : ''}.</strong>} <span style={{ color: 'var(--text-3)' }}>Mantido durante 30 dias.</span>
         </p>
