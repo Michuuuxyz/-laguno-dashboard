@@ -17,6 +17,18 @@ export const metadata: Metadata = {
 const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID;
 const INVITE    = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`;
 
+/* ── Ícones clássicos de linha ── */
+const ic = (p: React.ReactNode) => (
+  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{p}</svg>
+);
+const FEAT_ICONS = {
+  moderacao:   ic(<><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></>),
+  boasvindas:  ic(<><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="9" cy="7" r="3.2"/><path d="M17 11l2 2 4-4"/></>),
+  logs:        ic(<><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5h7M8.5 9.5h3"/></>),
+  selfroles:   ic(<><path d="M20.6 13.4L13 21a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 2.6 12l.4-6a2 2 0 0 1 2-2l6-.4a2 2 0 0 1 1.6.6l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="8.5" r="1.4"/></>),
+  sorteios:    ic(<><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v8h14v-8M12 8v13"/><path d="M12 8S10.5 3 7.8 3.6C6 4 6 6.5 8 7.4 9.4 8 12 8 12 8zM12 8s1.5-5 4.2-4.4C18 4 18 6.5 16 7.4 14.6 8 12 8 12 8z"/></>),
+};
+
 /* ── Discord mock tokens ── */
 const font = '"gg sans","Noto Sans",ui-sans-serif,sans-serif';
 const DC = {
@@ -96,9 +108,9 @@ function DCBtnRow({ children }: { children: React.ReactNode }) {
   return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingTop: 2 }}>{children}</div>;
 }
 
-function FeatureSection({ id, accent, tag, title, desc, mock, reverse = false }: {
+function FeatureSection({ id, accent, tag, title, desc, mock, icon, reverse = false }: {
   id: string; accent: string; tag: string; title: string; desc: string;
-  mock: React.ReactNode; reverse?: boolean;
+  mock: React.ReactNode; icon: React.ReactNode; reverse?: boolean;
 }) {
   return (
     <section id={id} style={{
@@ -111,9 +123,18 @@ function FeatureSection({ id, accent, tag, title, desc, mock, reverse = false }:
       direction: reverse ? 'rtl' : 'ltr',
     }} className="feat-section">
       <ScrollReveal style={{ direction: 'ltr' }}>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: accent, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 14 }}>
-          {tag}
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <span style={{
+            width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: accent + '18', border: `1px solid ${accent}33`, color: accent,
+          }}>
+            {icon}
+          </span>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: accent, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+            {tag}
+          </p>
+        </div>
         <h2 style={{ fontSize: 'clamp(24px,3vw,36px)', fontWeight: 700, letterSpacing: '-.03em', lineHeight: 1.15, marginBottom: 16, whiteSpace: 'pre-line' }}>
           {title}
         </h2>
@@ -153,6 +174,7 @@ export default function Features() {
       <FeatureSection
         id="moderacao"
         accent="#ef4444"
+        icon={FEAT_ICONS.moderacao}
         tag="Moderação"
         title={`Ban, kick, aviso —\ncom personalidade.`}
         desc="O Laguno tem um motor de estados de espírito: stressado, sonolento, entediado, animado ou feliz. As mensagens de moderação mudam de tom conforme o humor. O resultado é sempre o mesmo — a frase não."
@@ -182,6 +204,7 @@ export default function Features() {
       <FeatureSection
         id="boasvindas"
         accent="var(--green)"
+        icon={FEAT_ICONS.boasvindas}
         tag="Boas-vindas"
         title={`A entrada de cada membro,\ntratada como deve ser.`}
         desc="Mensagem personalizada no canal de boas-vindas, DM privada opcional, e auto-delete configurável. Usas variáveis como {mention}, {username} ou {server} para personalizar ao máximo."
@@ -216,6 +239,7 @@ export default function Features() {
       <FeatureSection
         id="logs"
         accent="#fee75c"
+        icon={FEAT_ICONS.logs}
         tag="Registos"
         title={`Nada acontece\nsem ficar registado.`}
         desc="Bans, kicks, mensagens editadas e apagadas, entradas e saídas, alterações de cargos — tudo vai para um canal de logs que tu escolhes no dashboard. Podes filtrar o que registar e onde."
@@ -252,6 +276,7 @@ export default function Features() {
       <FeatureSection
         id="selfroles"
         accent="#5865f2"
+        icon={FEAT_ICONS.selfroles}
         tag="Self-roles"
         title={`Os membros escolhem.\nTu não fazes nada.`}
         desc="Crias painéis com botões no dashboard — cada botão dá ou remove um cargo. Os membros clicam sozinhos. Sem tickets, sem pedidos ao admin, sem espera. Podes ter vários painéis para categorias diferentes."
@@ -283,6 +308,7 @@ export default function Features() {
       <FeatureSection
         id="sorteios"
         accent="#f59e0b"
+        icon={FEAT_ICONS.sorteios}
         tag="Sorteios"
         title={`Sorteios sem drama.\nCom personalidade.`}
         desc="Crias um sorteio pelo dashboard: prize, duração, número de vencedores. O Laguno publica o anúncio, gere as inscrições e sorteia no fim. Podes fazer re-roll com um clique se o vencedor não reclamar o prémio."
