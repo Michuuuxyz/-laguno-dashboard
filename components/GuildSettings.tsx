@@ -6,6 +6,7 @@ import { WelcomeTab } from './WelcomeTab';
 import { RolesTab } from './RolesTab';
 import { GiveawayModule } from './modules/GiveawayModule';
 import { ModLogsTab } from './ModLogsTab';
+import { AuditLogTab } from './AuditLogTab';
 import { WORD_TEMPLATE_WORDS } from '@/lib/wordTemplates';
 
 interface Channel { id: string; name: string; }
@@ -847,6 +848,11 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* HISTÓRICO DE MODERAÇÃO */}
         {active === 'modlogs' && (
           <ModLogsTab guildId={guildId} />
+        )}
+
+        {/* AUDIT LOG COMPLETO */}
+        {active === 'auditlog' && (
+          <AuditLogTab guildId={guildId} />
         )}
 
 
