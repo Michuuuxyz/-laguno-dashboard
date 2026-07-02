@@ -345,9 +345,15 @@ function Content({ page }: { page: PageId }) {
           opts={[{ n: 'utilizador', type: 'Membro', req: false, info: 'Omite para ver o teu próprio perfil.' }]} />
         <Cmd slash="avatar" perm="Qualquer membro" desc="Mostra o avatar de um utilizador em resolução máxima."
           opts={[{ n: 'utilizador', type: 'Membro', req: false, info: 'Omite para ver o teu próprio avatar.' }]} />
-        <Cmd slash="serverinfo" perm="Qualquer membro" desc="Mostra informação sobre o servidor: membros, cargos, canais, nível de verificação, data de criação." />
+        <Cmd slash="serverinfo" perm="Qualquer membro" desc="Mostra informação sobre o servidor: membros, cargos, canais, nível de verificação, data de criação. Podes indicar o ID de outro servidor (info limitada se o Laguno não estiver lá)."
+          opts={[{ n: 'id', type: 'Texto', req: false, info: 'ID de outro servidor. Omite para o servidor atual.' }]} />
         <Cmd slash="roleinfo" perm="Qualquer membro" desc="Mostra detalhes de um cargo: cor, permissões, membros e data de criação."
           opts={[{ n: 'cargo', type: 'Cargo', req: true, info: 'O cargo a inspecionar.' }]} />
+        <Cmd slash="addemoji" perm="Gerir Expressões" desc="Adiciona um emoji ao servidor a partir de outro emoji custom ou de um link de imagem (png, jpg, gif ou webp, até 256 KB)."
+          opts={[
+            { n: 'emoji', type: 'Texto', req: true,  info: 'Um emoji custom (ex: :nome:) ou um link de imagem.' },
+            { n: 'nome',  type: 'Texto', req: false, info: 'Nome do emoji (2–32 caracteres). Omite para usar o nome original.' },
+          ]} />
         <Cmd slash="info" perm="Qualquer membro" desc="Informação resumida sobre o servidor." />
 
         <H2>Self-Roles</H2>
