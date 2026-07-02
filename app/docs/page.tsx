@@ -691,7 +691,14 @@ export default function DocsPage() {
                 onClick={() => toggleGroup(section.id)}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: G, background: 'transparent' }}
               >
-                {section.label}
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                    {section.id === 'getting-started'
+                      ? <><path d="M5 13l4 4L19 7"/><path d="M4 20v-3"/></>
+                      : <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>}
+                  </svg>
+                  {section.label}
+                </span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transition: 'transform .18s', transform: openGroups[section.id] ? 'rotate(180deg)' : 'none' }}>
                   <path d="M6 9l6 6 6-6" />
                 </svg>
