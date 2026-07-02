@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { WelcomeTab } from './WelcomeTab';
 import { RolesTab } from './RolesTab';
 import { GiveawayModule } from './modules/GiveawayModule';
+import { ModLogsTab } from './ModLogsTab';
 import { WORD_TEMPLATE_WORDS } from '@/lib/wordTemplates';
 
 interface Channel { id: string; name: string; }
@@ -183,6 +184,7 @@ const IconSettings= () => <svg width="15" height="15" viewBox="0 0 24 24" fill="
 const IconChevron = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 const IconCheck   = () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
 const IconGift    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>;
+const IconHistory = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>;
 
 /* ── Sidebar nav structure ── */
 const NAV = [
@@ -206,6 +208,7 @@ const NAV = [
       { id: 'moderation', label: 'Moderação',         icon: <IconShield /> },
       { id: 'automod',    label: 'Auto-Mod',          icon: <IconBolt /> },
       { id: 'warns',      label: 'Avisos',            icon: <IconWarn /> },
+      { id: 'modlogs',    label: 'Histórico',         icon: <IconHistory /> },
     ],
   },
   {
@@ -839,6 +842,11 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* SORTEIOS */}
         {active === 'giveaways' && (
           <GiveawayModule guildId={guildId} />
+        )}
+
+        {/* HISTÓRICO DE MODERAÇÃO */}
+        {active === 'modlogs' && (
+          <ModLogsTab guildId={guildId} />
         )}
 
 
