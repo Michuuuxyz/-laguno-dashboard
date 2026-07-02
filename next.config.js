@@ -9,16 +9,8 @@ const nextConfig = {
       },
     ],
   },
-  async redirects() {
-    return [
-      {
-        source: '/((?!api/).*)',
-        has: [{ type: 'host', value: 'www.lagunoapp.xyz' }],
-        destination: 'https://lagunoapp.xyz/$1',
-        permanent: true,
-      },
-    ];
-  },
+  // O redirect www <-> nao-www e tratado pela Vercel (dominio primario).
+  // Nao definir aqui para evitar loop de redirects.
 };
 
 module.exports = nextConfig;
