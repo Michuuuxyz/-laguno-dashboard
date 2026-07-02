@@ -9,7 +9,10 @@ const TRIGGER = { KEYWORD: 1, SPAM: 3, KEYWORD_PRESET: 4, MENTION_SPAM: 5, MEMBE
 const ACTION  = { BLOCK: 1, ALERT: 2, TIMEOUT: 3, BLOCK_MEMBER: 4 } as const;
 const PRESET  = { PROFANITY: 1, SEXUAL_CONTENT: 2, SLURS: 3 } as const;
 
-const INVITE_PATTERNS = ['discord.gg/*', 'discord.com/invite/*', 'dsc.gg/*', 'discord.io/*'];
+const INVITE_PATTERNS = [
+  'discord.gg/*', 'discord.com/invite/*', 'discordapp.com/invite/*',
+  'dsc.gg/*', 'discord.io/*', 'discord.me/*', 'invite.gg/*',
+];
 
 // Limites impostos pela API do Discord
 const MAX_KEYWORD_LEN = 60;
@@ -278,7 +281,8 @@ export async function syncAutoModRules(
     await deleteRule(guildId, profileRule.id, token);
   }
 
-  // ── Anti-Link (KEYWORD, identificado por nome — não colide com o Filtro) ────
+  // ── Anti-Link (KEYWORD) — bloqueia CONVITES do Discord, não links normais ───
+  // Só apanha padrões de convite (discord.gg, etc.). Gifs e links normais passam.
   const linkRule = byName(RULE.LINK);
   if (autoMod.antiLink?.enabled) {
     const whitelist = (autoMod.antiLink.whitelist ?? [])
@@ -292,7 +296,7 @@ export async function syncAutoModRules(
       event_type:       1,
       trigger_type:     TRIGGER.KEYWORD,
       trigger_metadata: {
-        keyword_filter: ['http://*', 'https://*', ...INVITE_PATTERNS],
+        keyword_filter: [...INVITE_PATTERNS],
         ...(allowList ? { allow_list: allowList } : {}),
       },
       actions:         actions(),
