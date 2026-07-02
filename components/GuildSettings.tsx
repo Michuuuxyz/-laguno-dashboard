@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { WelcomeTab } from './WelcomeTab';
 import { RolesTab } from './RolesTab';
 import { GiveawayModule } from './modules/GiveawayModule';
-import { AuditLogTab } from './AuditLogTab';
 import { WORD_TEMPLATE_WORDS } from '@/lib/wordTemplates';
 
 interface Channel { id: string; name: string; }
@@ -845,10 +844,6 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
           <GiveawayModule guildId={guildId} />
         )}
 
-        {/* REGISTO DE AUDITORIA */}
-        {active === 'auditlog' && (
-          <AuditLogTab guildId={guildId} />
-        )}
 
 
         {/* LOGS */}

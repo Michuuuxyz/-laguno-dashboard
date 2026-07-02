@@ -21,7 +21,6 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
   moderation: di(<><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></>),
   automod:    di(<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/>),
   warns:      di(<><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>),
-  auditlog:   di(<><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></>),
   logs:       di(<><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5h7"/></>),
 };
 const NAV_MODULES = [
@@ -33,7 +32,6 @@ const NAV_MODULES = [
   { id: 'moderation', label: 'Moderação',       section: 'MODERAÇÃO' },
   { id: 'automod',    label: 'Auto-Mod',        section: 'MODERAÇÃO' },
   { id: 'warns',      label: 'Avisos',          section: 'MODERAÇÃO' },
-  { id: 'auditlog',   label: 'Registo de Auditoria', section: 'ADMINISTRAÇÃO' },
   { id: 'logs',       label: 'Logs',            section: 'ADMINISTRAÇÃO' },
 ];
 const SECTIONS = ['GERAL', 'MÓDULOS', 'MODERAÇÃO', 'ADMINISTRAÇÃO'];
