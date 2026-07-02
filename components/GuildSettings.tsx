@@ -267,6 +267,33 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   );
 }
 
+/* ── Cabeçalho unificado de módulo ── */
+function ModuleHeader({ icon, accent, title, desc, chip }: {
+  icon: React.ReactNode; accent: string; title: string; desc: string; chip?: string;
+}) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
+      <span style={{
+        width: 40, height: 40, borderRadius: 11, flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: accent + '16', border: `1px solid ${accent}30`, color: accent,
+      }}>{icon}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h2 style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-.02em' }}>{title}</h2>
+          {chip && (
+            <span style={{
+              fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', padding: '2px 9px', borderRadius: 20,
+              background: accent + '14', color: accent, border: `1px solid ${accent}30`, whiteSpace: 'nowrap',
+            }}>{chip}</span>
+          )}
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>{desc}</p>
+      </div>
+    </div>
+  );
+}
+
 function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
     <div className="card" style={{ padding: '22px 24px', marginBottom: 12 }}>
@@ -722,6 +749,8 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* SETTINGS */}
         {active === 'settings' && (
           <div>
+            <ModuleHeader icon={<IconSettings />} accent="#94a3b8" title="Configurações"
+              desc="Definições gerais do Laguno neste servidor." />
             <Section title="Estatísticas do servidor">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
                 {[
@@ -741,6 +770,8 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* MODERATION */}
         {active === 'moderation' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <ModuleHeader icon={<IconShield />} accent="#f87171" title="Moderação"
+              desc="Comportamento dos comandos /ban, /kick, /warn, /timeout e restantes." />
 
             {/* Comportamento */}
             <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '18px 20px' }}>
@@ -820,8 +851,17 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
           const setFc = (patch: object) => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, floodControl: { ...fc, ...patch } } as AutoMod }));
           const exp = (key: string) => expandedRule === key;
           const tog = (key: string) => setExpandedRule(p => p === key ? null : key);
+          const activeRules = [
+            config.autoMod.wordFilter?.enabled, config.autoMod.antiSpam?.enabled,
+            config.autoMod.mentionSpam?.enabled, config.autoMod.antiLink?.enabled,
+            config.autoMod.keywordPreset?.enabled, config.autoMod.memberProfile?.enabled,
+            config.autoMod.capsFilter?.enabled, fc.enabled,
+          ].filter(Boolean).length;
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <ModuleHeader icon={<IconBolt />} accent="#6db83e" title="Auto-Moderação"
+                desc="Regras nativas do Discord e filtros do bot, sem sobreposição."
+                chip={activeRules > 0 ? `${activeRules} regra${activeRules !== 1 ? 's' : ''} ativa${activeRules !== 1 ? 's' : ''}` : 'inativo'} />
               <div style={{ background: 'rgba(109,184,62,.06)', border: '1px solid rgba(109,184,62,.2)', borderRadius: 12, padding: '16px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                   <div>
@@ -953,33 +993,46 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
 
         {/* BOAS-VINDAS */}
         {active === 'welcome' && (
-          <WelcomeTab welcome={config.welcome} goodbye={config.goodbye} channels={channels} guildName={guildName} guildId={guildId}
-            onChange={(key, val) => setConfig(c => ({ ...c, [key]: val }))}
-            onSaveWelcome={() => saveFields('welcome-save', ['welcome'])}
-            onSaveGoodbye={() => saveFields('goodbye-save', ['goodbye'])} />
+          <div>
+            <ModuleHeader icon={<IconUsers />} accent="#60a5fa" title="Boas-Vindas & Despedidas"
+              desc="Mensagens de entrada e saída com variáveis dinâmicas e pré-visualização."
+              chip={config.welcome?.enabled || config.goodbye?.enabled ? 'ativo' : 'inativo'} />
+            <WelcomeTab welcome={config.welcome} goodbye={config.goodbye} channels={channels} guildName={guildName} guildId={guildId}
+              onChange={(key, val) => setConfig(c => ({ ...c, [key]: val }))}
+              onSaveWelcome={() => saveFields('welcome-save', ['welcome'])}
+              onSaveGoodbye={() => saveFields('goodbye-save', ['goodbye'])} />
+          </div>
         )}
 
         {/* ROLES */}
         {active === 'roles' && (
-          <RolesTab autoroles={config.autoroles} rolePanels={config.rolePanels} roles={roles}
-            channels={channels} guildId={guildId}
-            onChange={(key, val) => setConfig(c => ({ ...c, [key]: val }))} />
+          <div>
+            <ModuleHeader icon={<IconTag />} accent="#a78bfa" title="Roles & Painéis"
+              desc="Auto-roles na entrada e painéis de cargos com botões."
+              chip={`${config.rolePanels.length} painel${config.rolePanels.length !== 1 ? 'éis' : ''} · ${config.autoroles.length} auto-role${config.autoroles.length !== 1 ? 's' : ''}`} />
+            <RolesTab autoroles={config.autoroles} rolePanels={config.rolePanels} roles={roles}
+              channels={channels} guildId={guildId}
+              onChange={(key, val) => setConfig(c => ({ ...c, [key]: val }))} />
+          </div>
         )}
 
         {/* SORTEIOS */}
         {active === 'giveaways' && (
-          <GiveawayModule guildId={guildId} />
+          <div>
+            <ModuleHeader icon={<IconGift />} accent="#f59e0b" title="Sorteios"
+              desc="Cria sorteios com prémios, banners, cargos obrigatórios e rerolls." />
+            <GiveawayModule guildId={guildId} />
+          </div>
         )}
 
-
-
         {/* LOGS */}
-        {active === 'logs' && (
+        {active === 'logs' && (() => {
+          const linkedCats = Object.values(config.logs).filter(c => (c as LogCategory)?.channelId).length;
+          return (
           <div>
-            <div style={{ marginBottom: 28 }}>
-              <h2 style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-.02em', marginBottom: 4 }}>Logs</h2>
-              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Configura um canal por categoria e ativa os eventos que queres registar.</p>
-            </div>
+            <ModuleHeader icon={<IconFile />} accent="#fbbf24" title="Logs"
+              desc="Configura um canal por categoria e ativa os eventos que queres registar."
+              chip={linkedCats > 0 ? `${linkedCats} de ${LOG_CATEGORIES.length} categorias` : 'sem canal'} />
 
             {LOG_CATEGORIES.map(cat => {
               const catCfg = config.logs[cat.id];
@@ -1040,11 +1093,15 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
               );
             })}
           </div>
-        )}
+          );
+        })()}
 
         {/* AVISOS */}
         {active === 'warns' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <ModuleHeader icon={<IconWarn />} accent="#facc15" title="Avisos"
+              desc="Ações automáticas, expiração e histórico de warns do servidor."
+              chip={warns.length > 0 ? `${warns.length} aviso${warns.length !== 1 ? 's' : ''}` : 'sem avisos'} />
 
             {/* Auto-ação + Expiração lado a lado */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
