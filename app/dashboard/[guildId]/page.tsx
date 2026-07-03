@@ -16,7 +16,7 @@ export default async function GuildPage({ params, searchParams }: Props) {
 
   return (
     <div style={{ padding: '32px 40px 80px' }}>
-      <GuildSettings guildId={params.guildId} guildName={guild.name} initialTab={searchParams.tab ?? 'overview'} />
+      <GuildSettings key={params.guildId} guildId={params.guildId} guildName={guild.name} initialTab={searchParams.tab ?? 'overview'} />
     </div>
   );
 }

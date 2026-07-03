@@ -43,19 +43,22 @@ interface Props {
   guildName:       string;
   guildId:         string;
   onChange:        (key: 'welcome' | 'goodbye', val: WelcomeConfig | GoodbyeConfig) => void;
-  onSaveWelcome?:  () => Promise<void>;
-  onSaveGoodbye?:  () => Promise<void>;
+  onSaveWelcome?:  () => Promise<boolean>;
+  onSaveGoodbye?:  () => Promise<boolean>;
+  onPersistWelcome?: (w: WelcomeConfig) => Promise<boolean>;
+  onPersistGoodbye?: (g: GoodbyeConfig) => Promise<boolean>;
 }
 
-function SaveBtn({ id, saving, saved, onSave }: { id: string; saving: string | null; saved: string | null; onSave: () => void }) {
+function SaveBtn({ id, saving, saved, error, onSave }: { id: string; saving: string | null; saved: string | null; error?: string | null; onSave: () => void }) {
+  const isErr = error === id;
   return (
     <button onClick={onSave} disabled={saving === id} style={{
-      background: saved === id ? 'rgba(109,184,62,.15)' : 'var(--green)',
-      color: saved === id ? 'var(--green)' : '#fff',
+      background: isErr ? 'rgba(248,113,113,.15)' : saved === id ? 'rgba(109,184,62,.15)' : 'var(--green)',
+      color: isErr ? '#f87171' : saved === id ? 'var(--green)' : '#fff',
       border: 'none', borderRadius: 7, padding: '5px 14px', fontSize: 12, fontWeight: 600,
       cursor: saving === id ? 'wait' : 'pointer', transition: 'all .2s', minWidth: 80, flexShrink: 0,
     }}>
-      {saving === id ? 'A guardar...' : saved === id ? 'Guardado!' : 'Guardar'}
+      {saving === id ? 'A guardar...' : isErr ? 'Falhou ✕' : saved === id ? 'Guardado!' : 'Guardar'}
     </button>
   );
 }
@@ -181,15 +184,15 @@ function DiscordPreview({ message, accentColor, guildName, extras }: {
 }
 
 /* ─── Message Editor Modal ─── */
-function MessageEditor({ message, accentColor, guildName, onSave, onClose, title, extras: initialExtras, onSaveExtras }: {
+function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, title, extras: initialExtras, showExtras }: {
   message: string;
   accentColor: string;
   guildName: string;
-  onSave: (msg: string, accent: string) => void;
+  onSubmit: (msg: string, accent: string, extras: ContainerExtras) => void;
   onClose: () => void;
   title: string;
   extras?: ContainerExtras;
-  onSaveExtras?: (e: ContainerExtras) => void;
+  showExtras?: boolean;
 }) {
   const [msg, setMsg] = useState(message);
   const [accent, setAccent] = useState(accentColor || '#6db83e');
@@ -271,7 +274,7 @@ function MessageEditor({ message, accentColor, guildName, onSave, onClose, title
             </div>
 
             {/* Personalização do container (banner, avatar, rodapé) */}
-            {onSaveExtras && (
+            {showExtras && (
               <>
                 <div>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Banner (URL de imagem)</p>
@@ -299,7 +302,7 @@ function MessageEditor({ message, accentColor, guildName, onSave, onClose, title
           {/* Right: preview */}
           <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', background: 'var(--bg)' }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pré-visualização da Mensagem</p>
-            <DiscordPreview message={msg} accentColor={accent} guildName={guildName} extras={onSaveExtras ? extras : undefined} />
+            <DiscordPreview message={msg} accentColor={accent} guildName={guildName} extras={showExtras ? extras : undefined} />
           </div>
         </div>
 
@@ -308,11 +311,11 @@ function MessageEditor({ message, accentColor, guildName, onSave, onClose, title
           <button onClick={onClose} style={{
             padding: '8px 18px', borderRadius: 8, border: '1px solid var(--line)',
             background: 'var(--elevated)', color: 'var(--text-2)', fontSize: 13, cursor: 'pointer',
-          }}>Fechar</button>
-          <button onClick={() => { onSave(msg, accent); onSaveExtras?.(extras); onClose(); }} style={{
+          }}>Cancelar</button>
+          <button onClick={() => { onSubmit(msg, accent, extras); onClose(); }} style={{
             padding: '8px 22px', borderRadius: 8, border: 'none',
             background: 'var(--green)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-          }}>Guardar</button>
+          }}>Guardar e aplicar</button>
         </div>
       </div>
     </div>
@@ -371,23 +374,38 @@ function MessagePreview({ message, accentColor, guildName, onEdit }: {
 }
 
 /* ─── Main ─── */
-export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onChange, onSaveWelcome, onSaveGoodbye }: Props) {
+export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onChange, onSaveWelcome, onSaveGoodbye, onPersistWelcome, onPersistGoodbye }: Props) {
   const [editingModal, setEditingModal] = useState<null | 'welcome' | 'goodbye' | 'dm' | 'ban'>(null);
   const [testStatusWelcome, setTestStatusWelcome] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
   const [testStatusGoodbye, setTestStatusGoodbye] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
   const [savingCard, setSavingCard] = useState<string | null>(null);
   const [savedCard, setSavedCard] = useState<string | null>(null);
+  const [errorCard, setErrorCard] = useState<string | null>(null);
 
-  async function saveCard(id: string, fn?: () => Promise<void>) {
+  async function saveCard(id: string, fn?: () => Promise<boolean>) {
     if (!fn) return;
-    setSavingCard(id);
-    await fn().catch(() => null);
-    setSavingCard(null); setSavedCard(id);
-    setTimeout(() => setSavedCard(c => c === id ? null : c), 2500);
+    setSavingCard(id); setErrorCard(null);
+    const ok = await fn().catch(() => false);
+    setSavingCard(null);
+    if (ok) {
+      setSavedCard(id);
+      setTimeout(() => setSavedCard(c => c === id ? null : c), 2500);
+    } else {
+      setErrorCard(id);
+      setTimeout(() => setErrorCard(c => c === id ? null : c), 4000);
+    }
   }
 
   function setW(val: Partial<WelcomeConfig>) { onChange('welcome', { ...welcome, ...val }); }
   function setG(val: Partial<GoodbyeConfig>) { onChange('goodbye', { ...goodbye, ...val }); }
+
+  // Aplica ao estado (preview imediato) e grava na BD, com feedback no botão da secção.
+  function applyAndSave(kind: 'welcome' | 'goodbye', val: WelcomeConfig | GoodbyeConfig) {
+    onChange(kind, val);
+    const persist = kind === 'welcome' ? onPersistWelcome : onPersistGoodbye;
+    const fallback = kind === 'welcome' ? onSaveWelcome : onSaveGoodbye;
+    saveCard(kind, persist ? () => persist(val as WelcomeConfig & GoodbyeConfig) : fallback);
+  }
 
   async function sendTest(type: 'welcome' | 'goodbye') {
     const cfg = type === 'welcome' ? welcome : goodbye;
@@ -415,7 +433,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-.02em' }}>Boas-Vindas</h3>
-          <SaveBtn id="welcome" saving={savingCard} saved={savedCard} onSave={() => saveCard('welcome', onSaveWelcome)} />
+          <SaveBtn id="welcome" saving={savingCard} saved={savedCard} error={errorCard} onSave={() => saveCard('welcome', onSaveWelcome)} />
         </div>
         <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 14 }}>Enviada quando um novo membro entra no servidor.</p>
 
@@ -483,7 +501,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-.02em' }}>Despedidas</h3>
-          <SaveBtn id="goodbye" saving={savingCard} saved={savedCard} onSave={() => saveCard('goodbye', onSaveGoodbye)} />
+          <SaveBtn id="goodbye" saving={savingCard} saved={savedCard} error={errorCard} onSave={() => saveCard('goodbye', onSaveGoodbye)} />
         </div>
         <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 14 }}>Enviada quando um membro sai ou é expulso.</p>
 
@@ -554,9 +572,9 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
           message={welcome.message}
           accentColor={welcome.accentColor}
           guildName={guildName}
+          showExtras
           extras={{ bannerUrl: welcome.bannerUrl ?? '', showAvatar: welcome.showAvatar ?? false, footer: welcome.footer ?? '' }}
-          onSaveExtras={e => setW({ bannerUrl: e.bannerUrl, showAvatar: e.showAvatar, footer: e.footer })}
-          onSave={(msg, accent) => setW({ message: msg, accentColor: accent })}
+          onSubmit={(msg, accent, ex) => applyAndSave('welcome', { ...welcome, message: msg, accentColor: accent, bannerUrl: ex.bannerUrl, showAvatar: ex.showAvatar, footer: ex.footer })}
           onClose={() => setEditingModal(null)}
         />
       )}
@@ -566,7 +584,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
           message={welcome.dmMessage}
           accentColor={welcome.accentColor}
           guildName={guildName}
-          onSave={(msg, accent) => setW({ dmMessage: msg, accentColor: accent })}
+          onSubmit={(msg, accent) => applyAndSave('welcome', { ...welcome, dmMessage: msg, accentColor: accent })}
           onClose={() => setEditingModal(null)}
         />
       )}
@@ -576,9 +594,9 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
           message={goodbye.message}
           accentColor={goodbye.accentColor}
           guildName={guildName}
+          showExtras
           extras={{ bannerUrl: goodbye.bannerUrl ?? '', showAvatar: goodbye.showAvatar ?? false, footer: goodbye.footer ?? '' }}
-          onSaveExtras={e => setG({ bannerUrl: e.bannerUrl, showAvatar: e.showAvatar, footer: e.footer })}
-          onSave={(msg, accent) => setG({ message: msg, accentColor: accent })}
+          onSubmit={(msg, accent, ex) => applyAndSave('goodbye', { ...goodbye, message: msg, accentColor: accent, bannerUrl: ex.bannerUrl, showAvatar: ex.showAvatar, footer: ex.footer })}
           onClose={() => setEditingModal(null)}
         />
       )}
@@ -588,7 +606,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
           message={goodbye.banMessage}
           accentColor={goodbye.accentColor}
           guildName={guildName}
-          onSave={(msg, accent) => setG({ banMessage: msg, accentColor: accent })}
+          onSubmit={(msg, accent) => applyAndSave('goodbye', { ...goodbye, banMessage: msg, accentColor: accent })}
           onClose={() => setEditingModal(null)}
         />
       )}

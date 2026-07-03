@@ -541,13 +541,14 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json().catch(() => ({}));
       setSavedSnapshot(config);
       setSaveToast(data.autoModWarning ?? 'Alterações guardadas.');
       setTimeout(() => setSaveToast(null), data.autoModWarning ? 8000 : 3000);
     } catch {
-      setSaveToast('Erro ao guardar. Tenta de novo.');
-      setTimeout(() => setSaveToast(null), 4000);
+      setSaveToast('Não foi possível guardar. Confirma que és dono ou gestor deste servidor e tenta novamente.');
+      setTimeout(() => setSaveToast(null), 5000);
     } finally {
       setSavingAll(false);
     }
@@ -585,17 +586,34 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
     }).catch(() => setLoading(false));
   }, [guildId]);
 
-  async function saveFields(cardKey: string, keys: (keyof Config)[]) {
+  // Gravação de baixo nível — verifica res.ok e devolve se resultou, para que
+  // um 403 (sem permissão) ou 500 deixem de aparecer como "Guardado!".
+  async function saveOne(cardKey: string, payload: Partial<Config>): Promise<boolean> {
     setSavingCard(cardKey);
-    const payload: Record<string, unknown> = {};
-    for (const k of keys) payload[k] = config[k];
-    await fetch(`/api/guilds/${guildId}/config`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).catch(() => null);
-    setSavedSnapshot(s => s ? { ...s, ...(Object.fromEntries(keys.map(k => [k, config[k]])) as Partial<Config>) } : s);
-    setSavingCard(null); setSavedCard(cardKey);
-    setTimeout(() => setSavedCard(c => c === cardKey ? null : c), 2500);
+    let ok = false;
+    try {
+      const res = await fetch(`/api/guilds/${guildId}/config`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      ok = res.ok;
+    } catch { ok = false; }
+    setSavingCard(null);
+    if (ok) {
+      setSavedSnapshot(s => s ? { ...s, ...payload } as Config : s);
+      setSavedCard(cardKey);
+      setTimeout(() => setSavedCard(c => c === cardKey ? null : c), 2500);
+    } else {
+      setSaveToast('Não foi possível guardar. Confirma que és dono ou gestor deste servidor e tenta novamente.');
+      setTimeout(() => setSaveToast(null), 5000);
+    }
+    return ok;
+  }
+
+  function saveFields(cardKey: string, keys: (keyof Config)[]): Promise<boolean> {
+    const payload: Partial<Config> = {};
+    for (const k of keys) (payload as Record<string, unknown>)[k] = config[k];
+    return saveOne(cardKey, payload);
   }
 
   async function saveRule(key: string) {
@@ -606,6 +624,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ autoMod: config.autoMod }),
       });
+      if (!res.ok) { setRuleSaveMsg('Não foi possível guardar. Confirma que és dono ou gestor deste servidor.'); return; }
       const data = await res.json().catch(() => ({}));
       if (data.autoModWarning) setRuleSaveMsg(data.autoModWarning);
       setSavedSnapshot(s => s ? { ...s, autoMod: config.autoMod } : s);
@@ -1001,7 +1020,9 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
             <WelcomeTab welcome={config.welcome} goodbye={config.goodbye} channels={channels} guildName={guildName} guildId={guildId}
               onChange={(key, val) => setConfig(c => ({ ...c, [key]: val }))}
               onSaveWelcome={() => saveFields('welcome-save', ['welcome'])}
-              onSaveGoodbye={() => saveFields('goodbye-save', ['goodbye'])} />
+              onSaveGoodbye={() => saveFields('goodbye-save', ['goodbye'])}
+              onPersistWelcome={(w) => saveOne('welcome-save', { welcome: w as Config['welcome'] })}
+              onPersistGoodbye={(g) => saveOne('goodbye-save', { goodbye: g as Config['goodbye'] })} />
           </div>
         )}
 
