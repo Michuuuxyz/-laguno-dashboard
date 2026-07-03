@@ -36,7 +36,9 @@ export async function fetchAvatarUrl(userId: string): Promise<string | undefined
 export async function scheduleVoteReminder(userId: string): Promise<void> {
   try {
     const client = await clientPromise;
-    const db = client.db('laguno');
+    // client.db() usa a BD do connection string — a MESMA que o bot faz poll.
+    // Hardcodear 'laguno' podia escrever noutra BD e o lembrete nunca chegaria.
+    const db = client.db();
 
     const pref = await db.collection('votepreferences').findOne({ userId });
     if (pref?.optIn === false) return; // respeitou o "não me avises"

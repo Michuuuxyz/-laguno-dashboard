@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
 import { syncAutoModRules } from '@/lib/discordAutoMod';
 import { ALL_TEMPLATE_WORDS } from '@/lib/wordTemplates';
-import { MongoClient } from 'mongodb';
+import clientPromise from '@/lib/mongodb';
 
 // "Ativar tudo" = máxima AutoMod: todas as palavras de todas as templates
 const DEFAULT_WORDS = ALL_TEMPLATE_WORDS;
@@ -24,11 +24,11 @@ export async function POST(_: NextRequest, { params }: { params: { guildId: stri
     ignoredChannels: [],
   };
 
-  // Guarda no MongoDB
-  const client = new MongoClient(process.env.MONGODB_URI!);
-  await client.connect();
+  // Guarda no MongoDB — client.db() usa a BD do connection string (a mesma que
+  // o bot e a rota /config). Hardcodear 'laguno' podia apontar para outra BD.
   try {
-    const db = client.db('laguno');
+    const client = await clientPromise;
+    const db = client.db();
     await db.collection('guildconfigs').updateOne(
       { guildId: params.guildId },
       { $set: { autoMod, guildId: params.guildId, updatedAt: new Date() } },
@@ -65,7 +65,5 @@ export async function POST(_: NextRequest, { params }: { params: { guildId: stri
   } catch (err) {
     console.error('[automod/setup]', params.guildId, err);
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
-  } finally {
-    await client.close();
   }
 }

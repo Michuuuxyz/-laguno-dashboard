@@ -1,22 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
-import { MongoClient, ObjectId } from 'mongodb';
-
-async function getDb() {
-  const client = new MongoClient(process.env.MONGODB_URI!);
-  await client.connect();
-  return { client, db: client.db('laguno') };
-}
+import clientPromise from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
 
 export async function DELETE(_: NextRequest, { params }: { params: { guildId: string; warnId: string } }) {
   if (!await assertGuildAccess(params.guildId))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const { client, db } = await getDb();
-  try {
-    await db.collection('warns').deleteOne({ _id: new ObjectId(params.warnId), guildId: params.guildId });
-    return NextResponse.json({ ok: true });
-  } finally {
-    await client.close();
-  }
+  if (!ObjectId.isValid(params.warnId))
+    return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+
+  // client.db() usa a BD do connection string — a mesma que o bot (mongoose).
+  const client = await clientPromise;
+  await client.db().collection('warns').deleteOne({ _id: new ObjectId(params.warnId), guildId: params.guildId });
+  return NextResponse.json({ ok: true });
 }

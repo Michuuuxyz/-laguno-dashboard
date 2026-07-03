@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { fetchAvatarUrl, scheduleVoteReminder } from '@/lib/voteReminder';
+
+// Comparação em tempo constante — evita adivinhar o segredo por timing.
+function secretMatches(provided: string | null, expected: string | undefined): boolean {
+  if (!provided || !expected) return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
 
 const CORS = {
   'Access-Control-Allow-Origin': 'https://discordbotlist.com',
@@ -62,7 +72,7 @@ async function sendDM(userId: string, userName: string | undefined) {
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
-  if (!DBL_SECRET || authHeader !== DBL_SECRET) {
+  if (!secretMatches(authHeader, DBL_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS });
   }
 

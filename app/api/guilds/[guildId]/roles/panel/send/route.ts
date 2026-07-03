@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
-import { MongoClient } from 'mongodb';
+import { channelBelongsToGuild } from '@/lib/channelGuard';
+import clientPromise from '@/lib/mongodb';
 
 const DISCORD_API = 'https://discord.com/api/v10';
 
@@ -15,19 +16,17 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
   if (!panelId || !channelId)
     return NextResponse.json({ error: 'panelId e channelId são obrigatórios' }, { status: 400 });
 
+  if (!await channelBelongsToGuild(channelId, params.guildId))
+    return NextResponse.json({ error: 'Esse canal não pertence a este servidor.' }, { status: 403 });
+
   const token = process.env.DISCORD_TOKEN;
   if (!token)
     return NextResponse.json({ error: 'DISCORD_TOKEN em falta no servidor' }, { status: 503 });
 
-  const client = new MongoClient(process.env.MONGODB_URI!);
-  await client.connect();
-  let panel: RolePanel | null = null;
-  try {
-    const cfg = await client.db('laguno').collection('guildconfigs').findOne({ guildId: params.guildId });
-    panel = (cfg?.rolePanels as RolePanel[] | undefined)?.find(p => p.id === panelId) ?? null;
-  } finally {
-    await client.close();
-  }
+  // client.db() usa a BD do connection string — a mesma que o bot (mongoose).
+  const client = await clientPromise;
+  const cfg = await client.db().collection('guildconfigs').findOne({ guildId: params.guildId });
+  const panel: RolePanel | null = (cfg?.rolePanels as RolePanel[] | undefined)?.find(p => p.id === panelId) ?? null;
 
   if (!panel)
     return NextResponse.json({ error: `Painel "${panelId}" não encontrado` }, { status: 404 });

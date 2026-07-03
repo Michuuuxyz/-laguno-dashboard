@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
+import { channelBelongsToGuild } from '@/lib/channelGuard';
 
 const DISCORD_API = 'https://discord.com/api/v10';
 
@@ -27,6 +28,9 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
   if (!channelId || !message) {
     return NextResponse.json({ error: 'channelId e message são obrigatórios' }, { status: 400 });
   }
+
+  if (!await channelBelongsToGuild(channelId, params.guildId))
+    return NextResponse.json({ error: 'Esse canal não pertence a este servidor.' }, { status: 403 });
 
   const token = process.env.DISCORD_TOKEN;
   if (!token) return NextResponse.json({ error: 'DISCORD_TOKEN não configurado' }, { status: 500 });
