@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { assertGuildAccess } from '@/lib/guildAuth';
 import clientPromise from '@/lib/mongodb';
 
 export async function POST(req: NextRequest, { params }: { params: { guildId: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!await assertGuildAccess(params.guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json() as {
     prize: string; description?: string; bannerUrl?: string;
@@ -54,6 +56,7 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
 export async function GET(_req: NextRequest, { params }: { params: { guildId: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!await assertGuildAccess(params.guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const client = await clientPromise;
   const docs = await client.db().collection('giveaways')
