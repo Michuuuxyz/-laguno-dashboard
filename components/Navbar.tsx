@@ -44,6 +44,7 @@ export function Navbar() {
   const { data: session } = useSession();
   const [suporteOpen, setSuporteOpen] = useState(false);
   const [userOpen, setUserOpen]       = useState(false);
+  const [mobileOpen, setMobileOpen]   = useState(false);
   const suporteRef = useRef<HTMLDivElement>(null);
   const userRef    = useRef<HTMLDivElement>(null);
 
@@ -58,7 +59,15 @@ export function Navbar() {
 
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(13,13,15,.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--line)' }}>
-      <style>{`@keyframes dropdown-in { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }`}</style>
+      <style>{`
+        @keyframes dropdown-in { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }
+        .nav-desktop { display: flex; }
+        .nav-burger  { display: none; }
+        @media (max-width: 780px) {
+          .nav-desktop { display: none !important; }
+          .nav-burger  { display: flex !important; }
+        }
+      `}</style>
       <div style={{ height: 58, display: 'flex', alignItems: 'center', padding: '0 clamp(16px,4vw,48px)', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
 
         {/* Logo */}
@@ -67,8 +76,8 @@ export function Navbar() {
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-.02em' }}>Laguno</span>
         </Link>
 
-        {/* Center nav */}
-        <nav style={{ display: 'flex', gap: 2, flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        {/* Center nav (desktop) */}
+        <nav className="nav-desktop" style={{ gap: 2, flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Link href="/features" className="nav-link">Funcionalidades</Link>
           <Link href="/docs" className="nav-link">Documentação</Link>
           <Link href="/sobre" className="nav-link">Sobre</Link>
@@ -123,8 +132,8 @@ export function Navbar() {
           </div>
         </nav>
 
-        {/* Right */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+        {/* Right (desktop) */}
+        <div className="nav-desktop" style={{ gap: 8, alignItems: 'center', flexShrink: 0 }}>
           {session?.user ? (
             <div ref={userRef} style={{ position: 'relative' }}>
               <button onClick={() => setUserOpen(o => !o)}
@@ -171,7 +180,64 @@ export function Navbar() {
             </>
           )}
         </div>
+
+        {/* Hamburger (mobile) */}
+        <button
+          className="nav-burger"
+          onClick={() => setMobileOpen(o => !o)}
+          aria-label="Menu"
+          style={{
+            marginLeft: 'auto', background: 'none', border: '1px solid var(--line)',
+            borderRadius: 8, width: 38, height: 38, cursor: 'pointer', color: 'var(--text-1)',
+            alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {mobileOpen ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
+          )}
+        </button>
       </div>
+
+      {/* Painel mobile */}
+      {mobileOpen && (
+        <div className="nav-burger" style={{
+          flexDirection: 'column', padding: '8px 16px 18px', gap: 2,
+          borderTop: '1px solid var(--line)', background: 'rgba(13,13,15,.98)',
+          animation: 'dropdown-in .15s ease both',
+        }}>
+          {[
+            { href: '/features', label: 'Funcionalidades' },
+            { href: '/docs',     label: 'Documentação' },
+            { href: '/sobre',    label: 'Sobre' },
+          ].map(l => (
+            <Link key={l.href} href={l.href} onClick={() => setMobileOpen(false)}
+              style={{ padding: '11px 12px', borderRadius: 8, fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>
+              {l.label}
+            </Link>
+          ))}
+          <a href={SERVER_INVITE} target="_blank" rel="noreferrer" onClick={() => setMobileOpen(false)}
+            style={{ padding: '11px 12px', borderRadius: 8, fontSize: 14, fontWeight: 500, color: 'var(--text-2)' }}>
+            Servidor de suporte
+          </a>
+          <div style={{ height: 1, background: 'var(--line)', margin: '8px 0' }} />
+          {session?.user ? (
+            <>
+              <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="nav-cta-green" style={{ justifyContent: 'center', padding: '11px', fontSize: 14 }}>Ir para o Dashboard</Link>
+              <button onClick={() => { setMobileOpen(false); signOut({ callbackUrl: '/' }); }}
+                style={{ padding: '11px 12px', borderRadius: 8, fontSize: 14, fontWeight: 500, color: '#ef4444', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer' }}>
+                Terminar sessão
+              </button>
+            </>
+          ) : (
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="nav-cta-outline" style={{ flex: 1, justifyContent: 'center', padding: '11px' }}>Dashboard</Link>
+              <a href={BOT_INVITE} target="_blank" rel="noreferrer" onClick={() => setMobileOpen(false)} className="nav-cta-green" style={{ flex: 1, justifyContent: 'center', padding: '11px' }}>Adicionar</a>
+            </div>
+          )}
+        </div>
+      )}
     </header>
   );
 }
