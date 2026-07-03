@@ -26,6 +26,7 @@ const NAV = [
       { id: 'automod',      label: 'Auto-Moderação' },
       { id: 'self-roles',   label: 'Self-Roles' },
       { id: 'giveaways',    label: 'Sorteios' },
+      { id: 'builder',      label: 'Construtor de Mensagens' },
     ],
   },
 ] as const;
@@ -33,7 +34,7 @@ const NAV = [
 type PageId =
   | 'introduction' | 'add-laguno' | 'dashboard' | 'faq'
   | 'commands' | 'variables' | 'moderation' | 'welcome'
-  | 'logs' | 'automod' | 'self-roles' | 'giveaways';
+  | 'logs' | 'automod' | 'self-roles' | 'giveaways' | 'builder';
 
 /* ─────────────────────────────── SMALL ATOMS ─── */
 const G = '#6db83e';
@@ -186,6 +187,7 @@ function Content({ page }: { page: PageId }) {
             { l: 'Auto-Moderação', d: '6 regras nativas do Discord + filtro de CAPS e anti-flood.' },
             { l: 'Self-Roles', d: 'Painéis de botões para membros escolherem cargos.' },
             { l: 'Sorteios', d: 'Criação e gestão de giveaways pelo dashboard.' },
+            { l: 'Construtor de Mensagens', d: 'Mensagens com botões interativos (Components V2).' },
           ].map(m => (
             <div key={m.l} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, padding: '12px 16px' }}>
               <p style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>{m.l}</p>
@@ -500,6 +502,10 @@ function Content({ page }: { page: PageId }) {
           {[
             ['Canal de boas-vindas', 'Canal onde a mensagem de entrada é publicada.'],
             ['Mensagem de entrada',  'Texto com variáveis enviado quando alguém entra.'],
+            ['Banner',               'Imagem no topo do container (png, jpg ou gif).'],
+            ['Avatar do membro',     'Mostra a foto de quem entra como thumbnail ao lado do texto.'],
+            ['Rodapé',               'Linha pequena no fundo, separada por divisória. Aceita variáveis.'],
+            ['Cor de destaque',      'Cor da barra lateral do container.'],
             ['Canal de despedida',   'Canal onde a mensagem de saída é publicada. Pode ser diferente.'],
             ['Mensagem de despedida','Texto enviado quando um membro sai ou é expulso.'],
             ['DM de boas-vindas',    'Envia adicionalmente uma mensagem privada ao membro quando entra.'],
@@ -622,6 +628,8 @@ function Content({ page }: { page: PageId }) {
           {[
             ['Título',       'Título mostrado no topo do painel.'],
             ['Descrição',    'Texto explicativo abaixo do título.'],
+            ['Cor de destaque', 'Cor da barra lateral do container do painel.'],
+            ['Banner',       'Imagem opcional no topo do painel.'],
             ['Cargos',       'Lista de cargos com nome e emoji personalizáveis.'],
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
         </div>
@@ -658,6 +666,48 @@ function Content({ page }: { page: PageId }) {
         <H2>Re-roll</H2>
         <P>Se um vencedor não reclamar o prémio, podes fazer re-roll no dashboard para sortear um novo vencedor sem criar um sorteio novo.</P>
         <Note type="info">Os sorteios ficam guardados no histórico do dashboard mesmo depois de terminarem — podes consultar participantes e vencedores anteriores.</Note>
+      </div>
+    );
+
+    /* ── CONSTRUTOR DE MENSAGENS ── */
+    case 'builder': return (
+      <div>
+        <H1>Construtor de Mensagens</H1>
+        <P>Cria mensagens ricas com <strong style={{ color: 'var(--text-1)' }}>botões interativos</strong>, direto do dashboard, e envia-as para qualquer canal. Usa os <strong style={{ color: 'var(--text-1)' }}>Components V2</strong> do Discord — tudo dentro de um container com a tua cor.</P>
+
+        <H2>Como funciona</H2>
+        <Steps items={[
+          <span key={1}>No dashboard, vai a <strong style={{ color: 'var(--text-1)' }}>Construtor</strong>.</span>,
+          <span key={2}>Escolhe a cor de destaque e o canal de destino.</span>,
+          <span key={3}>Adiciona blocos na ordem que quiseres: <strong style={{ color: 'var(--text-1)' }}>Texto, Imagem, Separador</strong> ou <strong style={{ color: 'var(--text-1)' }}>Botões</strong>.</span>,
+          <span key={4}>Reordena os blocos com as setas e vê a pré-visualização em tempo real.</span>,
+          <span key={5}>Clica em <strong style={{ color: 'var(--text-1)' }}>Enviar</strong>. A mensagem é publicada no canal escolhido.</span>,
+        ]} />
+
+        <H2>Blocos disponíveis</H2>
+        <div style={{ marginBottom: 16 }}>
+          {[
+            ['Texto',     'Markdown livre — ## título, **negrito**, `código`, -# rodapé. Quantos quiseres.'],
+            ['Imagem',    'Uma imagem por URL, colocada onde quiseres (topo, meio, fim).'],
+            ['Separador', 'Linha divisória ou espaço em branco para organizar a mensagem.'],
+            ['Botões',    'Uma linha de até 5 botões. Cada botão tem a sua ação (ver abaixo).'],
+          ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
+        </div>
+
+        <H2>Ações dos botões</H2>
+        <P>Cada botão que adicionas pode fazer uma de três coisas ao ser clicado:</P>
+        {[
+          { t: 'Enviar mensagem', c: '#6db83e', d: 'O bot responde com uma mensagem tua — privada (só quem clica vê) ou pública no canal. Perfeito para FAQ, regras, info ou suporte.' },
+          { t: 'Dar / tirar cargo', c: '#a855f7', d: 'Alterna um cargo no membro que clica — como os self-roles, mas dentro de qualquer mensagem.' },
+          { t: 'Abrir link', c: '#5865f2', d: 'Botão que abre um URL externo (site, servidor de suporte, etc.). Tem de ser um link https:// válido.' },
+        ].map(f => (
+          <div key={f.t} style={{ borderLeft: `3px solid ${f.c}`, padding: '12px 16px', background: 'var(--surface)', borderRadius: '0 8px 8px 0', marginBottom: 10 }}>
+            <p style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-1)', marginBottom: 5 }}>{f.t}</p>
+            <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{f.d}</p>
+          </div>
+        ))}
+        <Note type="tip">Cada botão pode ter uma cor (azul, cinza, verde ou vermelho) e um emoji. Podes ter várias linhas de botões na mesma mensagem.</Note>
+        <Note type="warn">Para os botões de cargo funcionarem, o Laguno precisa de ter o seu cargo acima dos cargos que vai atribuir na hierarquia do servidor.</Note>
       </div>
     );
 

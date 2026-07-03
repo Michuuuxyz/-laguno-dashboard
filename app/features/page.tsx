@@ -27,6 +27,7 @@ const FEAT_ICONS = {
   logs:        ic(<><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5h7M8.5 9.5h3"/></>),
   selfroles:   ic(<><path d="M20.6 13.4L13 21a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 2.6 12l.4-6a2 2 0 0 1 2-2l6-.4a2 2 0 0 1 1.6.6l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="8.5" r="1.4"/></>),
   sorteios:    ic(<><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v8h14v-8M12 8v13"/><path d="M12 8S10.5 3 7.8 3.6C6 4 6 6.5 8 7.4 9.4 8 12 8 12 8zM12 8s1.5-5 4.2-4.4C18 4 18 6.5 16 7.4 14.6 8 12 8 12 8z"/></>),
+  builder:     ic(<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>),
 };
 
 /* ── Discord mock — primitivas partilhadas ── */
@@ -256,6 +257,37 @@ export default function Features() {
             </DCContainer>
           </MockMsg>
         }
+      />
+
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
+        <div style={{ height: 1, background: 'var(--line)' }} />
+      </div>
+
+      {/* ── CONSTRUTOR DE MENSAGENS ── */}
+      <FeatureSection
+        id="builder"
+        accent="#6db83e"
+        icon={FEAT_ICONS.builder}
+        tag="Construtor de Mensagens"
+        title={`Mensagens com botões.\nSem escrever código.`}
+        desc="Monta mensagens ricas no dashboard com blocos — texto, imagem, separador e botões — na ordem que quiseres. Cada botão faz o que decidires: responde com uma mensagem (privada ou pública), dá um cargo, ou abre um link. Tudo em Components V2, com a tua cor."
+        mock={
+          <MockMsg avatar="/laguno.png" name="Laguno" bot time="17:20">
+            <DCContainer accent="#6db83e">
+              <div>
+                <MockH2>Central de Suporte</MockH2>
+                <MockText>Precisas de ajuda? Escolhe uma opção abaixo.</MockText>
+              </div>
+              <DCSep />
+              <DCBtnRow>
+                <DCBtn label="📖 Regras" variant="primary" />
+                <DCBtn label="🎫 Abrir ticket" />
+                <DCBtn label="🔗 Site" />
+              </DCBtnRow>
+            </DCContainer>
+          </MockMsg>
+        }
+        reverse
       />
 
       {/* ── CTA ── */}
