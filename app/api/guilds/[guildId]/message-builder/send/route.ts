@@ -18,14 +18,16 @@ interface Btn {
   action: ButtonAction;
 }
 
+type Block =
+  | { type: 'text';      content: string }
+  | { type: 'image';     url: string }
+  | { type: 'separator'; divider: boolean }
+  | { type: 'buttons';   buttons: Btn[] };
+
 interface Body {
-  channelId:   string;
+  channelId:    string;
   accentColor?: string;
-  banner?:     string;
-  title?:      string;
-  description?: string;
-  footer?:     string;
-  buttons:     Btn[];
+  blocks:       Block[];
 }
 
 const shortId = () => randomBytes(8).toString('hex'); // 16 chars
@@ -41,42 +43,24 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
   catch { return NextResponse.json({ error: 'JSON inválido' }, { status: 400 }); }
 
   if (!body.channelId) return NextResponse.json({ error: 'Escolhe um canal' }, { status: 400 });
-  if (!body.title?.trim() && !body.description?.trim())
-    return NextResponse.json({ error: 'A mensagem precisa de título ou texto' }, { status: 400 });
+  const blocks = body.blocks ?? [];
+  if (blocks.length === 0)
+    return NextResponse.json({ error: 'A mensagem está vazia — adiciona pelo menos um bloco' }, { status: 400 });
 
   const accentInt = body.accentColor ? parseInt(body.accentColor.replace('#', ''), 16) : NaN;
 
-  // ── Componentes internos do container ──
-  const inner: unknown[] = [];
-  if (body.banner?.trim()) inner.push({ type: 12, items: [{ media: { url: body.banner.trim() } }] });
-
-  const textParts: string[] = [];
-  if (body.title?.trim())       textParts.push(`## ${body.title.trim()}`);
-  if (body.description?.trim()) textParts.push(body.description.trim());
-  if (textParts.length) inner.push({ type: 10, content: textParts.join('\n') });
-
-  if (body.footer?.trim()) {
-    inner.push({ type: 14, divider: true, spacing: 1 });
-    inner.push({ type: 10, content: `-# ${body.footer.trim()}` });
-  }
-
-  // ── Botões (guarda ações de "mensagem" na BD) ──
   const client = await clientPromise;
   const col = client.db('laguno').collection('custombuttons');
-
   const buttonDocs: Record<string, unknown>[] = [];
-  const buttonComponents = (body.buttons ?? []).slice(0, 25).map(b => {
-    const base: Record<string, unknown> = { type: 2, label: b.label.slice(0, 80) };
-    if (b.emoji?.trim()) base.emoji = { name: b.emoji.trim() };
 
+  function buildButton(b: Btn): Record<string, unknown> {
+    const base: Record<string, unknown> = { type: 2, label: (b.label || 'Botão').slice(0, 80) };
+    if (b.emoji?.trim()) base.emoji = { name: b.emoji.trim() };
     if (b.action.type === 'link') {
-      base.style = 5;
-      base.url = b.action.url;
+      base.style = 5; base.url = b.action.url;
     } else if (b.action.type === 'role') {
-      base.style = b.style ?? 2;
-      base.custom_id = `role_toggle:${b.action.roleId}`;
+      base.style = b.style ?? 2; base.custom_id = `role_toggle:${b.action.roleId}`;
     } else {
-      // message
       base.style = b.style ?? 2;
       const buttonId = shortId();
       base.custom_id = `cbtn:${buttonId}`;
@@ -89,19 +73,32 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
       });
     }
     return base;
-  });
+  }
+
+  // ── Blocos → componentes do container, pela ordem que o utilizador escolheu ──
+  const inner: unknown[] = [];
+  for (const block of blocks) {
+    if (block.type === 'text' && block.content?.trim()) {
+      inner.push({ type: 10, content: block.content.trim().slice(0, 4000) });
+    } else if (block.type === 'image' && block.url?.trim()) {
+      inner.push({ type: 12, items: [{ media: { url: block.url.trim() } }] });
+    } else if (block.type === 'separator') {
+      inner.push({ type: 14, divider: block.divider !== false, spacing: 1 });
+    } else if (block.type === 'buttons') {
+      const valid = (block.buttons ?? []).filter(b =>
+        b.label?.trim() &&
+        (b.action.type !== 'role' || b.action.roleId) &&
+        (b.action.type !== 'link' || b.action.url?.trim()) &&
+        (b.action.type !== 'message' || b.action.content?.trim())
+      ).slice(0, 5);
+      if (valid.length) inner.push({ type: 1, components: valid.map(buildButton) });
+    }
+  }
+
+  if (inner.length === 0)
+    return NextResponse.json({ error: 'Todos os blocos estão vazios' }, { status: 400 });
 
   if (buttonDocs.length) await col.insertMany(buttonDocs);
-
-  // Linhas de 5 botões — DENTRO do container (Components V2)
-  const rows: unknown[] = [];
-  for (let i = 0; i < buttonComponents.length; i += 5) {
-    rows.push({ type: 1, components: buttonComponents.slice(i, i + 5) });
-  }
-  if (rows.length) {
-    inner.push({ type: 14, divider: true, spacing: 1 }); // separador antes dos botões
-    inner.push(...rows);
-  }
 
   const container = {
     type: 17,
@@ -118,7 +115,7 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
   if (!res.ok) {
     const err = await res.json().catch(() => ({})) as { message?: string };
     // Limpa os botões guardados se o envio falhou
-    if (buttonDocs.length) await col.deleteMany({ buttonId: { $in: buttonDocs.map(d => d.buttonId) } }).catch(() => null);
+    if (buttonDocs.length) await col.deleteMany({ buttonId: { $in: buttonDocs.map(d => d.buttonId as string) } }).catch(() => null);
     console.error('[message-builder]', params.guildId, err);
     return NextResponse.json({ error: err.message ?? `Discord recusou (${res.status})` }, { status: 502 });
   }
