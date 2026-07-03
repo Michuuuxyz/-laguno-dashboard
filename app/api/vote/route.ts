@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
+import { fetchAvatarUrl, scheduleVoteReminder } from '@/lib/voteReminder';
 
 const VOTE_CHANNEL_ID = process.env.VOTE_LOG_CHANNEL_ID ?? '1520229636229959750';
 const BOT_TOKEN       = (process.env.DISCORD_TOKEN ?? process.env.DISCORD_BOT_TOKEN)!;
@@ -85,9 +86,13 @@ export async function POST(req: NextRequest) {
   const userObj  = data?.user as Record<string, unknown> | undefined;
   const userId   = userObj?.platform_id as string | undefined;
   const userName = userObj?.name        as string | undefined;
-  const avatar   = userObj?.avatar_url  as string | undefined;
   const weight   = (data?.weight as number | undefined) ?? 1;
   const isTest   = payload.type === 'vote.test';
+
+  // Avatar fiável — busca ao Discord por ID (o payload nem sempre traz avatar_url)
+  const avatar = userId
+    ? await fetchAvatarUrl(userId) ?? (userObj?.avatar_url as string | undefined)
+    : (userObj?.avatar_url as string | undefined);
 
   const mention    = userId ? `<@${userId}>` : (userName ?? 'Alguém');
   const weekendMsg = weight >= 2 ? '\n🔥 Fim de semana — vale a dobrar!' : '';
@@ -126,6 +131,12 @@ export async function POST(req: NextRequest) {
     sendDM(userId, userName, weight, isTest).catch(err =>
       console.error('[vote] DM error:', err)
     );
+    // Agenda o lembrete de voto (12h30) — só para votos reais
+    if (!isTest) {
+      scheduleVoteReminder(userId).catch(err =>
+        console.error('[vote] reminder schedule error:', err)
+      );
+    }
   }
 
   return NextResponse.json({ ok: true });

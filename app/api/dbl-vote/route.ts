@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { fetchAvatarUrl, scheduleVoteReminder } from '@/lib/voteReminder';
 
 const CORS = {
   'Access-Control-Allow-Origin': 'https://discordbotlist.com',
@@ -77,6 +78,10 @@ export async function POST(req: NextRequest) {
 
   if (!userId) return NextResponse.json({ error: 'Missing id' }, { status: 400, headers: CORS });
 
+  // Avatar fiável — busca ao Discord por ID; fallback ao avatar do payload
+  const avatarUrl = await fetchAvatarUrl(userId)
+    ?? (avatar ? `https://cdn.discordapp.com/avatars/${userId}/${avatar}.png?size=256` : undefined);
+
   const mention = `<@${userId}>`;
   const FRASES = [
     `votou no Laguno no discordbotlist. O bot agradece. Eu também.`,
@@ -87,10 +92,6 @@ export async function POST(req: NextRequest) {
     `votou. Se o bot algum dia tiver sentimentos, vai lembrar-se deste momento.`,
   ];
   const frase = FRASES[Math.floor(Math.random() * FRASES.length)];
-
-  const avatarUrl = avatar
-    ? `https://cdn.discordapp.com/avatars/${userId}/${avatar}.png?size=128`
-    : undefined;
 
   const embed = {
     color: 0x5865F2,
@@ -111,6 +112,7 @@ export async function POST(req: NextRequest) {
   }
 
   sendDM(userId, userName).catch(err => console.error('[dbl-vote] DM error:', err));
+  scheduleVoteReminder(userId).catch(err => console.error('[dbl-vote] reminder schedule error:', err));
 
   return NextResponse.json({ ok: true }, { headers: CORS });
 }
