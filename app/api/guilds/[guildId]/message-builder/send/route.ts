@@ -93,10 +93,14 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
 
   if (buttonDocs.length) await col.insertMany(buttonDocs);
 
-  // Linhas de 5 botões
+  // Linhas de 5 botões — DENTRO do container (Components V2)
   const rows: unknown[] = [];
   for (let i = 0; i < buttonComponents.length; i += 5) {
     rows.push({ type: 1, components: buttonComponents.slice(i, i + 5) });
+  }
+  if (rows.length) {
+    inner.push({ type: 14, divider: true, spacing: 1 }); // separador antes dos botões
+    inner.push(...rows);
   }
 
   const container = {
@@ -108,7 +112,7 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
   const res = await fetch(`${DISCORD_API}/channels/${body.channelId}/messages`, {
     method: 'POST',
     headers: { Authorization: `Bot ${BOT_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ flags: 1 << 15, components: [container, ...rows] }),
+    body: JSON.stringify({ flags: 1 << 15, components: [container] }),
   });
 
   if (!res.ok) {

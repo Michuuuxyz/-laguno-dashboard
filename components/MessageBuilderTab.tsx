@@ -223,19 +223,21 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
                       <div style={{ height: 1, background: 'rgba(255,255,255,.08)', margin: '10px 0 8px' }} />
                       <p style={{ fontSize: 11, color: '#80848e' }} dangerouslySetInnerHTML={{ __html: md(footer) }} />
                     </>}
+                    {/* Botões DENTRO do container */}
+                    {buttons.length > 0 && <>
+                      <div style={{ height: 1, background: 'rgba(255,255,255,.08)', margin: '12px 0 10px' }} />
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {buttons.map((b, i) => (
+                          <div key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: STYLE_BG[b.actionType === 'link' ? 5 : b.style], color: '#fff', borderRadius: 4, padding: '6px 14px', fontSize: 13.5, fontWeight: 500 }}>
+                            {b.emoji && <span>{b.emoji}</span>}
+                            {b.label || 'Botão'}
+                            {b.actionType === 'link' && <span style={{ opacity: .6, fontSize: 11 }}>↗</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </>}
                   </div>
                 </div>
-                {buttons.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-                    {buttons.map((b, i) => (
-                      <div key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: STYLE_BG[b.actionType === 'link' ? 5 : b.style], color: '#fff', borderRadius: 4, padding: '6px 14px', fontSize: 13.5, fontWeight: 500 }}>
-                        {b.emoji && <span>{b.emoji}</span>}
-                        {b.label || 'Botão'}
-                        {b.actionType === 'link' && <span style={{ opacity: .6, fontSize: 11 }}>↗</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           </div>
