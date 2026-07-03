@@ -136,7 +136,8 @@ function DiscordPreview({ message, accentColor, guildName, extras }: {
         <span style={{ fontSize: 12, color: '#80848e' }}>boas-vindas</span>
       </div>
       <div style={{ padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-        <div style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, background: 'linear-gradient(135deg,#6db83e,#4a8a25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff' }}>L</div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/laguno.png" alt="Laguno" style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
             <span style={{ fontSize: 13.5, fontWeight: 600, color: '#f2f3f5' }}>Laguno</span>
