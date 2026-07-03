@@ -32,7 +32,7 @@ const STYLE_OPTS: { v: 1 | 2 | 3 | 4; label: string; bg: string }[] = [
 const STYLE_BG: Record<number, string> = { 1: '#5865f2', 2: '#4e5058', 3: '#3ba55d', 4: '#ed4245', 5: '#4e5058' };
 
 const uid = () => Math.random().toString(36).slice(2, 9);
-const newButton = (): BuilderButton => ({ label: 'Botão', emoji: '', style: 2, actionType: 'message', content: 'Olá! 👋', ephemeral: true, roleId: '', url: 'https://' });
+const newButton = (): BuilderButton => ({ label: 'Botão', emoji: '', style: 2, actionType: 'message', content: 'Olá! 👋', ephemeral: true, roleId: '', url: '' });
 
 function md(text: string): string {
   return text
