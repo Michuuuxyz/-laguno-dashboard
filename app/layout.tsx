@@ -10,7 +10,8 @@ export const metadata: Metadata = {
     template: '%s | Laguno',
   },
   description: 'Moderação com personalidade, logs automáticos, boas-vindas, self-roles e sorteios. Configurado em dois minutos, a correr sem ti.',
-  keywords: ['discord bot', 'bot português', 'bot brasileiro', 'moderação discord', 'laguno', 'bot discord portugal', 'bot discord brasil'],
+  alternates: { canonical: '/' },
+  keywords: ['laguno', 'laguno bot', 'laguno discord', 'discord bot', 'bot português', 'bot brasileiro', 'moderação discord', 'bot discord portugal', 'bot discord brasil'],
   authors: [{ name: 'Michuu' }],
   creator: 'Michuu',
   openGraph: {
@@ -53,10 +54,55 @@ export const metadata: Metadata = {
   },
 };
 
+// Dados estruturados — diz aos motores de busca que a marca é "Laguno" (não "laguna"),
+// que é o site oficial e liga às listagens de autoridade (top.gg, discordbotlist).
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': 'https://lagunoapp.xyz/#organization',
+      name: 'Laguno',
+      url: 'https://lagunoapp.xyz',
+      logo: 'https://lagunoapp.xyz/laguno.png',
+      description: 'Bot de moderação de Discord em português, com personalidade.',
+      sameAs: [
+        'https://top.gg/bot/706487689519562833',
+        'https://discordbotlist.com/bots/706487689519562833',
+        'https://discord.gg/tVyHSRjEY9',
+      ],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://lagunoapp.xyz/#website',
+      name: 'Laguno',
+      alternateName: 'Laguno Bot',
+      url: 'https://lagunoapp.xyz',
+      inLanguage: 'pt',
+      publisher: { '@id': 'https://lagunoapp.xyz/#organization' },
+    },
+    {
+      '@type': 'SoftwareApplication',
+      name: 'Laguno',
+      applicationCategory: 'CommunicationApplication',
+      operatingSystem: 'Discord',
+      url: 'https://lagunoapp.xyz',
+      description: 'Bot de moderação de Discord 100% em português: ban, kick, warn, auto-moderação, boas-vindas, self-roles, sorteios e logs. Configurado num dashboard, com personalidade.',
+      inLanguage: 'pt',
+      author: { '@id': 'https://lagunoapp.xyz/#organization' },
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+    },
+  ],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt">
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
         <SessionProvider><PageTransition>{children}</PageTransition></SessionProvider>
       </body>
     </html>
