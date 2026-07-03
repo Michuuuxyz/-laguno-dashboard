@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { WelcomeTab } from './WelcomeTab';
 import { RolesTab } from './RolesTab';
 import { GiveawayModule } from './modules/GiveawayModule';
+import { MessageBuilderTab } from './MessageBuilderTab';
 import { WORD_TEMPLATE_WORDS } from '@/lib/wordTemplates';
 
 interface Channel { id: string; name: string; }
@@ -1023,6 +1024,11 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
               desc="Cria sorteios com prémios, banners, cargos obrigatórios e rerolls." />
             <GiveawayModule guildId={guildId} />
           </div>
+        )}
+
+        {/* CONSTRUTOR DE MENSAGENS */}
+        {active === 'builder' && (
+          <MessageBuilderTab guildId={guildId} channels={channels} roles={roles} />
         )}
 
         {/* LOGS */}
