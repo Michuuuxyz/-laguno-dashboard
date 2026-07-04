@@ -83,7 +83,7 @@ function MenuButton({ label, open, onHover, onClick, btnRef }: {
 /* Item com entrada em cascata (fade-up) */
 function Rise({ index, children }: { index: number; children: React.ReactNode }) {
   return (
-    <div className="mega-item" style={{ animation: 'item-rise .38s cubic-bezier(.22,1,.36,1) both', animationDelay: `${index * 0.05}s` }}>
+    <div className="mega-item" style={{ animation: 'item-rise .45s cubic-bezier(.16,1,.3,1) both', animationDelay: `${index * 0.04}s` }}>
       {children}
     </div>
   );
@@ -120,14 +120,14 @@ function NavMenus() {
         <div style={{
           position: 'absolute', top: '100%', left: pos.left, width: pos.width,
           paddingTop: 10, zIndex: 110,
-          transition: 'left .38s cubic-bezier(.22,1,.36,1), width .38s cubic-bezier(.22,1,.36,1)',
+          transition: 'left .45s cubic-bezier(.16,1,.3,1), width .45s cubic-bezier(.16,1,.3,1)',
         }}>
           <div className="mega-panel" style={{
             background: 'var(--card)', border: '1px solid var(--line)',
             borderRadius: 16, padding: 10,
             boxShadow: '0 20px 60px rgba(0,0,0,.55)',
             transformOrigin: 'top center',
-            animation: 'mega-drop .55s cubic-bezier(.22,1,.36,1) both',
+            animation: 'mega-drop .6s cubic-bezier(.16,1,.3,1) both',
             overflow: 'hidden',
           }} onClick={() => setActive(null)}>
             {/* key={active} remonta o conteúdo → cascata dispara a cada troca */}
@@ -205,15 +205,14 @@ export function Navbar() {
     <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(13,13,15,.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--line)' }}>
       <style>{`
         @keyframes dropdown-in { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }
-        /* Mega-menu: desce a partir da navbar, como uma cortina — bem visível */
+        /* Mega-menu: descida sedosa — fade + deslize + desfoque a resolver */
         @keyframes mega-drop {
-          0%   { opacity: 0; transform: translateY(-34px) scaleY(.86); }
-          45%  { opacity: 1; }
-          100% { opacity: 1; transform: translateY(0) scaleY(1); }
+          0%   { opacity: 0; transform: translateY(-26px); filter: blur(6px); }
+          100% { opacity: 1; transform: translateY(0);     filter: blur(0);   }
         }
         /* Itens do menu entram em cascata, como o scroll-reveal da página */
         @keyframes item-rise {
-          from { opacity: 0; transform: translateY(12px); }
+          from { opacity: 0; transform: translateY(10px); }
           to   { opacity: 1; transform: none; }
         }
         .nav-desktop { display: flex; }
