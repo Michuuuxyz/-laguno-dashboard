@@ -105,10 +105,6 @@ function GuildRail({ guilds, currentGuildId, user }: { guilds: Guild[]; currentG
             <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-1)', padding: '8px 10px 8px', borderBottom: '1px solid var(--line)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {user.name}
             </p>
-            <Link href="/dashboard" onClick={() => setMenu(null)} style={menuItemStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-              Os teus servidores
-            </Link>
             <a href="https://top.gg/bot/706487689519562833" target="_blank" rel="noreferrer" onClick={() => setMenu(null)} style={menuItemStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
               Votar
