@@ -41,7 +41,7 @@ const SECTIONS = ['GERAL', 'MÓDULOS', 'MODERAÇÃO', 'ADMINISTRAÇÃO'];
 
 function guildIconUrl(id: string, icon: string | null) {
   if (!icon) return null;
-  return `https://cdn.discordapp.com/icons/${id}/${icon}.${icon.startsWith('a_') ? 'gif' : 'png'}?size=128`;
+  return `https://cdn.discordapp.com/icons/${id}/${icon}.${icon.startsWith('a_') ? 'gif' : 'png'}?size=256`;
 }
 function guildInitial(name: string) {
   return name.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperCase() || name.charAt(0).toUpperCase();
@@ -298,34 +298,22 @@ export function DashboardShell({ user, activeGuilds, guildMap, children }: Props
         background: 'var(--surface)', borderRight: '1px solid var(--line)',
         height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto',
       }}>
-        {/* User mini header */}
-        <div style={{ padding: '16px 14px 12px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--line)', flexShrink: 0 }}>
-            {user.image
-              ? <Image src={user.image} alt="" width={36} height={36} style={{ objectFit: 'cover' }} unoptimized={user.image?.endsWith('.gif')} />
-              : <div style={{ width: 36, height: 36, background: '#5865f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff' }}>{user.name?.charAt(0) ?? '?'}</div>
+        {/* Server hero — logo grande centrado com o nome por baixo */}
+        <div style={{ padding: '26px 16px 18px', borderBottom: '1px solid var(--line)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 96, height: 96, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
+            border: '3px solid rgba(109,184,62,.25)', background: 'var(--elevated)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 32, fontWeight: 700, color: 'var(--text-2)',
+          }}>
+            {icon
+              ? <Image src={icon} alt={currentGuild.name} width={96} height={96} style={{ objectFit: 'cover', width: '100%', height: '100%' }} unoptimized={icon.endsWith('.gif')} />
+              : guildInitial(currentGuild.name)
             }
           </div>
-          <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</p>
-            <p style={{ fontSize: 10, color: 'var(--text-3)', letterSpacing: '.04em' }}>Discord</p>
-          </div>
-        </div>
-
-        {/* Server header */}
-        <div style={{ padding: '10px 14px 10px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 10 }}>
-          {icon ? (
-            <Image src={icon} alt={currentGuild.name} width={36} height={36}
-              style={{ borderRadius: 10, flexShrink: 0 }} unoptimized={icon.endsWith('.gif')} />
-          ) : (
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--elevated)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: 'var(--text-2)', flexShrink: 0 }}>
-              {guildInitial(currentGuild.name)}
-            </div>
-          )}
-          <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-.02em' }}>{currentGuild.name}</p>
-            <p style={{ fontSize: 10.5, color: 'var(--green)', fontWeight: 600, letterSpacing: '.04em' }}>CONFIGURAÇÕES</p>
-          </div>
+          <p style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-.02em', textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {currentGuild.name}
+          </p>
         </div>
 
         {/* Nav modules */}
