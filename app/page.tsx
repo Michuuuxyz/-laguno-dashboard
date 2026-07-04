@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ScrollReveal } from '@/components/ScrollReveal';
+import { HeroBadge } from '@/components/HeroBadge';
 import {
   MockWindow, MockMsg, MockText, MockSub, Mention, DCContainer, DCSep,
 } from '@/components/DiscordMock';
@@ -53,9 +54,7 @@ export default async function Home() {
       {/* ── HERO — a tese, na voz do crocodilo ── */}
       <section style={{ minHeight: '82vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ width: '100%', maxWidth: 880, margin: '0 auto', padding: 'clamp(48px,8vh,80px) clamp(20px,4vw,56px)', textAlign: 'center' }}>
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 26 }}>
-            Bot de moderação · 100% em português
-          </p>
+          <HeroBadge />
 
           <h1 className="display" style={{
             fontSize: 'clamp(48px,9vw,110px)', fontWeight: 800,
