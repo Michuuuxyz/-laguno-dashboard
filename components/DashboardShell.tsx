@@ -76,25 +76,25 @@ function GuildRail({ guilds, currentGuildId, user }: { guilds: Guild[]; currentG
           <Link key={g.id} href={`/dashboard/${g.id}`} title={g.name} style={{ position: 'relative', display: 'block', flexShrink: 0 }}>
             {active && (
               <span style={{
-                position: 'absolute', left: -14, top: '50%', transform: 'translateY(-50%)',
-                width: 4, height: 32, borderRadius: '0 3px 3px 0', background: 'var(--green)',
+                position: 'absolute', left: -8, top: '50%', transform: 'translateY(-50%)',
+                width: 4, height: 36, borderRadius: '0 3px 3px 0', background: 'var(--green)',
               }} />
             )}
             <div style={{
-              width: 48, height: 48,
-              borderRadius: active ? 16 : '50%',
+              width: 64, height: 64,
+              borderRadius: active ? 20 : '50%',
               overflow: 'hidden',
               border: active ? '2px solid var(--green)' : '2px solid transparent',
               transition: 'border-radius .2s, border-color .2s',
               background: icon ? 'transparent' : 'var(--elevated)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 16, fontWeight: 700, color: 'var(--text-2)',
+              fontSize: 20, fontWeight: 700, color: 'var(--text-2)',
             }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLDivElement).style.borderRadius = '16px'; }}
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLDivElement).style.borderRadius = '20px'; }}
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLDivElement).style.borderRadius = '50%'; }}
             >
               {icon
-                ? <Image src={icon} alt={g.name} width={48} height={48} style={{ objectFit: 'cover', width: '100%', height: '100%' }} unoptimized={icon.endsWith('.gif')} />
+                ? <Image src={icon} alt={g.name} width={64} height={64} style={{ objectFit: 'cover', width: '100%', height: '100%' }} unoptimized={icon.endsWith('.gif')} />
                 : guildInitial(g.name)
               }
             </div>
@@ -105,8 +105,8 @@ function GuildRail({ guilds, currentGuildId, user }: { guilds: Guild[]; currentG
       {/* Add server */}
       <Link href={`https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`}
         title="Adicionar servidor" target="_blank" rel="noreferrer"
-        style={{ marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '50%', border: '2px dashed var(--line)', color: 'var(--green)', transition: 'border-color .15s, border-radius .2s', flexShrink: 0 }}
-        onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderRadius = '16px'; a.style.borderColor = 'var(--green)'; a.style.background = 'rgba(109,184,62,.08)'; }}
+        style={{ marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', border: '2px dashed var(--line)', color: 'var(--green)', transition: 'border-color .15s, border-radius .2s', flexShrink: 0 }}
+        onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderRadius = '20px'; a.style.borderColor = 'var(--green)'; a.style.background = 'rgba(109,184,62,.08)'; }}
         onMouseLeave={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderRadius = '50%'; a.style.borderColor = 'var(--line)'; a.style.background = 'transparent'; }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
