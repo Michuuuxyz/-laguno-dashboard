@@ -15,8 +15,9 @@ function parseMessage(text: string, userId: string, guildName: string, memberCou
     .replace(/{created}/g,      'há 2 anos');
 }
 
-export async function POST(req: NextRequest, { params }: { params: { guildId: string } }) {
-  const access = await assertGuildAccess(params.guildId);
+export async function POST(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
+  const { guildId } = await params;
+  const access = await assertGuildAccess(guildId);
   if (!access) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json();
@@ -29,14 +30,14 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
     return NextResponse.json({ error: 'channelId e message são obrigatórios' }, { status: 400 });
   }
 
-  if (!await channelBelongsToGuild(channelId, params.guildId))
+  if (!await channelBelongsToGuild(channelId, guildId))
     return NextResponse.json({ error: 'Esse canal não pertence a este servidor.' }, { status: 403 });
 
   const token = process.env.DISCORD_TOKEN;
   if (!token) return NextResponse.json({ error: 'DISCORD_TOKEN não configurado' }, { status: 500 });
 
   // Fetch guild info for placeholders
-  const guildRes = await fetch(`${DISCORD_API}/guilds/${params.guildId}?with_counts=true`, {
+  const guildRes = await fetch(`${DISCORD_API}/guilds/${guildId}?with_counts=true`, {
     headers: { Authorization: `Bot ${token}` },
   });
   const guild = guildRes.ok ? await guildRes.json() : null;

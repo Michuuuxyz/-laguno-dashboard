@@ -67,7 +67,7 @@ const MENU_WIDTHS: Record<MenuId, number> = { feat: 640, rec: 340 };
 
 function MenuButton({ label, open, onHover, onClick, btnRef }: {
   label: string; open: boolean; onHover: () => void; onClick: () => void;
-  btnRef: React.RefObject<HTMLButtonElement>;
+  btnRef: React.RefObject<HTMLButtonElement | null>;
 }) {
   return (
     <button ref={btnRef} onMouseEnter={onHover} onClick={onClick} style={{

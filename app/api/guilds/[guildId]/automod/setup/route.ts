@@ -7,8 +7,9 @@ import clientPromise from '@/lib/mongodb';
 // "Ativar tudo" = máxima AutoMod: todas as palavras de todas as templates
 const DEFAULT_WORDS = ALL_TEMPLATE_WORDS;
 
-export async function POST(_: NextRequest, { params }: { params: { guildId: string } }) {
-  if (!await assertGuildAccess(params.guildId))
+export async function POST(_: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
+  const { guildId } = await params;
+  if (!await assertGuildAccess(guildId))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const autoMod = {
@@ -30,26 +31,26 @@ export async function POST(_: NextRequest, { params }: { params: { guildId: stri
     const client = await clientPromise;
     const db = client.db();
     await db.collection('guildconfigs').updateOne(
-      { guildId: params.guildId },
-      { $set: { autoMod, guildId: params.guildId, updatedAt: new Date() } },
+      { guildId },
+      { $set: { autoMod, guildId, updatedAt: new Date() } },
       { upsert: true }
     );
 
     // Ler logChannelId para passar ao syncAutoMod
-    const cfg = await db.collection('guildconfigs').findOne({ guildId: params.guildId });
+    const cfg = await db.collection('guildconfigs').findOne({ guildId });
     const alertChannelId =
       (cfg?.logs as { moderation?: { channelId?: string } })?.moderation?.channelId
       ?? (cfg?.logChannelId as string | null)
       ?? null;
 
     // Invalida cache do bot
-    fetch(`${process.env.BOT_API_URL}/cache/invalidate/${params.guildId}`, {
+    fetch(`${process.env.BOT_API_URL}/cache/invalidate/${guildId}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${process.env.BOT_API_SECRET}` },
     }).catch(() => null);
 
     // Sincroniza com Discord AutoMod nativo
-    const sync = await syncAutoModRules(params.guildId, autoMod, alertChannelId);
+    const sync = await syncAutoModRules(guildId, autoMod, alertChannelId);
 
     if (sync.error === 'no_token') {
       return NextResponse.json({ ok: false, saved: true, reason: 'O bot não está configurado para AutoMod nativo (DISCORD_TOKEN em falta). As regras do bot ficam ativas, mas as nativas do Discord não foram criadas.' }, { status: 502 });
@@ -63,7 +64,7 @@ export async function POST(_: NextRequest, { params }: { params: { guildId: stri
 
     return NextResponse.json({ ok: true, words: DEFAULT_WORDS.length });
   } catch (err) {
-    console.error('[automod/setup]', params.guildId, err);
+    console.error('[automod/setup]', guildId, err);
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

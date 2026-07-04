@@ -1,7 +1,8 @@
 # Laguno Dashboard — Regras para Claude
 
 ## Stack
-- Next.js 14 App Router, TypeScript, React, CSS-in-JS (inline styles)
+- Next.js 15 App Router (React 19), TypeScript, CSS-in-JS (inline styles)
+- Nota Next 15: `params`/`searchParams` são `Promise` — fazer `await params` em pages e route handlers
 - Auth: NextAuth.js com Discord OAuth (scopes: `identify`, `guilds`)
 - DB: MongoDB direto via `mongodb` driver (não Mongoose) — coleção `laguno`, documento `guildconfigs`
 - Hosted em Vercel — deploy: `npx vercel deploy --prod --yes` dentro de `/dashboard`

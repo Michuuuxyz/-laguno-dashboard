@@ -44,8 +44,9 @@ function Tab({ active, href, children }: { active: boolean; href: string; childr
   );
 }
 
-export default function LegalPage({ searchParams }: { searchParams: { tab?: string } }) {
-  const tab = searchParams.tab === 'privacy' ? 'privacy' : 'terms';
+export default async function LegalPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const { tab: tabParam } = await searchParams;
+  const tab = tabParam === 'privacy' ? 'privacy' : 'terms';
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>

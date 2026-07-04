@@ -5,17 +5,18 @@ import { assertGuildAccess } from '@/lib/guildAuth';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
-type Params = { params: { guildId: string; giveawayId: string } };
+type Params = { params: Promise<{ guildId: string; giveawayId: string }> };
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const { guildId, giveawayId } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!await assertGuildAccess(params.guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!await assertGuildAccess(guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const client = await clientPromise;
   const result = await client.db().collection('giveaways').deleteOne({
-    _id: new ObjectId(params.giveawayId),
-    guildId: params.guildId,
+    _id: new ObjectId(giveawayId),
+    guildId,
   });
 
   if (result.deletedCount === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -24,15 +25,16 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
 // PATCH — agenda um reroll para uma data específica (só em giveaways terminados)
 export async function PATCH(req: NextRequest, { params }: Params) {
+  const { guildId, giveawayId } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!await assertGuildAccess(params.guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!await assertGuildAccess(guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json() as { scheduledRerollAt?: string };
   const client = await clientPromise;
 
   const doc = await client.db().collection('giveaways').findOne({
-    _id: new ObjectId(params.giveawayId), guildId: params.guildId,
+    _id: new ObjectId(giveawayId), guildId,
   });
   if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (!doc.ended) return NextResponse.json({ error: 'Giveaway still active' }, { status: 400 });
@@ -43,7 +45,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     : { $unset: { scheduledRerollAt: 1 } };
 
   const result = await client.db().collection('giveaways').updateOne(
-    { _id: new ObjectId(params.giveawayId), guildId: params.guildId },
+    { _id: new ObjectId(giveawayId), guildId },
     update,
   );
 

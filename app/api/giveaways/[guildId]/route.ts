@@ -5,10 +5,11 @@ import { assertGuildAccess } from '@/lib/guildAuth';
 import { channelBelongsToGuild } from '@/lib/channelGuard';
 import clientPromise from '@/lib/mongodb';
 
-export async function POST(req: NextRequest, { params }: { params: { guildId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
+  const { guildId } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!await assertGuildAccess(params.guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!await assertGuildAccess(guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json() as {
     prize: string; description?: string; bannerUrl?: string;
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
 
   // O canal de destino tem de pertencer MESMO a esta guild — sem isto, um
   // gestor podia fazer o bot publicar o sorteio num canal de outro servidor.
-  if (!await channelBelongsToGuild(body.channelId, params.guildId)) {
+  if (!await channelBelongsToGuild(body.channelId, guildId)) {
     return NextResponse.json({ error: 'Esse canal não pertence a este servidor.' }, { status: 403 });
   }
 
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
 
   const client = await clientPromise;
   const result = await client.db().collection('giveaways').insertOne({
-    guildId:        params.guildId,
+    guildId,
     channelId:      body.channelId,
     messageId:      null,
     prize:          String(body.prize).slice(0, 200),
@@ -64,14 +65,15 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
   return NextResponse.json({ ok: true, id: result.insertedId });
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { guildId: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
+  const { guildId } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!await assertGuildAccess(params.guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!await assertGuildAccess(guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const client = await clientPromise;
   const docs = await client.db().collection('giveaways')
-    .find({ guildId: params.guildId })
+    .find({ guildId })
     .sort({ createdAt: -1 })
     .limit(20)
     .toArray();

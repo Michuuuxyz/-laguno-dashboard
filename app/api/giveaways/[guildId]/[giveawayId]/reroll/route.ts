@@ -7,16 +7,17 @@ import { ObjectId } from 'mongodb';
 
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { guildId: string; giveawayId: string } }
+  { params }: { params: Promise<{ guildId: string; giveawayId: string }> }
 ) {
+  const { guildId, giveawayId } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!await assertGuildAccess(params.guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!await assertGuildAccess(guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const client = await clientPromise;
   const doc = await client.db().collection('giveaways').findOne({
-    _id: new ObjectId(params.giveawayId),
-    guildId: params.guildId,
+    _id: new ObjectId(giveawayId),
+    guildId,
   });
 
   if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -26,7 +27,7 @@ export async function POST(
   // Apenas sinaliza o bot — é ele que escolhe os vencedores e anuncia no Discord
   // (evita o bug onde a dashboard escolhia uns vencedores e o bot sobrescrevia com outros)
   await client.db().collection('giveaways').updateOne(
-    { _id: new ObjectId(params.giveawayId) },
+    { _id: new ObjectId(giveawayId) },
     { $set: { pendingReroll: true } }
   );
 

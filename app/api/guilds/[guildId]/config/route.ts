@@ -10,17 +10,19 @@ const ALLOWED_KEYS = new Set([
   'warns', 'rolePanels',
 ]);
 
-export async function GET(_: NextRequest, { params }: { params: { guildId: string } }) {
-  if (!await assertGuildAccess(params.guildId))
+export async function GET(_: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
+  const { guildId } = await params;
+  if (!await assertGuildAccess(guildId))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const client = await clientPromise;
-  const config = await client.db().collection('guildconfigs').findOne({ guildId: params.guildId });
+  const config = await client.db().collection('guildconfigs').findOne({ guildId });
   return NextResponse.json(config ?? { prefix: '!', language: 'pt', enabledModules: ['moderation', 'fun', 'utility', 'config'], customCommands: [] });
 }
 
-export async function POST(req: NextRequest, { params }: { params: { guildId: string } }) {
-  if (!await assertGuildAccess(params.guildId))
+export async function POST(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
+  const { guildId } = await params;
+  if (!await assertGuildAccess(guildId))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   let body: Record<string, unknown>;
@@ -35,14 +37,14 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
   const db = client.db();
   try {
     await db.collection('guildconfigs').updateOne(
-      { guildId: params.guildId },
-      { $set: { ...safeBody, guildId: params.guildId, updatedAt: new Date() } },
+      { guildId },
+      { $set: { ...safeBody, guildId, updatedAt: new Date() } },
       { upsert: true }
     );
 
     // Invalida a cache do bot imediatamente
     try {
-      await fetch(`${process.env.BOT_API_URL}/cache/invalidate/${params.guildId}`, {
+      await fetch(`${process.env.BOT_API_URL}/cache/invalidate/${guildId}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${process.env.BOT_API_SECRET}` },
       });
@@ -57,19 +59,19 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
         ?? (safeBody.logChannelId as string | null)
         ?? null;
       if (!alertChannelId) {
-        const cfg = await db.collection('guildconfigs').findOne({ guildId: params.guildId });
+        const cfg = await db.collection('guildconfigs').findOne({ guildId });
         alertChannelId =
           (cfg?.logs as { moderation?: { channelId?: string } })?.moderation?.channelId
           ?? (cfg?.logChannelId as string | null)
           ?? null;
       }
       try {
-        const sync = await syncAutoModRules(params.guildId, safeBody.autoMod as Parameters<typeof syncAutoModRules>[1], alertChannelId);
+        const sync = await syncAutoModRules(guildId, safeBody.autoMod as Parameters<typeof syncAutoModRules>[1], alertChannelId);
         if (sync.error === 'no_token') autoModWarning = 'As regras do bot ficaram guardadas, mas as regras nativas do Discord nao foram criadas (DISCORD_TOKEN em falta).';
         else if (sync.error === 'list_failed') autoModWarning = 'As regras nativas do Discord nao foram criadas. Confirma que o bot esta no servidor e tem a permissao "Gerir Servidor".';
         else if (!sync.ok) autoModWarning = `Algumas regras nao foram criadas no Discord: ${sync.failures.join('; ')}`;
       } catch (err) {
-        console.error('[syncAutoMod]', params.guildId, err);
+        console.error('[syncAutoMod]', guildId, err);
         autoModWarning = 'Erro ao sincronizar com o Discord.';
       }
     }

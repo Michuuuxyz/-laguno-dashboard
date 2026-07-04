@@ -8,15 +8,16 @@ const DISCORD_API = 'https://discord.com/api/v10';
 interface RoleEntry { roleId: string; label: string; emoji?: string; }
 interface RolePanel  { id: string; title: string; description?: string; roles: RoleEntry[]; accentColor?: string; bannerUrl?: string; }
 
-export async function POST(req: NextRequest, { params }: { params: { guildId: string } }) {
-  if (!await assertGuildAccess(params.guildId))
+export async function POST(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
+  const { guildId } = await params;
+  if (!await assertGuildAccess(guildId))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { panelId, channelId } = await req.json();
   if (!panelId || !channelId)
     return NextResponse.json({ error: 'panelId e channelId são obrigatórios' }, { status: 400 });
 
-  if (!await channelBelongsToGuild(channelId, params.guildId))
+  if (!await channelBelongsToGuild(channelId, guildId))
     return NextResponse.json({ error: 'Esse canal não pertence a este servidor.' }, { status: 403 });
 
   const token = process.env.DISCORD_TOKEN;
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
 
   // client.db() usa a BD do connection string — a mesma que o bot (mongoose).
   const client = await clientPromise;
-  const cfg = await client.db().collection('guildconfigs').findOne({ guildId: params.guildId });
+  const cfg = await client.db().collection('guildconfigs').findOne({ guildId });
   const panel: RolePanel | null = (cfg?.rolePanels as RolePanel[] | undefined)?.find(p => p.id === panelId) ?? null;
 
   if (!panel)
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({})) as { message?: string };
-    console.error('[roles/panel/send]', params.guildId, err);
+    console.error('[roles/panel/send]', guildId, err);
     return NextResponse.json({ error: err.message ?? `Discord error ${res.status}` }, { status: 502 });
   }
 
