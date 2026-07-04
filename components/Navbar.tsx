@@ -4,6 +4,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Mesma curva do ScrollReveal da página — o menu e o scroll falam a mesma língua
+const EASE: [number, number, number, number] = [0.25, 0.1, 0.25, 1];
 
 const CLIENT_ID    = process.env.NEXT_PUBLIC_CLIENT_ID;
 const BOT_INVITE   = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`;
@@ -80,12 +84,16 @@ function MenuButton({ label, open, onHover, onClick, btnRef }: {
   );
 }
 
-/* Item com entrada em cascata (fade-up) */
+/* Item com entrada em cascata (fade-up) — framer-motion, como o ScrollReveal */
 function Rise({ index, children }: { index: number; children: React.ReactNode }) {
   return (
-    <div className="mega-item" style={{ animation: 'item-rise .45s cubic-bezier(.16,1,.3,1) both', animationDelay: `${index * 0.04}s` }}>
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.08 + index * 0.06, ease: EASE }}
+    >
       {children}
-    </div>
+    </motion.div>
   );
 }
 
@@ -115,6 +123,7 @@ function NavMenus() {
       <MenuButton label="Recursos" open={active === 'rec'} btnRef={recRef}
         onHover={() => openMenu('rec')} onClick={() => active === 'rec' ? setActive(null) : openMenu('rec')} />
 
+      <AnimatePresence>
       {active && (
         // wrapper com transição de left/width → o slide lateral entre categorias
         <div style={{
@@ -122,14 +131,17 @@ function NavMenus() {
           paddingTop: 10, zIndex: 110,
           transition: 'left .45s cubic-bezier(.16,1,.3,1), width .45s cubic-bezier(.16,1,.3,1)',
         }}>
-          <div className="mega-panel" style={{
-            background: 'var(--card)', border: '1px solid var(--line)',
-            borderRadius: 16, padding: 10,
-            boxShadow: '0 20px 60px rgba(0,0,0,.55)',
-            transformOrigin: 'top center',
-            animation: 'mega-drop .6s cubic-bezier(.16,1,.3,1) both',
-            overflow: 'hidden',
-          }} onClick={() => setActive(null)}>
+          <motion.div
+            initial={{ opacity: 0, y: -24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12, transition: { duration: 0.22, ease: EASE } }}
+            transition={{ duration: 0.5, ease: EASE }}
+            style={{
+              background: 'var(--card)', border: '1px solid var(--line)',
+              borderRadius: 16, padding: 10,
+              boxShadow: '0 20px 60px rgba(0,0,0,.55)',
+              overflow: 'hidden',
+            }} onClick={() => setActive(null)}>
             {/* key={active} remonta o conteúdo → cascata dispara a cada troca */}
             <div key={active}>
               {active === 'feat' ? (
@@ -161,9 +173,10 @@ function NavMenus() {
                 </>
               )}
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -205,16 +218,7 @@ export function Navbar() {
     <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(13,13,15,.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--line)' }}>
       <style>{`
         @keyframes dropdown-in { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }
-        /* Mega-menu: descida sedosa — fade + deslize + desfoque a resolver */
-        @keyframes mega-drop {
-          0%   { opacity: 0; transform: translateY(-26px); filter: blur(6px); }
-          100% { opacity: 1; transform: translateY(0);     filter: blur(0);   }
-        }
-        /* Itens do menu entram em cascata, como o scroll-reveal da página */
-        @keyframes item-rise {
-          from { opacity: 0; transform: translateY(10px); }
-          to   { opacity: 1; transform: none; }
-        }
+        /* (animações do mega-menu agora via framer-motion, como o ScrollReveal) */
         .nav-desktop { display: flex; }
         .nav-burger  { display: none; }
         @media (max-width: 780px) {
