@@ -54,37 +54,112 @@ function DropItem({ href, external, icon, title, desc, onClick }: {
   );
 }
 
-/* ── Dropdown de categoria — abre no hover, fecha com pequena tolerância ── */
-function NavDrop({ label, width, children }: { label: string; width: number; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+/* ── Menus de categoria com painel PARTILHADO ──
+   - Abre no hover com a descida lenta (mega-drop)
+   - Ao mudar de categoria com o menu aberto, o painel DESLIZA para o lado
+     (transição de left/width) em vez de fechar e reabrir
+   - Os itens entram em cascata (fade-up), como o scroll-reveal da página */
+type MenuId = 'feat' | 'rec';
+const MENU_WIDTHS: Record<MenuId, number> = { feat: 640, rec: 340 };
 
-  const enter = () => { if (closeTimer.current) clearTimeout(closeTimer.current); setOpen(true); };
-  const leave = () => { closeTimer.current = setTimeout(() => setOpen(false), 140); };
+function MenuButton({ label, open, onHover, onClick, btnRef }: {
+  label: string; open: boolean; onHover: () => void; onClick: () => void;
+  btnRef: React.RefObject<HTMLButtonElement>;
+}) {
+  return (
+    <button ref={btnRef} onMouseEnter={onHover} onClick={onClick} style={{
+      display: 'flex', alignItems: 'center', gap: 6,
+      fontSize: 13.5, fontWeight: 500, color: open ? 'var(--text-1)' : 'var(--text-2)',
+      padding: '7px 14px', borderRadius: 8, border: 'none',
+      background: open ? 'var(--elevated)' : 'transparent',
+      cursor: 'pointer', transition: 'color .15s, background .15s',
+    }}>
+      {label} <Chevron open={open} />
+    </button>
+  );
+}
+
+/* Item com entrada em cascata (fade-up) */
+function Rise({ index, children }: { index: number; children: React.ReactNode }) {
+  return (
+    <div className="mega-item" style={{ animation: 'item-rise .38s cubic-bezier(.22,1,.36,1) both', animationDelay: `${index * 0.05}s` }}>
+      {children}
+    </div>
+  );
+}
+
+function NavMenus() {
+  const [active, setActive] = useState<MenuId | null>(null);
+  const [pos, setPos] = useState({ left: 0, width: MENU_WIDTHS.feat });
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const featRef = useRef<HTMLButtonElement>(null);
+  const recRef  = useRef<HTMLButtonElement>(null);
+
+  const openMenu = (m: MenuId) => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    const btn = (m === 'feat' ? featRef : recRef).current;
+    if (btn) {
+      const center = btn.offsetLeft + btn.offsetWidth / 2;
+      setPos({ left: center - MENU_WIDTHS[m] / 2, width: MENU_WIDTHS[m] });
+    }
+    setActive(m);
+  };
+  const cancelClose   = () => { if (closeTimer.current) clearTimeout(closeTimer.current); };
+  const scheduleClose = () => { closeTimer.current = setTimeout(() => setActive(null), 140); };
 
   return (
-    <div style={{ position: 'relative' }} onMouseEnter={enter} onMouseLeave={leave}>
-      <button onClick={() => setOpen(o => !o)} style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        fontSize: 13.5, fontWeight: 500, color: open ? 'var(--text-1)' : 'var(--text-2)',
-        padding: '7px 14px', borderRadius: 8, border: 'none',
-        background: open ? 'var(--elevated)' : 'transparent',
-        cursor: 'pointer', transition: 'color .15s, background .15s',
-      }}>
-        {label} <Chevron open={open} />
-      </button>
+    <div style={{ position: 'relative', display: 'flex', gap: 4 }} onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
+      <MenuButton label="Funcionalidades" open={active === 'feat'} btnRef={featRef}
+        onHover={() => openMenu('feat')} onClick={() => active === 'feat' ? setActive(null) : openMenu('feat')} />
+      <MenuButton label="Recursos" open={active === 'rec'} btnRef={recRef}
+        onHover={() => openMenu('rec')} onClick={() => active === 'rec' ? setActive(null) : openMenu('rec')} />
 
-      {open && (
-        // padding-top faz "ponte" entre o botão e o painel — o hover não quebra
-        <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', paddingTop: 10, zIndex: 110 }}>
+      {active && (
+        // wrapper com transição de left/width → o slide lateral entre categorias
+        <div style={{
+          position: 'absolute', top: '100%', left: pos.left, width: pos.width,
+          paddingTop: 10, zIndex: 110,
+          transition: 'left .38s cubic-bezier(.22,1,.36,1), width .38s cubic-bezier(.22,1,.36,1)',
+        }}>
           <div className="mega-panel" style={{
             background: 'var(--card)', border: '1px solid var(--line)',
-            borderRadius: 16, padding: 10, width,
+            borderRadius: 16, padding: 10,
             boxShadow: '0 20px 60px rgba(0,0,0,.55)',
             transformOrigin: 'top center',
             animation: 'mega-drop .42s cubic-bezier(.22,1,.36,1) both',
-          }} onClick={() => setOpen(false)}>
-            {children}
+            overflow: 'hidden',
+          }} onClick={() => setActive(null)}>
+            {/* key={active} remonta o conteúdo → cascata dispara a cada troca */}
+            <div key={active}>
+              {active === 'feat' ? (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 14px' }}>
+                    <Rise index={0}><DropItem href="/features#moderacao"  icon={DI.moderacao}  title="Moderação"   desc="Ban, kick e warn — com personalidade" /></Rise>
+                    <Rise index={1}><DropItem href="/features#moderacao"  icon={DI.automod}    title="Auto-Mod"    desc="Spam e convites bloqueados sozinhos" /></Rise>
+                    <Rise index={2}><DropItem href="/features#boasvindas" icon={DI.boasvindas} title="Boas-Vindas" desc="Recebe cada membro com estilo" /></Rise>
+                    <Rise index={3}><DropItem href="/features#selfroles"  icon={DI.selfroles}  title="Self-Roles"  desc="Clica no botão, recebe o cargo" /></Rise>
+                    <Rise index={4}><DropItem href="/features#sorteios"   icon={DI.sorteios}   title="Sorteios"    desc="Cria, gere e sorteia do dashboard" /></Rise>
+                    <Rise index={5}><DropItem href="/features#builder"    icon={DI.builder}    title="Construtor"  desc="Mensagens com botões, sem código" /></Rise>
+                  </div>
+                  <Rise index={6}>
+                    <div style={{ height: 1, background: 'var(--line)', margin: '6px 4px' }} />
+                    <Link href="/features" style={{ display: 'block', padding: '10px 12px', fontSize: 12.5, fontWeight: 600, color: 'var(--green)', textDecoration: 'none' }}>
+                      Ver todas as funcionalidades →
+                    </Link>
+                  </Rise>
+                </>
+              ) : (
+                <>
+                  <Rise index={0}><DropItem href="/comandos" icon={DI.comandos} title="Comandos"     desc="Todos os slash commands, pesquisáveis" /></Rise>
+                  <Rise index={1}><DropItem href="/docs"     icon={DI.docs}     title="Documentação" desc="Guias de configuração passo a passo" /></Rise>
+                  <Rise index={2}><DropItem href="/sobre"    icon={DI.sobre}    title="Sobre"        desc="A história do Laguno" /></Rise>
+                  <Rise index={3}><DropItem href={SERVER_INVITE} external icon={DI.discord} title="Servidor Discord" desc="Junta-te à comunidade do Laguno" /></Rise>
+                  <Rise index={4}><div style={{ height: 1, background: 'var(--line)', margin: '4px 0' }} /></Rise>
+                  <Rise index={5}><DropItem href="/legal?tab=terms"   icon={DI.termos}      title="Termos de Serviço"       desc="Condições de utilização do bot" /></Rise>
+                  <Rise index={6}><DropItem href="/legal?tab=privacy" icon={DI.privacidade} title="Política de Privacidade" desc="Como tratamos os teus dados" /></Rise>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -135,8 +210,13 @@ export function Navbar() {
           60%  { opacity: 1; }
           to   { opacity: 1; transform: translateY(0) scaleY(1); }
         }
+        /* Itens do menu entram em cascata, como o scroll-reveal da página */
+        @keyframes item-rise {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: none; }
+        }
         @media (prefers-reduced-motion: reduce) {
-          .mega-panel { animation: none !important; }
+          .mega-panel, .mega-item { animation: none !important; }
         }
         .nav-desktop { display: flex; }
         .nav-burger  { display: none; }
@@ -153,35 +233,9 @@ export function Navbar() {
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-.02em' }}>Laguno</span>
         </Link>
 
-        {/* Center nav (desktop) */}
+        {/* Center nav (desktop) — painel partilhado com slide entre categorias */}
         <nav className="nav-desktop" style={{ gap: 4, flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-
-          {/* Funcionalidades — mega-menu em 2 colunas */}
-          <NavDrop label="Funcionalidades" width={640}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 14px' }}>
-              <DropItem href="/features#moderacao"  icon={DI.moderacao}  title="Moderação"    desc="Ban, kick e warn — com personalidade" />
-              <DropItem href="/features#moderacao"  icon={DI.automod}    title="Auto-Mod"     desc="Spam e convites bloqueados sozinhos" />
-              <DropItem href="/features#boasvindas" icon={DI.boasvindas} title="Boas-Vindas"  desc="Recebe cada membro com estilo" />
-              <DropItem href="/features#selfroles"  icon={DI.selfroles}  title="Self-Roles"   desc="Clica no botão, recebe o cargo" />
-              <DropItem href="/features#sorteios"   icon={DI.sorteios}   title="Sorteios"     desc="Cria, gere e sorteia do dashboard" />
-              <DropItem href="/features#builder"    icon={DI.builder}    title="Construtor"   desc="Mensagens com botões, sem código" />
-            </div>
-            <div style={{ height: 1, background: 'var(--line)', margin: '6px 4px' }} />
-            <Link href="/features" style={{ display: 'block', padding: '8px 10px', fontSize: 12.5, fontWeight: 600, color: 'var(--green)', textDecoration: 'none' }}>
-              Ver todas as funcionalidades →
-            </Link>
-          </NavDrop>
-
-          {/* Recursos */}
-          <NavDrop label="Recursos" width={340}>
-            <DropItem href="/comandos" icon={DI.comandos} title="Comandos"      desc="Todos os slash commands, pesquisáveis" />
-            <DropItem href="/docs"     icon={DI.docs}     title="Documentação"  desc="Guias de configuração passo a passo" />
-            <DropItem href="/sobre"    icon={DI.sobre}    title="Sobre"         desc="A história do Laguno" />
-            <DropItem href={SERVER_INVITE} external icon={DI.discord} title="Servidor Discord" desc="Junta-te à comunidade do Laguno" />
-            <div style={{ height: 1, background: 'var(--line)', margin: '4px 0' }} />
-            <DropItem href="/legal?tab=terms"   icon={DI.termos}      title="Termos de Serviço"       desc="Condições de utilização do bot" />
-            <DropItem href="/legal?tab=privacy" icon={DI.privacidade} title="Política de Privacidade" desc="Como tratamos os teus dados" />
-          </NavDrop>
+          <NavMenus />
         </nav>
 
         {/* Right (desktop) */}
