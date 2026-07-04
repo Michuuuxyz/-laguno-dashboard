@@ -2,15 +2,13 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Mesma curva do ScrollReveal da página — o menu e o scroll falam a mesma língua
 const EASE: [number, number, number, number] = [0.25, 0.1, 0.25, 1];
 
-const CLIENT_ID    = process.env.NEXT_PUBLIC_CLIENT_ID;
-const BOT_INVITE   = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`;
 const SERVER_INVITE = 'https://discord.gg/tVyHSRjEY9';
 
 function Chevron({ open }: { open: boolean }) {
@@ -64,8 +62,8 @@ function DropItem({ href, external, icon, title, desc, onClick }: {
    - Ao mudar de categoria com o menu aberto, o painel DESLIZA para o lado
      (transição de left/width) em vez de fechar e reabrir
    - Os itens entram em cascata (fade-up), como o scroll-reveal da página */
-type MenuId = 'feat' | 'rec';
-const MENU_WIDTHS: Record<MenuId, number> = { feat: 640, rec: 340 };
+type MenuId = 'feat';
+const MENU_WIDTHS: Record<MenuId, number> = { feat: 640 };
 
 function MenuButton({ label, open, onHover, onClick, btnRef }: {
   label: string; open: boolean; onHover: () => void; onClick: () => void;
@@ -102,11 +100,10 @@ function NavMenus() {
   const [pos, setPos] = useState({ left: 0, width: MENU_WIDTHS.feat });
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const featRef = useRef<HTMLButtonElement>(null);
-  const recRef  = useRef<HTMLButtonElement>(null);
 
   const openMenu = (m: MenuId) => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
-    const btn = (m === 'feat' ? featRef : recRef).current;
+    const btn = featRef.current;
     if (btn) {
       const center = btn.offsetLeft + btn.offsetWidth / 2;
       setPos({ left: center - MENU_WIDTHS[m] / 2, width: MENU_WIDTHS[m] });
@@ -120,8 +117,6 @@ function NavMenus() {
     <div style={{ position: 'relative', display: 'flex', gap: 4 }} onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
       <MenuButton label="Funcionalidades" open={active === 'feat'} btnRef={featRef}
         onHover={() => openMenu('feat')} onClick={() => active === 'feat' ? setActive(null) : openMenu('feat')} />
-      <MenuButton label="Recursos" open={active === 'rec'} btnRef={recRef}
-        onHover={() => openMenu('rec')} onClick={() => active === 'rec' ? setActive(null) : openMenu('rec')} />
 
       <AnimatePresence>
       {active && (
@@ -142,36 +137,21 @@ function NavMenus() {
               boxShadow: '0 20px 60px rgba(0,0,0,.55)',
               overflow: 'hidden',
             }} onClick={() => setActive(null)}>
-            {/* key={active} remonta o conteúdo → cascata dispara a cada troca */}
-            <div key={active}>
-              {active === 'feat' ? (
-                <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 14px' }}>
-                    <Rise index={0}><DropItem href="/features#moderacao"  icon={DI.moderacao}  title="Moderação"   desc="Ban, kick e warn — com personalidade" /></Rise>
-                    <Rise index={1}><DropItem href="/features#moderacao"  icon={DI.automod}    title="Auto-Mod"    desc="Spam e convites bloqueados sozinhos" /></Rise>
-                    <Rise index={2}><DropItem href="/features#boasvindas" icon={DI.boasvindas} title="Boas-Vindas" desc="Recebe cada membro com estilo" /></Rise>
-                    <Rise index={3}><DropItem href="/features#selfroles"  icon={DI.selfroles}  title="Self-Roles"  desc="Clica no botão, recebe o cargo" /></Rise>
-                    <Rise index={4}><DropItem href="/features#sorteios"   icon={DI.sorteios}   title="Sorteios"    desc="Cria, gere e sorteia do dashboard" /></Rise>
-                    <Rise index={5}><DropItem href="/features#builder"    icon={DI.builder}    title="Construtor"  desc="Mensagens com botões, sem código" /></Rise>
-                  </div>
-                  <Rise index={6}>
-                    <div style={{ height: 1, background: 'var(--line)', margin: '6px 4px' }} />
-                    <Link href="/features" style={{ display: 'block', padding: '10px 12px', fontSize: 12.5, fontWeight: 600, color: 'var(--green)', textDecoration: 'none' }}>
-                      Ver todas as funcionalidades →
-                    </Link>
-                  </Rise>
-                </>
-              ) : (
-                <>
-                  <Rise index={0}><DropItem href="/comandos" icon={DI.comandos} title="Comandos"     desc="Todos os slash commands, pesquisáveis" /></Rise>
-                  <Rise index={1}><DropItem href="/docs"     icon={DI.docs}     title="Documentação" desc="Guias de configuração passo a passo" /></Rise>
-                  <Rise index={2}><DropItem href="/sobre"    icon={DI.sobre}    title="Sobre"        desc="A história do Laguno" /></Rise>
-                  <Rise index={3}><DropItem href={SERVER_INVITE} external icon={DI.discord} title="Servidor Discord" desc="Junta-te à comunidade do Laguno" /></Rise>
-                  <Rise index={4}><div style={{ height: 1, background: 'var(--line)', margin: '4px 0' }} /></Rise>
-                  <Rise index={5}><DropItem href="/legal?tab=terms"   icon={DI.termos}      title="Termos de Serviço"       desc="Condições de utilização do bot" /></Rise>
-                  <Rise index={6}><DropItem href="/legal?tab=privacy" icon={DI.privacidade} title="Política de Privacidade" desc="Como tratamos os teus dados" /></Rise>
-                </>
-              )}
+            <div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 14px' }}>
+                <Rise index={0}><DropItem href="/features#moderacao"  icon={DI.moderacao}  title="Moderação"   desc="Ban, kick e warn — com personalidade" /></Rise>
+                <Rise index={1}><DropItem href="/features#moderacao"  icon={DI.automod}    title="Auto-Mod"    desc="Spam e convites bloqueados sozinhos" /></Rise>
+                <Rise index={2}><DropItem href="/features#boasvindas" icon={DI.boasvindas} title="Boas-Vindas" desc="Recebe cada membro com estilo" /></Rise>
+                <Rise index={3}><DropItem href="/features#selfroles"  icon={DI.selfroles}  title="Self-Roles"  desc="Clica no botão, recebe o cargo" /></Rise>
+                <Rise index={4}><DropItem href="/features#sorteios"   icon={DI.sorteios}   title="Sorteios"    desc="Cria, gere e sorteia do dashboard" /></Rise>
+                <Rise index={5}><DropItem href="/features#builder"    icon={DI.builder}    title="Construtor"  desc="Mensagens com botões, sem código" /></Rise>
+              </div>
+              <Rise index={6}>
+                <div style={{ height: 1, background: 'var(--line)', margin: '6px 4px' }} />
+                <Link href="/features" style={{ display: 'block', padding: '10px 12px', fontSize: 12.5, fontWeight: 600, color: 'var(--green)', textDecoration: 'none' }}>
+                  Ver todas as funcionalidades →
+                </Link>
+              </Rise>
             </div>
           </motion.div>
         </div>
@@ -252,39 +232,49 @@ export function Navbar() {
                     : <div style={{ width: 34, height: 34, background: '#5865f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff' }}>{(session.user.name ?? 'U')[0].toUpperCase()}</div>
                   }
                 </div>
-                <Chevron open={userOpen} />
               </button>
 
+              <AnimatePresence>
               {userOpen && (
-                <div style={{
-                  position: 'absolute', top: 'calc(100% + 10px)', right: 0,
-                  background: 'var(--card)', border: '1px solid var(--line)',
-                  borderRadius: 10, padding: 6, minWidth: 180,
-                  boxShadow: '0 8px 32px rgba(0,0,0,.5)',
-                  animation: 'dropdown-in .15s ease both',
-                }}>
-                  <div style={{ padding: '8px 10px 10px', borderBottom: '1px solid var(--line)', marginBottom: 4 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 1 }}>{session.user.name}</p>
-                    <p style={{ fontSize: 11.5, color: 'var(--text-2)' }}>Discord</p>
-                  </div>
-                  <Link href="/dashboard" onClick={() => setUserOpen(false)}
-                    style={{ display: 'block', padding: '7px 10px', borderRadius: 6, fontSize: 13, color: 'var(--text-1)', textDecoration: 'none' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--hover)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >Dashboard</Link>
+                <motion.div
+                  initial={{ opacity: 0, y: -14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8, transition: { duration: 0.18, ease: EASE } }}
+                  transition={{ duration: 0.4, ease: EASE }}
+                  style={{
+                    position: 'absolute', top: 'calc(100% + 12px)', right: 0,
+                    background: 'var(--card)', border: '1px solid var(--line)',
+                    borderRadius: 14, padding: '6px 0', minWidth: 230,
+                    boxShadow: '0 16px 48px rgba(0,0,0,.55)',
+                    overflow: 'hidden',
+                  }}>
+                  {[
+                    { href: '/dashboard', label: 'Dashboard' },
+                    { href: SERVER_INVITE, label: 'Suporte', external: true },
+                    { href: '/comandos', label: 'Comandos' },
+                    { href: '/docs', label: 'Documentação' },
+                  ].map(l => (
+                    <a key={l.label} href={l.href} {...(l.external ? { target: '_blank', rel: 'noreferrer' } : {})}
+                      onClick={() => setUserOpen(false)}
+                      style={{ display: 'block', padding: '11px 18px', fontSize: 14, fontWeight: 500, color: 'var(--text-1)', textDecoration: 'none', transition: 'background .12s' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--hover)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >{l.label}</a>
+                  ))}
+                  <div style={{ height: 1, background: 'var(--line)', margin: '6px 0' }} />
                   <button onClick={() => { setUserOpen(false); signOut({ callbackUrl: '/' }); }}
-                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 6, fontSize: 13, color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '11px 18px', fontSize: 14, fontWeight: 500, color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', transition: 'background .12s' }}
                     onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,.08)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >Terminar sessão</button>
-                </div>
+                </motion.div>
               )}
+              </AnimatePresence>
             </div>
           ) : (
-            <>
-              <Link href="/dashboard" className="nav-cta-outline">Dashboard</Link>
-              <a href={BOT_INVITE} target="_blank" rel="noreferrer" className="nav-cta-green">Adicionar grátis</a>
-            </>
+            <button onClick={() => signIn('discord', { callbackUrl: '/' })} className="nav-cta-green" style={{ border: 'none', cursor: 'pointer' }}>
+              Login
+            </button>
           )}
         </div>
 
@@ -339,10 +329,10 @@ export function Navbar() {
               </button>
             </>
           ) : (
-            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-              <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="nav-cta-outline" style={{ flex: 1, justifyContent: 'center', padding: '11px' }}>Dashboard</Link>
-              <a href={BOT_INVITE} target="_blank" rel="noreferrer" onClick={() => setMobileOpen(false)} className="nav-cta-green" style={{ flex: 1, justifyContent: 'center', padding: '11px' }}>Adicionar</a>
-            </div>
+            <button onClick={() => { setMobileOpen(false); signIn('discord', { callbackUrl: '/' }); }}
+              className="nav-cta-green" style={{ justifyContent: 'center', padding: '11px', fontSize: 14, border: 'none', cursor: 'pointer', width: '100%' }}>
+              Login
+            </button>
           )}
         </div>
       )}

@@ -77,7 +77,7 @@ export default async function Home() {
             Configuras uma vez, num dashboard em português. Depois, é comigo.
           </p>
 
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 15, padding: '.85rem 2.2rem', fontWeight: 700 }}>
               Adicionar ao servidor
             </a>
@@ -85,10 +85,6 @@ export default async function Home() {
               Ver funcionalidades
             </Link>
           </div>
-
-          <p style={{ fontSize: 12.5, color: 'var(--text-3)' }}>
-            Grátis · Sem cartão · Pronto em 2 minutos
-          </p>
         </div>
       </section>
 
@@ -160,11 +156,11 @@ export default async function Home() {
           <h2 className="display" style={{ fontSize: 'clamp(28px,4.5vw,52px)', fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1.05, marginBottom: 14 }}>
             Pronto quando tu estiveres.
           </h2>
-          <p style={{ fontSize: 14.5, color: 'var(--text-2)', marginBottom: 28 }}>
-            {stats
-              ? <>Agora mesmo em <strong style={{ color: 'var(--green)' }}>{stats.guildCount} servidores</strong>, a vigiar <strong style={{ color: 'var(--green)' }}>{stats.userCount.toLocaleString('pt-PT')} membros</strong>.</>
-              : 'Grátis, em dois minutos, sem cartão.'}
-          </p>
+          {stats && (
+            <p style={{ fontSize: 14.5, color: 'var(--text-2)', marginBottom: 28 }}>
+              Agora mesmo em <strong style={{ color: 'var(--green)' }}>{stats.guildCount} servidores</strong>, a vigiar <strong style={{ color: 'var(--green)' }}>{stats.userCount.toLocaleString('pt-PT')} membros</strong>.
+            </p>
+          )}
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 15, padding: '.85rem 2.3rem', fontWeight: 700 }}>
               Adicionar ao servidor
