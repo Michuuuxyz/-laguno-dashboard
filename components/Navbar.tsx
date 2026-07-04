@@ -29,20 +29,21 @@ function DropItem({ href, external, icon, title, desc, onClick }: {
       onMouseEnter={e => {
         e.currentTarget.style.background = 'var(--hover)';
         const box = e.currentTarget.querySelector('.di-box') as HTMLDivElement | null;
-        if (box) { box.style.borderColor = 'rgba(255,255,255,.22)'; box.style.color = 'var(--text-1)'; }
+        if (box) { box.style.borderColor = 'rgba(109,184,62,.6)'; box.style.background = 'rgba(109,184,62,.14)'; }
       }}
       onMouseLeave={e => {
         e.currentTarget.style.background = 'transparent';
         const box = e.currentTarget.querySelector('.di-box') as HTMLDivElement | null;
-        if (box) { box.style.borderColor = 'var(--line)'; box.style.color = 'var(--text-2)'; }
+        if (box) { box.style.borderColor = 'rgba(109,184,62,.28)'; box.style.background = 'rgba(109,184,62,.07)'; }
       }}
     >
-      {/* Ícone numa caixa arredondada com contorno */}
+      {/* Ícone numa caixa arredondada com contorno — verde Laguno */}
       <div className="di-box" style={{
         width: 40, height: 40, borderRadius: 11, flexShrink: 0,
-        border: '1px solid var(--line)',
+        border: '1px solid rgba(109,184,62,.28)',
+        background: 'rgba(109,184,62,.07)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'var(--text-2)', transition: 'border-color .15s, color .15s',
+        color: 'var(--green)', transition: 'border-color .15s, color .15s, background .15s',
       }}>
         {icon}
       </div>
@@ -126,7 +127,7 @@ function NavMenus() {
             borderRadius: 16, padding: 10,
             boxShadow: '0 20px 60px rgba(0,0,0,.55)',
             transformOrigin: 'top center',
-            animation: 'mega-drop .42s cubic-bezier(.22,1,.36,1) both',
+            animation: 'mega-drop .55s cubic-bezier(.22,1,.36,1) both',
             overflow: 'hidden',
           }} onClick={() => setActive(null)}>
             {/* key={active} remonta o conteúdo → cascata dispara a cada troca */}
@@ -204,11 +205,11 @@ export function Navbar() {
     <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(13,13,15,.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--line)' }}>
       <style>{`
         @keyframes dropdown-in { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }
-        /* Mega-menu: desce devagar a partir da navbar, como uma cortina */
+        /* Mega-menu: desce a partir da navbar, como uma cortina — bem visível */
         @keyframes mega-drop {
-          from { opacity: 0; transform: translateY(-18px) scaleY(.92); }
-          60%  { opacity: 1; }
-          to   { opacity: 1; transform: translateY(0) scaleY(1); }
+          0%   { opacity: 0; transform: translateY(-34px) scaleY(.86); }
+          45%  { opacity: 1; }
+          100% { opacity: 1; transform: translateY(0) scaleY(1); }
         }
         /* Itens do menu entram em cascata, como o scroll-reveal da página */
         @keyframes item-rise {
