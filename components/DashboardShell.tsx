@@ -53,21 +53,9 @@ function GuildRail({ guilds, currentGuildId, user }: { guilds: Guild[]; currentG
     <div style={{
       width: 80, flexShrink: 0,
       background: 'var(--surface)', borderRight: '1px solid var(--line)',
-      height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center',
-      paddingTop: 10, paddingBottom: 12, gap: 6, overflowY: 'auto',
+      height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center',
+      paddingTop: 14, paddingBottom: 12, gap: 6, overflowY: 'auto',
     }}>
-      {/* Laguno logo */}
-      <Link href="/" title="Início" style={{ display: 'block', marginBottom: 4, flexShrink: 0 }}
-        onMouseEnter={e => (e.currentTarget.style.opacity = '.7')}
-        onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-      >
-        <div style={{ width: 64, height: 64, overflow: 'hidden' }}>
-          <Image src="/laguno.png" alt="Laguno" width={64} height={64} style={{ objectFit: 'contain' }} />
-        </div>
-      </Link>
-
-      <div style={{ width: 40, height: 1, background: 'var(--line)', flexShrink: 0, marginBottom: 2 }} />
-
       {/* Server icons */}
       {guilds.map(g => {
         const icon   = guildIconUrl(g.id, g.icon);
@@ -123,7 +111,19 @@ function Shell({ rail, sidebar, children }: { rail: React.ReactNode; sidebar: Re
   const [navOpen, setNavOpen] = useState(false);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
+      {/* Topbar desktop — logo centrado, volta à página principal */}
+      <div className="dash-desktop-topbar">
+        <Link href="/" title="Início" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', transition: 'opacity .15s' }}
+          onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.opacity = '.75')}
+          onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.opacity = '1')}
+        >
+          <Image src="/laguno.png" alt="Laguno" width={36} height={36} style={{ objectFit: 'contain' }} />
+          <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--text-1)' }}>Laguno</span>
+        </Link>
+      </div>
+
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
       {/* Topbar — só visível em mobile */}
       <div className="dash-topbar">
         <button aria-label="Abrir menu" onClick={() => setNavOpen(true)} style={{
@@ -155,12 +155,19 @@ function Shell({ rail, sidebar, children }: { rail: React.ReactNode; sidebar: Re
       <main className="dash-main" style={{ flex: 1, overflowY: 'auto' }}>
         {children}
       </main>
+      </div>
 
       <style>{`
+        .dash-desktop-topbar {
+          display: flex; align-items: center; justify-content: center;
+          height: 54px; flex-shrink: 0;
+          background: var(--surface); border-bottom: 1px solid var(--line);
+        }
         .dash-topbar { display: none; }
         .dash-nav { display: contents; }
         .dash-backdrop { display: none; }
         @media (max-width: 900px) {
+          .dash-desktop-topbar { display: none; }
           .dash-topbar {
             display: flex; align-items: center; gap: 12px;
             position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 200;
@@ -212,7 +219,7 @@ export function DashboardShell({ user, activeGuilds, guildMap, children }: Props
         <aside style={{
           width: 220, flexShrink: 0,
           background: 'var(--surface)', borderRight: '1px solid var(--line)',
-          height: '100vh', display: 'flex', flexDirection: 'column', overflowY: 'auto',
+          height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto',
         }}>
           {/* User hero */}
           <div style={{ padding: '28px 16px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
@@ -267,7 +274,7 @@ export function DashboardShell({ user, activeGuilds, guildMap, children }: Props
       <aside style={{
         width: 220, flexShrink: 0,
         background: 'var(--surface)', borderRight: '1px solid var(--line)',
-        height: '100vh', display: 'flex', flexDirection: 'column', overflowY: 'auto',
+        height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto',
       }}>
         {/* User mini header */}
         <div style={{ padding: '16px 14px 12px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 10 }}>
