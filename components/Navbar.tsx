@@ -62,8 +62,8 @@ function DropItem({ href, external, icon, title, desc, onClick }: {
    - Ao mudar de categoria com o menu aberto, o painel DESLIZA para o lado
      (transição de left/width) em vez de fechar e reabrir
    - Os itens entram em cascata (fade-up), como o scroll-reveal da página */
-type MenuId = 'feat';
-const MENU_WIDTHS: Record<MenuId, number> = { feat: 640 };
+type MenuId = 'feat' | 'rec';
+const MENU_WIDTHS: Record<MenuId, number> = { feat: 640, rec: 340 };
 
 function MenuButton({ label, open, onHover, onClick, btnRef }: {
   label: string; open: boolean; onHover: () => void; onClick: () => void;
@@ -100,10 +100,11 @@ function NavMenus() {
   const [pos, setPos] = useState({ left: 0, width: MENU_WIDTHS.feat });
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const featRef = useRef<HTMLButtonElement>(null);
+  const recRef  = useRef<HTMLButtonElement>(null);
 
   const openMenu = (m: MenuId) => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
-    const btn = featRef.current;
+    const btn = (m === 'feat' ? featRef : recRef).current;
     if (btn) {
       const center = btn.offsetLeft + btn.offsetWidth / 2;
       setPos({ left: center - MENU_WIDTHS[m] / 2, width: MENU_WIDTHS[m] });
@@ -117,6 +118,8 @@ function NavMenus() {
     <div style={{ position: 'relative', display: 'flex', gap: 4 }} onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
       <MenuButton label="Funcionalidades" open={active === 'feat'} btnRef={featRef}
         onHover={() => openMenu('feat')} onClick={() => active === 'feat' ? setActive(null) : openMenu('feat')} />
+      <MenuButton label="Recursos" open={active === 'rec'} btnRef={recRef}
+        onHover={() => openMenu('rec')} onClick={() => active === 'rec' ? setActive(null) : openMenu('rec')} />
 
       <AnimatePresence>
       {active && (
@@ -137,21 +140,36 @@ function NavMenus() {
               boxShadow: '0 20px 60px rgba(0,0,0,.55)',
               overflow: 'hidden',
             }} onClick={() => setActive(null)}>
-            <div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 14px' }}>
-                <Rise index={0}><DropItem href="/features#moderacao"  icon={DI.moderacao}  title="Moderação"   desc="Ban, kick e warn — com personalidade" /></Rise>
-                <Rise index={1}><DropItem href="/features#moderacao"  icon={DI.automod}    title="Auto-Mod"    desc="Spam e convites bloqueados sozinhos" /></Rise>
-                <Rise index={2}><DropItem href="/features#boasvindas" icon={DI.boasvindas} title="Boas-Vindas" desc="Recebe cada membro com estilo" /></Rise>
-                <Rise index={3}><DropItem href="/features#selfroles"  icon={DI.selfroles}  title="Self-Roles"  desc="Clica no botão, recebe o cargo" /></Rise>
-                <Rise index={4}><DropItem href="/features#sorteios"   icon={DI.sorteios}   title="Sorteios"    desc="Cria, gere e sorteia do dashboard" /></Rise>
-                <Rise index={5}><DropItem href="/features#builder"    icon={DI.builder}    title="Construtor"  desc="Mensagens com botões, sem código" /></Rise>
-              </div>
-              <Rise index={6}>
-                <div style={{ height: 1, background: 'var(--line)', margin: '6px 4px' }} />
-                <Link href="/features" style={{ display: 'block', padding: '10px 12px', fontSize: 12.5, fontWeight: 600, color: 'var(--green)', textDecoration: 'none' }}>
-                  Ver todas as funcionalidades →
-                </Link>
-              </Rise>
+            {/* key={active} remonta o conteúdo → cascata dispara a cada troca */}
+            <div key={active}>
+              {active === 'feat' ? (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 14px' }}>
+                    <Rise index={0}><DropItem href="/features#moderacao"  icon={DI.moderacao}  title="Moderação"   desc="Ban, kick e warn — com personalidade" /></Rise>
+                    <Rise index={1}><DropItem href="/features#moderacao"  icon={DI.automod}    title="Auto-Mod"    desc="Spam e convites bloqueados sozinhos" /></Rise>
+                    <Rise index={2}><DropItem href="/features#boasvindas" icon={DI.boasvindas} title="Boas-Vindas" desc="Recebe cada membro com estilo" /></Rise>
+                    <Rise index={3}><DropItem href="/features#selfroles"  icon={DI.selfroles}  title="Self-Roles"  desc="Clica no botão, recebe o cargo" /></Rise>
+                    <Rise index={4}><DropItem href="/features#sorteios"   icon={DI.sorteios}   title="Sorteios"    desc="Cria, gere e sorteia do dashboard" /></Rise>
+                    <Rise index={5}><DropItem href="/features#builder"    icon={DI.builder}    title="Construtor"  desc="Mensagens com botões, sem código" /></Rise>
+                  </div>
+                  <Rise index={6}>
+                    <div style={{ height: 1, background: 'var(--line)', margin: '6px 4px' }} />
+                    <Link href="/features" style={{ display: 'block', padding: '10px 12px', fontSize: 12.5, fontWeight: 600, color: 'var(--green)', textDecoration: 'none' }}>
+                      Ver todas as funcionalidades →
+                    </Link>
+                  </Rise>
+                </>
+              ) : (
+                <>
+                  <Rise index={0}><DropItem href="/comandos" icon={DI.comandos} title="Comandos"     desc="Todos os slash commands, pesquisáveis" /></Rise>
+                  <Rise index={1}><DropItem href="/docs"     icon={DI.docs}     title="Documentação" desc="Guias de configuração passo a passo" /></Rise>
+                  <Rise index={2}><DropItem href="/sobre"    icon={DI.sobre}    title="Sobre"        desc="A história do Laguno" /></Rise>
+                  <Rise index={3}><DropItem href={SERVER_INVITE} external icon={DI.discord} title="Servidor Discord" desc="Junta-te à comunidade do Laguno" /></Rise>
+                  <Rise index={4}><div style={{ height: 1, background: 'var(--line)', margin: '4px 0' }} /></Rise>
+                  <Rise index={5}><DropItem href="/legal?tab=terms"   icon={DI.termos}      title="Termos de Serviço"       desc="Condições de utilização do bot" /></Rise>
+                  <Rise index={6}><DropItem href="/legal?tab=privacy" icon={DI.privacidade} title="Política de Privacidade" desc="Como tratamos os teus dados" /></Rise>
+                </>
+              )}
             </div>
           </motion.div>
         </div>
