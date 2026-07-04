@@ -63,11 +63,12 @@ function NavDrop({ label, width, children }: { label: string; width: number; chi
       {open && (
         // padding-top faz "ponte" entre o botão e o painel — o hover não quebra
         <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', paddingTop: 10, zIndex: 110 }}>
-          <div style={{
+          <div className="mega-panel" style={{
             background: 'var(--card)', border: '1px solid var(--line)',
             borderRadius: 14, padding: 8, width,
             boxShadow: '0 16px 48px rgba(0,0,0,.55)',
-            animation: 'dropdown-in .18s cubic-bezier(.16,1,.3,1) both',
+            transformOrigin: 'top center',
+            animation: 'mega-drop .42s cubic-bezier(.22,1,.36,1) both',
           }} onClick={() => setOpen(false)}>
             {children}
           </div>
@@ -114,6 +115,15 @@ export function Navbar() {
     <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(13,13,15,.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--line)' }}>
       <style>{`
         @keyframes dropdown-in { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }
+        /* Mega-menu: desce devagar a partir da navbar, como uma cortina */
+        @keyframes mega-drop {
+          from { opacity: 0; transform: translateY(-18px) scaleY(.92); }
+          60%  { opacity: 1; }
+          to   { opacity: 1; transform: translateY(0) scaleY(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mega-panel { animation: none !important; }
+        }
         .nav-desktop { display: flex; }
         .nav-burger  { display: none; }
         @media (max-width: 780px) {
