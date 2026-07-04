@@ -7,7 +7,7 @@ export function DashboardSkeleton() {
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
       {/* Icon rail */}
-      <div style={{
+      <div className="dsk-panel" style={{
         width: 80, flexShrink: 0, background: 'var(--surface)', borderRight: '1px solid var(--line)',
         height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center',
         paddingTop: 10, paddingBottom: 12, gap: 10,
@@ -22,7 +22,7 @@ export function DashboardSkeleton() {
       </div>
 
       {/* Sidebar */}
-      <aside style={{
+      <aside className="dsk-panel" style={{
         width: 220, flexShrink: 0, background: 'var(--surface)', borderRight: '1px solid var(--line)',
         height: '100vh', display: 'flex', flexDirection: 'column', padding: 16, gap: 12,
       }}>
@@ -40,7 +40,7 @@ export function DashboardSkeleton() {
         <div className="lg-pulse" style={{ width: '100%', maxWidth: 620, height: 120, borderRadius: 12, background: 'var(--elevated)' }} />
       </main>
 
-      <style>{`@keyframes lg-pulse-kf{0%,100%{opacity:.55}50%{opacity:1}}.lg-pulse{animation:lg-pulse-kf 1.3s ease-in-out infinite}@media(prefers-reduced-motion:reduce){.lg-pulse{animation:none}}`}</style>
+      <style>{`@keyframes lg-pulse-kf{0%,100%{opacity:.55}50%{opacity:1}}.lg-pulse{animation:lg-pulse-kf 1.3s ease-in-out infinite}@media(prefers-reduced-motion:reduce){.lg-pulse{animation:none}}@media(max-width:900px){.dsk-panel{display:none}}`}</style>
     </div>
   );
 }

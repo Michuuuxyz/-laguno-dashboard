@@ -938,7 +938,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                 <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.6 }}>Esta regra nao tem parametros configuraveis — o Discord gere a detecao internamente. So precisas de a ativar. (O trigger SPAM nao suporta timeout, apenas bloquear e alertar.)</p>
               </AMRuleRow>
               <AMRuleRow ruleKey="mentionSpam" title="Anti-Mencoes" desc="Bloqueia mensagens com demasiadas mencoes (trigger MENTION_SPAM). Limite maximo: 50 mencoes (limite da API Discord)." badge="discord" enabled={config.autoMod.mentionSpam.enabled} onToggle={() => setAMSub('mentionSpam', { enabled: !config.autoMod.mentionSpam.enabled })} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={exp('mentionSpam')} onExpand={() => tog('mentionSpam')} onSave={() => saveRule('mentionSpam')} saving={savingRule === 'mentionSpam'} saved={savedRule === 'mentionSpam'} saveMsg={savedRule === 'mentionSpam' || savingRule === 'mentionSpam' ? ruleSaveMsg : null}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 10 }}>
                   <Field label="Max. mencoes por mensagem"><input type="number" min={2} max={50} style={inputStyle} value={config.autoMod.mentionSpam.maxMentions} onChange={e => setAMSub('mentionSpam', { maxMentions: parseInt(e.target.value) || 5 })} /></Field>
                   <Field label="Acao"><select style={inputStyle} value={config.autoMod.mentionSpam.action} onChange={e => setAMSub('mentionSpam', { action: e.target.value })}><option value="delete">Apagar mensagem</option><option value="timeout">Timeout (10 min)</option><option value="kick">Kick</option><option value="ban">Ban</option></select></Field>
                 </div>
@@ -971,7 +971,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
               </AMRuleRow>
               <AMSectionHeader title="Laguno Bot" desc="Regras processadas pelo bot diretamente no servidor." />
               <AMRuleRow ruleKey="capsFilter" title="Filtro de CAPS" desc="Remove mensagens com excesso de letras maiusculas. Configuravel por percentagem e comprimento minimo." badge="bot" enabled={config.autoMod.capsFilter.enabled} onToggle={() => setAMSub('capsFilter', { enabled: !config.autoMod.capsFilter.enabled })} actionLabels={['apagar mensagem', 'aviso no canal']} expanded={exp('capsFilter')} onExpand={() => tog('capsFilter')} onSave={() => saveRule('capsFilter')} saving={savingRule === 'capsFilter'} saved={savedRule === 'capsFilter'} saveMsg={savedRule === 'capsFilter' || savingRule === 'capsFilter' ? ruleSaveMsg : null}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 10 }}>
                   <Field label="% maxima de maiusculas"><input type="number" min={30} max={100} style={inputStyle} value={config.autoMod.capsFilter.maxPercent} onChange={e => setAMSub('capsFilter', { maxPercent: parseInt(e.target.value) || 70 })} /></Field>
                   <Field label="Comprimento minimo (caract.)"><input type="number" min={5} max={50} style={inputStyle} value={config.autoMod.capsFilter.minLength} onChange={e => setAMSub('capsFilter', { minLength: parseInt(e.target.value) || 10 })} /></Field>
                 </div>
@@ -986,7 +986,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
               </AMRuleRow>
               <AMSectionHeader title="Excecoes" desc="Canais e cargos isentos de todas as regras acima." />
               <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '18px 20px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 16 }}>
                   <Field label="Canais ignorados">
                     <select style={inputStyle} onChange={e => { if (!e.target.value || config.autoMod.ignoredChannels.includes(e.target.value)) return; setAM('ignoredChannels', [...config.autoMod.ignoredChannels, e.target.value]); e.target.value = ''; }}><option value="">Adicionar canal...</option>{channels.filter(c => !config.autoMod.ignoredChannels.includes(c.id)).map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}</select>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>{config.autoMod.ignoredChannels.map(id => (<span key={id} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 20, padding: '3px 10px', fontSize: 12 }}>#{channels.find(c => c.id === id)?.name ?? id}<button onClick={() => setAM('ignoredChannels', config.autoMod.ignoredChannels.filter(x => x !== id))} aria-label="Remover" style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', padding: 0, lineHeight: 0, display: 'flex' }}><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg></button></span>))}</div>
@@ -1097,7 +1097,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                   </div>
 
                   {/* Events grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 0 }}>
                     {cat.events.map((ev, i) => {
                       const on = catCfg.events[ev.id] ?? false;
                       return (
@@ -1131,7 +1131,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
               chip={warns.length > 0 ? `${warns.length} aviso${warns.length !== 1 ? 's' : ''}` : 'sem avisos'} />
 
             {/* Auto-ação + Expiração lado a lado */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 10 }}>
 
               <AMCard
                 title="Auto-Ação"

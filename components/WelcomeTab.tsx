@@ -227,7 +227,7 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
         </div>
 
         {/* Body */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, flex: 1, overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 0, flex: 1, overflowY: 'auto' }}>
 
           {/* Left: editor */}
           <div style={{ padding: '18px 20px', borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto' }}>

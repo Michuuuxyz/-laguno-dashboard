@@ -79,6 +79,7 @@ export function Navbar() {
         {/* Center nav (desktop) */}
         <nav className="nav-desktop" style={{ gap: 2, flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Link href="/features" className="nav-link">Funcionalidades</Link>
+          <Link href="/comandos" className="nav-link">Comandos</Link>
           <Link href="/docs" className="nav-link">Documentação</Link>
           <Link href="/sobre" className="nav-link">Sobre</Link>
 
@@ -209,6 +210,7 @@ export function Navbar() {
         }}>
           {[
             { href: '/features', label: 'Funcionalidades' },
+            { href: '/comandos', label: 'Comandos' },
             { href: '/docs',     label: 'Documentação' },
             { href: '/sobre',    label: 'Sobre' },
           ].map(l => (

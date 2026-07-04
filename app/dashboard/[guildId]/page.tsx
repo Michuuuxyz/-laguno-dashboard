@@ -15,7 +15,7 @@ export default async function GuildPage({ params, searchParams }: Props) {
   if (!guild || (!guild.owner && !hasManageGuild(guild.permissions))) redirect('/dashboard');
 
   return (
-    <div style={{ padding: '32px 40px 80px' }}>
+    <div style={{ padding: 'clamp(18px,4vw,32px) clamp(14px,4vw,40px) 80px' }}>
       <GuildSettings key={params.guildId} guildId={params.guildId} guildName={guild.name} initialTab={searchParams.tab ?? 'overview'} />
     </div>
   );

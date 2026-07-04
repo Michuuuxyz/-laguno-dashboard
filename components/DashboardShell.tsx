@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 
@@ -114,6 +115,82 @@ function GuildRail({ guilds, currentGuildId, user }: { guilds: Guild[]; currentG
   );
 }
 
+/* ── Invólucro responsivo ──
+   Desktop: rail + sidebar lado a lado (display:contents mantém o flex).
+   Mobile (≤900px): topbar fixa com hambúrguer; rail+sidebar viram um drawer
+   deslizante com backdrop. Fecha ao navegar (clique em link/botão). */
+function Shell({ rail, sidebar, children }: { rail: React.ReactNode; sidebar: React.ReactNode; children: React.ReactNode }) {
+  const [navOpen, setNavOpen] = useState(false);
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
+      {/* Topbar — só visível em mobile */}
+      <div className="dash-topbar">
+        <button aria-label="Abrir menu" onClick={() => setNavOpen(true)} style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 38, height: 38, borderRadius: 9, border: '1px solid var(--line)',
+          background: 'var(--card)', color: 'var(--text-1)', cursor: 'pointer', flexShrink: 0,
+        }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+          <Image src="/laguno.png" alt="Laguno" width={30} height={30} style={{ objectFit: 'contain' }} />
+          <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-.02em' }}>Laguno</span>
+        </Link>
+      </div>
+
+      {navOpen && <div className="dash-backdrop" onClick={() => setNavOpen(false)} />}
+
+      <div
+        className={`dash-nav${navOpen ? ' open' : ''}`}
+        onClick={e => {
+          // Fecha o drawer quando o utilizador navega (link ou botão de módulo)
+          if ((e.target as HTMLElement).closest('a,button')) setNavOpen(false);
+        }}
+      >
+        {rail}
+        {sidebar}
+      </div>
+
+      <main className="dash-main" style={{ flex: 1, overflowY: 'auto' }}>
+        {children}
+      </main>
+
+      <style>{`
+        .dash-topbar { display: none; }
+        .dash-nav { display: contents; }
+        .dash-backdrop { display: none; }
+        @media (max-width: 900px) {
+          .dash-topbar {
+            display: flex; align-items: center; gap: 12px;
+            position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 200;
+            background: rgba(13,13,15,.94);
+            -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line);
+            padding: 0 14px;
+          }
+          .dash-nav {
+            display: flex;
+            position: fixed; top: 0; left: 0; bottom: 0; z-index: 400;
+            transform: translateX(-105%);
+            transition: transform .22s ease;
+            box-shadow: 16px 0 48px rgba(0,0,0,.5);
+          }
+          .dash-nav.open { transform: none; }
+          .dash-backdrop {
+            display: block; position: fixed; inset: 0; z-index: 300;
+            background: rgba(0,0,0,.55);
+          }
+          .dash-main { padding-top: 56px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .dash-nav { transition: none; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export function DashboardShell({ user, activeGuilds, guildMap, children }: Props) {
   const path   = usePathname();
   const params = useSearchParams();
@@ -131,10 +208,7 @@ export function DashboardShell({ user, activeGuilds, guildMap, children }: Props
   /* ── /dashboard (server list) ── */
   if (!currentGuild) {
     return (
-      <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
-        <GuildRail guilds={activeGuilds} user={user} />
-
-        {/* User sidebar */}
+      <Shell rail={<GuildRail guilds={activeGuilds} user={user} />} sidebar={
         <aside style={{
           width: 220, flexShrink: 0,
           background: 'var(--surface)', borderRight: '1px solid var(--line)',
@@ -179,12 +253,9 @@ export function DashboardShell({ user, activeGuilds, guildMap, children }: Props
             </button>
           </div>
         </aside>
-
-        {/* Wide content area */}
-        <main style={{ flex: 1, overflowY: 'auto' }}>
-          {children}
-        </main>
-      </div>
+      }>
+        {children}
+      </Shell>
     );
   }
 
@@ -192,11 +263,7 @@ export function DashboardShell({ user, activeGuilds, guildMap, children }: Props
   const icon = guildIconUrl(currentGuild.id, currentGuild.icon);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
-      {/* Icon rail */}
-      <GuildRail guilds={activeGuilds} currentGuildId={currentGuildId} user={user} />
-
-      {/* Module nav sidebar */}
+    <Shell rail={<GuildRail guilds={activeGuilds} currentGuildId={currentGuildId} user={user} />} sidebar={
       <aside style={{
         width: 220, flexShrink: 0,
         background: 'var(--surface)', borderRight: '1px solid var(--line)',
@@ -290,11 +357,8 @@ export function DashboardShell({ user, activeGuilds, guildMap, children }: Props
           </button>
         </div>
       </aside>
-
-      {/* Content */}
-      <main style={{ flex: 1, overflowY: 'auto' }}>
-        {children}
-      </main>
-    </div>
+    }>
+      {children}
+    </Shell>
   );
 }

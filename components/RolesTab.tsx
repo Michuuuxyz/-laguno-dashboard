@@ -359,8 +359,8 @@ export function RolesTab({ autoroles, rolePanels, roles, channels, guildId, onCh
               <code style={{ marginLeft: 10, fontSize: 11, color: 'var(--text-3)', fontWeight: 400 }}>{editingPanel.id}</code>
             </p>
 
-            {/* Editor + Preview lado a lado */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            {/* Editor + Preview lado a lado (empilha em ecrãs estreitos) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 20 }}>
 
               {/* Campos */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
