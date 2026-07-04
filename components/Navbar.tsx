@@ -215,9 +215,6 @@ export function Navbar() {
           from { opacity: 0; transform: translateY(12px); }
           to   { opacity: 1; transform: none; }
         }
-        @media (prefers-reduced-motion: reduce) {
-          .mega-panel, .mega-item { animation: none !important; }
-        }
         .nav-desktop { display: flex; }
         .nav-burger  { display: none; }
         @media (max-width: 780px) {
