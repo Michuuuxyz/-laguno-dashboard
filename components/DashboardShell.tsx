@@ -56,6 +56,28 @@ function GuildRail({ guilds, currentGuildId, user }: { guilds: Guild[]; currentG
       height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center',
       paddingTop: 14, paddingBottom: 12, gap: 6, overflowY: 'auto',
     }}>
+      {/* Avatar do utilizador — leva à lista de servidores */}
+      <Link href="/dashboard" title={user.name ?? 'Os teus servidores'} style={{ display: 'block', flexShrink: 0, marginBottom: 2 }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: '50%', overflow: 'hidden',
+          border: !currentGuildId ? '2px solid var(--green)' : '2px solid var(--line)',
+          transition: 'border-color .2s',
+          background: 'var(--elevated)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 20, fontWeight: 700, color: '#fff',
+        }}
+          onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--green)'; }}
+          onMouseLeave={e => { if (currentGuildId) (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--line)'; }}
+        >
+          {user.image
+            ? <Image src={user.image} alt={user.name ?? ''} width={64} height={64} style={{ objectFit: 'cover', width: '100%', height: '100%' }} unoptimized={user.image?.endsWith('.gif')} />
+            : (user.name?.charAt(0).toUpperCase() ?? '?')
+          }
+        </div>
+      </Link>
+
+      <div style={{ width: 40, height: 1, background: 'var(--line)', flexShrink: 0, marginBottom: 2 }} />
+
       {/* Server icons */}
       {guilds.map(g => {
         const icon   = guildIconUrl(g.id, g.icon);
