@@ -49,6 +49,18 @@ function guildInitial(name: string) {
 
 /* ── Left icon rail — always visible ── */
 function GuildRail({ guilds, currentGuildId, user }: { guilds: Guild[]; currentGuildId?: string; user: User }) {
+  // Menu do avatar — posição calculada no clique para não ser cortado pelo overflow do rail
+  const [menu, setMenu] = useState<{ top: number; left: number } | null>(null);
+
+  const menuItemStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: 9, width: '100%',
+    padding: '8px 10px', borderRadius: 8, border: 'none', background: 'transparent',
+    color: 'var(--text-2)', fontSize: 13.5, cursor: 'pointer', textDecoration: 'none',
+    textAlign: 'left', transition: 'background .12s, color .12s',
+  };
+  const hoverOn  = (e: React.MouseEvent) => { const t = e.currentTarget as HTMLElement; t.style.background = 'var(--hover)'; t.style.color = 'var(--text-1)'; };
+  const hoverOff = (e: React.MouseEvent) => { const t = e.currentTarget as HTMLElement; t.style.background = 'transparent'; t.style.color = 'var(--text-2)'; };
+
   return (
     <div style={{
       width: 80, flexShrink: 0,
@@ -56,25 +68,61 @@ function GuildRail({ guilds, currentGuildId, user }: { guilds: Guild[]; currentG
       height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center',
       paddingTop: 14, paddingBottom: 12, gap: 6, overflowY: 'auto',
     }}>
-      {/* Avatar do utilizador — leva à lista de servidores */}
-      <Link href="/dashboard" title={user.name ?? 'Os teus servidores'} style={{ display: 'block', flexShrink: 0, marginBottom: 2 }}>
+      {/* Avatar do utilizador — abre o menu (servidores, votar, logout) */}
+      <button data-keep-nav title={user.name ?? 'Menu'} style={{ display: 'block', flexShrink: 0, marginBottom: 2, padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' }}
+        onClick={e => {
+          const r = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+          setMenu(menu ? null : { top: r.top, left: r.right + 10 });
+        }}
+      >
         <div style={{
           width: 64, height: 64, borderRadius: '50%', overflow: 'hidden',
-          border: !currentGuildId ? '2px solid var(--green)' : '2px solid var(--line)',
+          border: (!currentGuildId || menu) ? '2px solid var(--green)' : '2px solid var(--line)',
           transition: 'border-color .2s',
           background: 'var(--elevated)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 20, fontWeight: 700, color: '#fff',
         }}
           onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--green)'; }}
-          onMouseLeave={e => { if (currentGuildId) (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--line)'; }}
+          onMouseLeave={e => { if (currentGuildId && !menu) (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--line)'; }}
         >
           {user.image
             ? <Image src={user.image} alt={user.name ?? ''} width={64} height={64} style={{ objectFit: 'cover', width: '100%', height: '100%' }} unoptimized={user.image?.endsWith('.gif')} />
             : (user.name?.charAt(0).toUpperCase() ?? '?')
           }
         </div>
-      </Link>
+      </button>
+
+      {/* Popover do avatar */}
+      {menu && (
+        <>
+          <div data-keep-nav onClick={() => setMenu(null)} style={{ position: 'fixed', inset: 0, zIndex: 500 }} />
+          <div style={{
+            position: 'fixed', top: menu.top, left: menu.left, zIndex: 501,
+            background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12,
+            padding: 6, minWidth: 200, boxShadow: '0 12px 32px rgba(0,0,0,.45)',
+          }}>
+            <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-1)', padding: '8px 10px 8px', borderBottom: '1px solid var(--line)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {user.name}
+            </p>
+            <Link href="/dashboard" onClick={() => setMenu(null)} style={menuItemStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              Os teus servidores
+            </Link>
+            <a href="https://top.gg/bot/706487689519562833" target="_blank" rel="noreferrer" onClick={() => setMenu(null)} style={menuItemStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+              Votar
+            </a>
+            <button onClick={() => signOut({ callbackUrl: '/' })} style={{ ...menuItemStyle, color: '#f87171' }}
+              onMouseEnter={e => { const t = e.currentTarget as HTMLElement; t.style.background = 'rgba(248,113,113,.08)'; }}
+              onMouseLeave={e => { const t = e.currentTarget as HTMLElement; t.style.background = 'transparent'; }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Terminar sessão
+            </button>
+          </div>
+        </>
+      )}
 
       <div style={{ width: 40, height: 1, background: 'var(--line)', flexShrink: 0, marginBottom: 2 }} />
 
@@ -166,8 +214,10 @@ function Shell({ rail, sidebar, children }: { rail: React.ReactNode; sidebar: Re
       <div
         className={`dash-nav${navOpen ? ' open' : ''}`}
         onClick={e => {
-          // Fecha o drawer quando o utilizador navega (link ou botão de módulo)
-          if ((e.target as HTMLElement).closest('a,button')) setNavOpen(false);
+          // Fecha o drawer quando o utilizador navega (link ou botão de módulo);
+          // ignora o avatar/backdrop do menu, que só abrem o popover
+          const t = e.target as HTMLElement;
+          if (t.closest('a,button') && !t.closest('[data-keep-nav]')) setNavOpen(false);
         }}
       >
         {rail}
@@ -257,30 +307,6 @@ export function DashboardShell({ user, activeGuilds, guildMap, children }: Props
           {/* Spacer */}
           <div style={{ flex: 1 }} />
 
-          {/* Vote + logout at bottom */}
-          <div style={{ padding: '8px 8px 16px', borderTop: '1px solid var(--line)' }}>
-            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text-3)', padding: '8px 8px 6px', textTransform: 'uppercase' }}>OUTROS</p>
-            <a href="https://top.gg/bot/706487689519562833" target="_blank" rel="noreferrer" style={{
-              display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', borderRadius: 7, marginBottom: 2,
-              color: 'var(--text-2)', fontSize: 13.5, textDecoration: 'none', transition: 'all .12s',
-            }}
-              onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.background = 'var(--hover)'; a.style.color = 'var(--text-1)'; }}
-              onMouseLeave={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.background = 'transparent'; a.style.color = 'var(--text-2)'; }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-              Votar
-            </a>
-            <button onClick={() => signOut({ callbackUrl: '/' })} style={{
-              display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 10px', borderRadius: 7,
-              border: 'none', background: 'transparent', color: 'var(--text-3)', fontSize: 13.5, cursor: 'pointer', textAlign: 'left', transition: 'all .12s',
-            }}
-              onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(248,113,113,.08)'; b.style.color = '#f87171'; }}
-              onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'transparent'; b.style.color = 'var(--text-3)'; }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              Terminar sessão
-            </button>
-          </div>
         </aside>
       }>
         {children}
@@ -349,30 +375,6 @@ export function DashboardShell({ user, activeGuilds, guildMap, children }: Props
           })}
         </nav>
 
-        {/* Vote + logout */}
-        <div style={{ padding: '8px 8px 12px', borderTop: '1px solid var(--line)' }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text-3)', padding: '8px 8px 6px', textTransform: 'uppercase' }}>OUTROS</p>
-          <a href="https://top.gg/bot/706487689519562833" target="_blank" rel="noreferrer" style={{
-            display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', borderRadius: 7, marginBottom: 2,
-            color: 'var(--text-2)', fontSize: 13.5, textDecoration: 'none', transition: 'all .12s',
-          }}
-            onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.background = 'var(--hover)'; a.style.color = 'var(--text-1)'; }}
-            onMouseLeave={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.background = 'transparent'; a.style.color = 'var(--text-2)'; }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-            Votar
-          </a>
-          <button onClick={() => signOut({ callbackUrl: '/' })} style={{
-            display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 10px', borderRadius: 7,
-            border: 'none', background: 'transparent', color: 'var(--text-3)', fontSize: 13.5, cursor: 'pointer', textAlign: 'left', transition: 'all .12s',
-          }}
-            onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(248,113,113,.08)'; b.style.color = '#f87171'; }}
-            onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'transparent'; b.style.color = 'var(--text-3)'; }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            Terminar sessão
-          </button>
-        </div>
       </aside>
     }>
       {children}
