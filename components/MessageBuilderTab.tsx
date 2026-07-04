@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface Channel { id: string; name: string; }
 interface Role    { id: string; name: string; color: number; }
@@ -16,58 +16,6 @@ type Block =
   | { id: string; type: 'image';     url: string }
   | { id: string; type: 'separator'; divider: boolean }
   | { id: string; type: 'buttons';   buttons: BuilderButton[] };
-
-/* Formato guardado na BD / enviado à API — o mesmo que o bot consome no /mensagem */
-interface ApiButton {
-  label: string; emoji?: string; style?: 1 | 2 | 3 | 4;
-  action:
-    | { type: 'message'; content: string; ephemeral: boolean }
-    | { type: 'role'; roleId: string }
-    | { type: 'link'; url: string };
-}
-type ApiBlock =
-  | { type: 'text';      content: string }
-  | { type: 'image';     url: string }
-  | { type: 'separator'; divider: boolean }
-  | { type: 'buttons';   buttons: ApiButton[] };
-
-export interface MessageTemplate { id: string; name: string; accentColor?: string; blocks: ApiBlock[]; }
-
-const MAX_TEMPLATES = 15;
-
-function toApiBlocks(blocks: Block[]): ApiBlock[] {
-  return blocks.map(b =>
-    b.type === 'buttons'
-      ? { type: 'buttons' as const, buttons: b.buttons.map(btn => ({
-          label: btn.label, emoji: btn.emoji, style: btn.style,
-          action: btn.actionType === 'message' ? { type: 'message' as const, content: btn.content, ephemeral: btn.ephemeral }
-                : btn.actionType === 'role'    ? { type: 'role' as const, roleId: btn.roleId }
-                : { type: 'link' as const, url: btn.url },
-        })) }
-      : b.type === 'text'      ? { type: 'text' as const, content: b.content }
-      : b.type === 'image'     ? { type: 'image' as const, url: b.url }
-      :                          { type: 'separator' as const, divider: b.divider }
-  );
-}
-
-function fromApiBlocks(api: ApiBlock[]): Block[] {
-  return api.map(b => {
-    const id = uid();
-    if (b.type === 'buttons') {
-      return { id, type: 'buttons' as const, buttons: (b.buttons ?? []).map(btn => ({
-        label: btn.label ?? 'Botão', emoji: btn.emoji ?? '', style: btn.style ?? 2,
-        actionType: btn.action.type,
-        content:   btn.action.type === 'message' ? btn.action.content : 'Olá! 👋',
-        ephemeral: btn.action.type === 'message' ? btn.action.ephemeral !== false : true,
-        roleId:    btn.action.type === 'role' ? btn.action.roleId : '',
-        url:       btn.action.type === 'link' ? btn.action.url : '',
-      })) };
-    }
-    if (b.type === 'text')  return { id, type: 'text' as const, content: b.content ?? '' };
-    if (b.type === 'image') return { id, type: 'image' as const, url: b.url ?? '' };
-    return { id, type: 'separator' as const, divider: b.divider !== false };
-  });
-}
 
 interface Props { guildId: string; channels: Channel[]; roles: Role[]; }
 
@@ -107,61 +55,6 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
   const [msg, setMsg]       = useState<string | null>(null);
 
-  // Templates — guardados em guildconfigs.messageTemplates; o bot usa-os no /mensagem
-  const [templates, setTemplates]   = useState<MessageTemplate[]>([]);
-  const [selectedTpl, setSelectedTpl] = useState('');
-  const [tplName, setTplName]       = useState('');
-  const [tplMsg, setTplMsg]         = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch(`/api/guilds/${guildId}/config`)
-      .then(r => r.ok ? r.json() : null)
-      .then(cfg => { if (Array.isArray(cfg?.messageTemplates)) setTemplates(cfg.messageTemplates); })
-      .catch(() => null);
-  }, [guildId]);
-
-  async function persistTemplates(next: MessageTemplate[], okMsg: string) {
-    setTplMsg(null);
-    try {
-      const res = await fetch(`/api/guilds/${guildId}/config`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messageTemplates: next }),
-      });
-      if (!res.ok) { setTplMsg('Erro ao guardar templates.'); return; }
-      setTemplates(next);
-      setTplMsg(okMsg);
-      setTimeout(() => setTplMsg(null), 3000);
-    } catch { setTplMsg('Erro de ligação.'); }
-  }
-
-  function saveTemplate() {
-    const name = tplName.trim().slice(0, 50);
-    if (!name) { setTplMsg('Dá um nome ao template.'); return; }
-    const existing = templates.find(t => t.name.toLowerCase() === name.toLowerCase());
-    if (!existing && templates.length >= MAX_TEMPLATES) { setTplMsg(`Máximo de ${MAX_TEMPLATES} templates.`); return; }
-    const tpl: MessageTemplate = { id: existing?.id ?? uid(), name, accentColor: accent, blocks: toApiBlocks(blocks) };
-    const next = existing ? templates.map(t => t.id === existing.id ? tpl : t) : [...templates, tpl];
-    void persistTemplates(next, existing ? `Template "${name}" atualizado ✓` : `Template "${name}" guardado ✓ — usa /mensagem no Discord`);
-    setSelectedTpl(tpl.id);
-  }
-
-  function loadTemplate() {
-    const tpl = templates.find(t => t.id === selectedTpl);
-    if (!tpl) return;
-    setAccent(tpl.accentColor ?? '#6db83e');
-    setBlocks(fromApiBlocks(tpl.blocks));
-    setTplName(tpl.name);
-    setTplMsg(`Template "${tpl.name}" carregado no editor.`);
-    setTimeout(() => setTplMsg(null), 3000);
-  }
-
-  function deleteTemplate() {
-    const tpl = templates.find(t => t.id === selectedTpl);
-    if (!tpl) return;
-    setSelectedTpl('');
-    void persistTemplates(templates.filter(t => t.id !== tpl.id), `Template "${tpl.name}" apagado.`);
-  }
-
   function patch(id: string, p: Partial<Block>) {
     setBlocks(bs => bs.map(b => b.id === id ? { ...b, ...p } as Block : b));
   }
@@ -190,7 +83,18 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
 
   async function send() {
     setStatus('loading'); setMsg(null);
-    const payload = { channelId, accentColor: accent, blocks: toApiBlocks(blocks) };
+    const payload = {
+      channelId, accentColor: accent,
+      blocks: blocks.map(b =>
+        b.type === 'buttons'
+          ? { type: 'buttons', buttons: b.buttons.map(btn => ({
+              label: btn.label, emoji: btn.emoji, style: btn.style,
+              action: btn.actionType === 'message' ? { type: 'message', content: btn.content, ephemeral: btn.ephemeral }
+                    : btn.actionType === 'role'    ? { type: 'role', roleId: btn.roleId }
+                    : { type: 'link', url: btn.url },
+            })) }
+          : b),
+    };
     try {
       const res = await fetch(`/api/guilds/${guildId}/message-builder/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
@@ -311,30 +215,6 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
             {([['text', '📝 Texto'], ['image', '🖼️ Imagem'], ['separator', '➖ Separador'], ['buttons', '🔘 Botões']] as const).map(([t, l]) => (
               <button key={t} onClick={() => add(t)} style={{ ...pill, cursor: 'pointer', color: 'var(--green)', borderColor: 'rgba(109,184,62,.3)', background: 'rgba(109,184,62,.06)' }}>+ {l}</button>
             ))}
-          </div>
-
-          {/* Templates — usados pelo /mensagem no Discord */}
-          <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.06em' }}>
-              📦 Templates — envia no Discord com /mensagem
-            </span>
-            {templates.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 6 }}>
-                <select style={input} value={selectedTpl} onChange={e => setSelectedTpl(e.target.value)}>
-                  <option value="">— Os teus templates ({templates.length}) —</option>
-                  {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-                <button onClick={loadTemplate} disabled={!selectedTpl} style={{ ...pill, cursor: selectedTpl ? 'pointer' : 'not-allowed', opacity: selectedTpl ? 1 : .5 }}>Carregar</button>
-                <button onClick={deleteTemplate} disabled={!selectedTpl} style={{ ...pill, cursor: selectedTpl ? 'pointer' : 'not-allowed', opacity: selectedTpl ? 1 : .5, color: '#f87171', borderColor: 'rgba(248,113,113,.3)' }}>Apagar</button>
-              </div>
-            )}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 6 }}>
-              <input style={input} value={tplName} onChange={e => setTplName(e.target.value)} placeholder="Nome do template (ex: anúncio semanal)" maxLength={50} />
-              <button onClick={saveTemplate} style={{ ...pill, cursor: 'pointer', color: 'var(--green)', borderColor: 'rgba(109,184,62,.3)', background: 'rgba(109,184,62,.06)', whiteSpace: 'nowrap' }}>
-                Guardar template
-              </button>
-            </div>
-            {tplMsg && <p style={{ fontSize: 12, color: tplMsg.startsWith('Erro') || tplMsg.startsWith('Máximo') || tplMsg.startsWith('Dá') ? '#f87171' : 'var(--green)' }}>{tplMsg}</p>}
           </div>
 
           {/* Enviar */}
