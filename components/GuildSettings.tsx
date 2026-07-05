@@ -534,11 +534,8 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
   const setActive = (tab: string) => router.push(`?tab=${tab}`, { scroll: false });
   const [loading, setLoading]     = useState(true);
 
-  // Estado do bot — para avisar quando está offline (canais/cargos não carregam).
-  // DESATIVADO até o BOT_API_URL estar configurado na Vercel (a app da Discloud
-  // precisa de ser recriada como TYPE=site para expor a API) — sem isso o
-  // /api/stats dá sempre 503 e o aviso mentiria "offline" com o bot online.
-  const BOT_STATUS_BANNER = false;
+  // Estado do bot — para avisar quando está offline (canais/cargos não carregam)
+  const BOT_STATUS_BANNER = true;
   const { online: botOnline, loading: statsLoading } = useStats(30_000);
 
   // Barra de "alterações por guardar" (estilo Discord)
