@@ -7,6 +7,7 @@ import { RolesTab } from './RolesTab';
 import { GiveawayModule } from './modules/GiveawayModule';
 import { MessageBuilderTab } from './MessageBuilderTab';
 import { WORD_TEMPLATE_WORDS } from '@/lib/wordTemplates';
+import { useStats } from '@/lib/hooks/useStats';
 
 interface Channel { id: string; name: string; }
 interface Warn { _id: string; userId: string; reason: string; moderatorId: string; createdAt: string; }
@@ -51,6 +52,7 @@ interface LogsConfig {
 }
 interface Config {
   logChannelId: string | null;
+  enabledModules: string[];
   moderation: ModerationCfg;
   warns: WarnsCfg;
   autoMod: AutoMod;
@@ -58,6 +60,15 @@ interface Config {
   autoroles: string[]; rolePanels: RolePanel[];
   logs: LogsConfig;
 }
+
+/* Módulos de comandos do bot — têm de bater certo com o COMMAND_MODULE do bot */
+const BOT_MODULES: { id: string; label: string; desc: string }[] = [
+  { id: 'moderation', label: 'Moderação',  desc: '/ban, /kick, /warn, /timeout, /purge, /lock e restantes.' },
+  { id: 'config',     label: 'Config',     desc: '/roles (painéis de cargos) e comandos de configuração.' },
+  { id: 'fun',        label: 'Diversão',   desc: '/ping e futuros comandos de diversão.' },
+  { id: 'utility',    label: 'Utilidades', desc: '/userinfo, /serverinfo, /avatar, /roleinfo, /addemoji.' },
+];
+const ALL_MODULES = BOT_MODULES.map(m => m.id);
 
 /* ── Filtro de palavras: templates e lista por defeito ── */
 const WORD_TEMPLATES: { id: string; label: string; desc: string; words: string[] }[] = [
@@ -494,6 +505,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
 }) {
   const [config, setConfig] = useState<Config>({
     logChannelId: null,
+    enabledModules: ALL_MODULES,
     moderation: DEFAULT_MOD,
     warns: DEFAULT_WARNS,
     autoMod: DEFAULT_AUTOMOD,
@@ -521,6 +533,9 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
   const active = searchParams.get('tab') ?? initialTab;
   const setActive = (tab: string) => router.push(`?tab=${tab}`, { scroll: false });
   const [loading, setLoading]     = useState(true);
+
+  // Estado do bot — para avisar quando está offline (canais/cargos não carregam)
+  const { online: botOnline, loading: statsLoading } = useStats(30_000);
 
   // Barra de "alterações por guardar" (estilo Discord)
   const [savedSnapshot, setSavedSnapshot] = useState<Config | null>(null);
@@ -572,6 +587,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
     ]).then(([cfg, ch, ro, wa]) => {
       if (cfg) setConfig(c => ({
         ...c, ...(cfg as object),
+        enabledModules: Array.isArray((cfg as Config).enabledModules) ? (cfg as Config).enabledModules : ALL_MODULES,
         moderation:  { ...DEFAULT_MOD,     ...(cfg as Config).moderation },
         warns:       { ...DEFAULT_WARNS,   ...(cfg as Config).warns, autoAction: { ...DEFAULT_WARNS.autoAction, ...(cfg as Config).warns?.autoAction } },
         autoMod:     { ...DEFAULT_AUTOMOD, ...(cfg as Config).autoMod, capsFilter: { ...DEFAULT_AUTOMOD.capsFilter, ...(cfg as Config).autoMod?.capsFilter }, mentionSpam: { ...DEFAULT_AUTOMOD.mentionSpam, ...(cfg as Config).autoMod?.mentionSpam } },
@@ -635,6 +651,14 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
     }
   }
 
+  // Liga/desliga um módulo de comandos do bot — guarda imediatamente
+  function toggleModule(id: string) {
+    const on = config.enabledModules.includes(id);
+    const next = on ? config.enabledModules.filter(m => m !== id) : [...config.enabledModules, id];
+    setConfig(c => ({ ...c, enabledModules: next }));
+    void saveOne('modules', { enabledModules: next });
+  }
+
   function setAMSub<K extends keyof AutoMod>(key: K, sub: Partial<AutoMod[K]>) {
     setConfig(c => ({ ...c, autoMod: { ...c.autoMod, [key]: { ...(c.autoMod[key] as object), ...sub } } }));
   }
@@ -652,6 +676,21 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
 
   return (
     <div style={{ position: 'relative' }}>
+
+        {/* Aviso: bot offline */}
+        {!statsLoading && !botOnline && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16,
+            background: 'rgba(250,204,21,.07)', border: '1px solid rgba(250,204,21,.3)',
+            borderRadius: 10, padding: '11px 14px',
+          }}>
+            <span style={{ fontSize: 15 }}>😴</span>
+            <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.5 }}>
+              <strong style={{ color: '#facc15' }}>O Laguno parece estar offline.</strong>{' '}
+              Os canais e cargos podem não carregar e as alterações só chegam ao bot quando ele voltar. As configurações ficam guardadas na mesma.
+            </p>
+          </div>
+        )}
 
         {/* OVERVIEW */}
         {active === 'overview' && (() => {
@@ -771,6 +810,34 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
           <div>
             <ModuleHeader icon={<IconSettings />} accent="#94a3b8" title="Configurações"
               desc="Definições gerais do Laguno neste servidor." />
+
+            {/* Módulos de comandos — é para aqui que o bot manda quando diz "ativa no dashboard" */}
+            <Section title="Módulos do bot">
+              <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 14, lineHeight: 1.6 }}>
+                Desligar um módulo bloqueia os comandos dele no Discord — o bot responde a explicar que o módulo está desativado. As alterações aplicam-se ao guardar (automático).
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {BOT_MODULES.map(m => {
+                  const on = config.enabledModules.includes(m.id);
+                  return (
+                    <div key={m.id} style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10,
+                      padding: '12px 14px',
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 13.5, fontWeight: 600, color: on ? 'var(--text-1)' : 'var(--text-3)' }}>{m.label}</p>
+                        <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{m.desc}</p>
+                      </div>
+                      {savingCard === 'modules' && <span style={{ fontSize: 11, color: 'var(--text-3)' }}>a guardar…</span>}
+                      {savedCard === 'modules' && <span style={{ fontSize: 11, color: 'var(--green)' }}>✓</span>}
+                      <Toggle on={on} onChange={() => toggleModule(m.id)} />
+                    </div>
+                  );
+                })}
+              </div>
+            </Section>
+
             <Section title="Estatísticas do servidor">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
                 {[

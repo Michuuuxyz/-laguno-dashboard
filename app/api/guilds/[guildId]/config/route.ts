@@ -4,7 +4,7 @@ import { syncAutoModRules } from '@/lib/discordAutoMod';
 import clientPromise from '@/lib/mongodb';
 
 const ALLOWED_KEYS = new Set([
-  'prefix', 'language', 'enabledModules', 'customCommands',
+  'prefix', 'language', 'enabledModules',
   'moderation', 'autoMod', 'logs', 'logChannelId',
   'welcome', 'goodbye', 'autoroles', 'giveaways',
   'warns', 'rolePanels',

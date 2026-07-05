@@ -5,7 +5,7 @@
 - Nota Next 15: `params`/`searchParams` são `Promise` — fazer `await params` em pages e route handlers
 - Auth: NextAuth.js com Discord OAuth (scopes: `identify`, `guilds`)
 - DB: MongoDB direto via `mongodb` driver (não Mongoose) — coleção `laguno`, documento `guildconfigs`
-- Hosted em Vercel — deploy: `npx vercel deploy --prod --yes` dentro de `/dashboard`
+- Hosted em Vercel — deploy automático ao fazer `git push origin master` (não usar `vercel deploy` manualmente)
 - URL de produção: `https://www.lagunoapp.xyz`
 
 ## Estrutura
@@ -55,7 +55,7 @@ lib/
 ## Base de dados
 - Ligação direta via `mongodb` driver (não Mongoose)
 - Coleção: `guildconfigs` na DB `laguno`
-- Sempre fechar o cliente: usar `try/finally { await client.close() }`
+- Usar sempre o singleton `clientPromise` de `lib/mongodb.ts` — NUNCA fechar o cliente (`client.close()`), a ligação é partilhada entre invocações serverless
 - Após guardar config, invalidar cache do bot:
   ```ts
   await fetch(`${process.env.BOT_API_URL}/cache/invalidate/${guildId}`, {
@@ -100,7 +100,7 @@ lib/
 
 ## Páginas públicas
 - `app/sobre/page.tsx` — Server Component async — busca perfil Discord de Michu (ID: `349527593634234370`) via API com `revalidate: 3600`
-- `app/sitemap.ts` — gera sitemap com URLs www — não usar `public/sitemap.xml`
+- `app/sitemap.xml/route.ts` — gera o sitemap com URLs www (force-static, revalidate 1 dia) — não usar `public/sitemap.xml`
 - `app/robots.ts` — permite `/`, bloqueia `/dashboard` e `/api`
 
 ## Variáveis de ambiente necessárias (Vercel)
@@ -118,6 +118,6 @@ BOT_API_SECRET         — segredo Bearer para autenticar no bot
 ## Regras
 - Nunca expor `DISCORD_TOKEN`, `DISCORD_CLIENT_SECRET`, `MONGODB_URI`, `BOT_API_SECRET` no cliente
 - Toda a lógica sensível fica em Server Components ou Route Handlers (`/api/`)
-- Após qualquer alteração ao dashboard fazer deploy: `npx vercel deploy --prod --yes`
+- Deploy = commit + `git push origin master` (Vercel constrói sozinha); nunca fazer push sem `npx tsc --noEmit` e `npx next build --no-lint` passarem
 - `metadataBase` e `openGraph.url` usam sempre `https://www.lagunoapp.xyz` (com www)
-- `app/sitemap.ts` é a única fonte de sitemap — nunca criar `public/sitemap.xml`
+- `app/sitemap.xml/route.ts` é a única fonte de sitemap — nunca criar `public/sitemap.xml`

@@ -68,30 +68,43 @@ function GuildRail({ guilds, currentGuildId, user }: { guilds: Guild[]; currentG
       height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center',
       paddingTop: 14, paddingBottom: 12, gap: 6, overflowY: 'auto',
     }}>
-      {/* Avatar do utilizador — clicar abre o menu (Votar, Terminar sessão) */}
-      <button data-keep-nav title={user.name ?? 'Menu'} style={{ display: 'block', flexShrink: 0, marginBottom: 2, padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' }}
-        onClick={e => {
-          const r = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
-          setMenu(menu ? null : { top: r.top, left: r.right + 10 });
-        }}
-      >
+      {/* Avatar do utilizador — volta à página Bem-vindo (lista de servidores) */}
+      <Link href="/dashboard" title="Os teus servidores" style={{ display: 'block', flexShrink: 0 }}>
         <div style={{
           width: 64, height: 64, borderRadius: '50%', overflow: 'hidden',
-          border: menu ? '2px solid var(--green)' : '2px solid var(--line)',
+          border: !currentGuildId ? '2px solid var(--green)' : '2px solid var(--line)',
           transition: 'border-color .2s',
           background: 'var(--elevated)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 20, fontWeight: 700, color: '#fff',
         }}
           onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--green)'; }}
-          onMouseLeave={e => { if (!menu) (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--line)'; }}
+          onMouseLeave={e => { if (currentGuildId) (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--line)'; }}
         >
           {user.image
             ? <Image src={user.image} alt={user.name ?? ''} width={64} height={64} style={{ objectFit: 'cover', width: '100%', height: '100%' }} unoptimized={user.image?.endsWith('.gif')} />
             : (user.name?.charAt(0).toUpperCase() ?? '?')
           }
         </div>
-      </button>
+      </Link>
+
+      {/* Botão ⋯ — abre o menu (Votar, Terminar sessão) */}
+      <button data-keep-nav title={user.name ?? 'Menu'} style={{
+        width: 34, height: 20, borderRadius: 10, flexShrink: 0, marginBottom: 2,
+        border: '1px solid var(--line)', cursor: 'pointer',
+        background: menu ? 'var(--elevated)' : 'transparent',
+        color: menu ? 'var(--green)' : 'var(--text-3)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 13, fontWeight: 700, lineHeight: 1, letterSpacing: '.05em',
+        transition: 'background .15s, color .15s, border-color .15s',
+      }}
+        onClick={e => {
+          const r = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+          setMenu(menu ? null : { top: r.top, left: r.right + 14 });
+        }}
+        onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.color = 'var(--green)'; b.style.borderColor = 'rgba(109,184,62,.4)'; }}
+        onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; if (!menu) { b.style.color = 'var(--text-3)'; b.style.borderColor = 'var(--line)'; } }}
+      >⋯</button>
 
       {/* Popover do avatar — único sítio com Votar e Terminar sessão */}
       {menu && (
