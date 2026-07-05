@@ -43,11 +43,8 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ guild
       ?? (cfg?.logChannelId as string | null)
       ?? null;
 
-    // Invalida cache do bot
-    fetch(`${process.env.BOT_API_URL}/cache/invalidate/${guildId}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${process.env.BOT_API_SECRET}` },
-    }).catch(() => null);
+    // Invalida cache do bot — insere um pedido que o managerBridge consome em ≤10s
+    db.collection('cacheinvalidations').insertOne({ guildId, createdAt: new Date() }).catch(() => null);
 
     // Sincroniza com Discord AutoMod nativo
     const sync = await syncAutoModRules(guildId, autoMod, alertChannelId);

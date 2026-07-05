@@ -21,16 +21,17 @@ export const metadata: Metadata = {
 const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID;
 const INVITE    = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`;
 
-/* Estatísticas em direto do bot (opcional — só renderiza se disponível) */
+/* Estatísticas em direto do bot (opcional — só renderiza se disponível).
+   Lidas do heartbeat que o bot grava no MongoDB (coleção botstatus). */
 async function getStats(): Promise<{ guildCount: number; userCount: number } | null> {
-  if (!process.env.BOT_API_URL) return null;
   try {
-    const res = await fetch(`${process.env.BOT_API_URL}/stats`, {
-      headers: { Authorization: `Bearer ${process.env.BOT_API_SECRET}` },
-      next: { revalidate: 300 },
-    });
-    if (!res.ok) return null;
-    return await res.json();
+    const { default: clientPromise } = await import('@/lib/mongodb');
+    const client = await clientPromise;
+    const doc = await client.db()
+      .collection<{ _id: string; guildCount?: number; userCount?: number }>('botstatus')
+      .findOne({ _id: 'laguno' });
+    if (!doc?.guildCount) return null;
+    return { guildCount: doc.guildCount, userCount: doc.userCount ?? 0 };
   } catch { return null; }
 }
 

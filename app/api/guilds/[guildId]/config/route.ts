@@ -42,12 +42,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
       { upsert: true }
     );
 
-    // Invalida a cache do bot imediatamente
+    // Invalida a cache do bot — insere um pedido que o managerBridge consome em ≤10s
     try {
-      await fetch(`${process.env.BOT_API_URL}/cache/invalidate/${guildId}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${process.env.BOT_API_SECRET}` },
-      });
+      await db.collection('cacheinvalidations').insertOne({ guildId, createdAt: new Date() });
     } catch { /* bot pode estar offline, não é crítico */ }
 
     // Sincroniza regras de AutoMod nativas do Discord (só quando a secção AutoMod é guardada)

@@ -534,12 +534,8 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
   const setActive = (tab: string) => router.push(`?tab=${tab}`, { scroll: false });
   const [loading, setLoading]     = useState(true);
 
-  // Estado do bot — para avisar quando está offline (canais/cargos não carregam).
-  // DESATIVADO: a migração da app Discloud para TYPE=site falhou (bug de
-  // provisionamento do lado deles — container não vê os ficheiros do storage);
-  // o bot voltou à app antiga sem HTTP externo, portanto o /api/stats dá 503
-  // com o bot online. Reativar quando laguno-bot.discloud.app funcionar.
-  const BOT_STATUS_BANNER = false;
+  // Estado do bot — o /api/stats lê o heartbeat que o bot grava no MongoDB
+  const BOT_STATUS_BANNER = true;
   const { online: botOnline, loading: statsLoading } = useStats(30_000);
 
   // Barra de "alterações por guardar" (estilo Discord)
