@@ -62,14 +62,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
           ?? (cfg?.logChannelId as string | null)
           ?? null;
       }
-      try {
-        const sync = await syncAutoModRules(guildId, safeBody.autoMod as Parameters<typeof syncAutoModRules>[1], alertChannelId);
-        if (sync.error === 'no_token') autoModWarning = 'As regras do bot ficaram guardadas, mas as regras nativas do Discord nao foram criadas (DISCORD_TOKEN em falta).';
-        else if (sync.error === 'list_failed') autoModWarning = 'As regras nativas do Discord nao foram criadas. Confirma que o bot esta no servidor e tem a permissao "Gerir Servidor".';
-        else if (!sync.ok) autoModWarning = `Algumas regras nao foram criadas no Discord: ${sync.failures.join('; ')}`;
-      } catch (err) {
-        console.error('[syncAutoMod]', guildId, err);
-        autoModWarning = 'Erro ao sincronizar com o Discord.';
+      // Trava anti-spam partilhada com o "Ativar tudo" (endpoints AutoMod do
+      // Discord têm rate limits agressivos) — guarda na mesma, só salta o sync.
+      const lastSyncDoc = await db.collection('guildconfigs').findOne(
+        { guildId }, { projection: { autoModSyncAt: 1 } }
+      );
+      const lastSync = lastSyncDoc?.autoModSyncAt ? new Date(lastSyncDoc.autoModSyncAt as Date).getTime() : 0;
+      if (Date.now() - lastSync < 15_000) {
+        autoModWarning = 'Config guardada ✓ — a sincronização com o Discord foi adiada uns segundos para evitar rate limit. Guarda de novo daqui a pouco se as regras nativas não atualizarem.';
+      } else {
+        await db.collection('guildconfigs').updateOne({ guildId }, { $set: { autoModSyncAt: new Date() } });
+        try {
+          const sync = await syncAutoModRules(guildId, safeBody.autoMod as Parameters<typeof syncAutoModRules>[1], alertChannelId);
+          if (sync.error === 'no_token') autoModWarning = 'As regras do bot ficaram guardadas, mas as regras nativas do Discord nao foram criadas (DISCORD_TOKEN em falta).';
+          else if (sync.error === 'list_failed') autoModWarning = 'As regras nativas do Discord nao foram criadas. Confirma que o bot esta no servidor e tem a permissao "Gerir Servidor".';
+          else if (!sync.ok) autoModWarning = `Algumas regras nao foram criadas no Discord: ${sync.failures.join('; ')}`;
+        } catch (err) {
+          console.error('[syncAutoMod]', guildId, err);
+          autoModWarning = 'Erro ao sincronizar com o Discord.';
+        }
       }
     }
 

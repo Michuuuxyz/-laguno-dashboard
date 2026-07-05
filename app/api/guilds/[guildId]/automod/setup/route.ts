@@ -30,9 +30,24 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ guild
   try {
     const client = await clientPromise;
     const db = client.db();
+
+    // Trava anti-spam: a sincronização bate em ~7 endpoints do Discord com rate
+    // limits agressivos — 1 ativação por minuto por servidor chega e sobra.
+    const existing = await db.collection('guildconfigs').findOne(
+      { guildId }, { projection: { autoModSyncAt: 1 } }
+    );
+    const last = existing?.autoModSyncAt ? new Date(existing.autoModSyncAt as Date).getTime() : 0;
+    const waitMs = 60_000 - (Date.now() - last);
+    if (waitMs > 0) {
+      return NextResponse.json({
+        ok: false, error: 'rate_limited',
+        reason: `Calma 🐸 — o AutoMod acabou de ser sincronizado. Espera ${Math.ceil(waitMs / 1000)}s antes de ativar de novo.`,
+      }, { status: 429 });
+    }
+
     await db.collection('guildconfigs').updateOne(
       { guildId },
-      { $set: { autoMod, guildId, updatedAt: new Date() } },
+      { $set: { autoMod, guildId, autoModSyncAt: new Date(), updatedAt: new Date() } },
       { upsert: true }
     );
 
