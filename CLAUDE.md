@@ -56,24 +56,18 @@ lib/
 - Ligação direta via `mongodb` driver (não Mongoose)
 - Coleção: `guildconfigs` na DB `laguno`
 - Usar sempre o singleton `clientPromise` de `lib/mongodb.ts` — NUNCA fechar o cliente (`client.close()`), a ligação é partilhada entre invocações serverless
-- Após guardar config, invalidar cache do bot:
+- Após guardar config, invalidar cache do bot **via MongoDB** (a Discloud não expõe HTTP do bot):
   ```ts
-  await fetch(`${process.env.BOT_API_URL}/cache/invalidate/${guildId}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.BOT_API_SECRET}` },
-  });
+  await db.collection('cacheinvalidations').insertOne({ guildId, createdAt: new Date() });
   ```
+  O bot (managerBridge) consome estes docs a cada 10s. Stats do bot: ler coleção `botstatus` (doc `_id: 'laguno'`, heartbeat de 30s; offline = doc >90s).
 
-## Comunicação com o bot
-- Bot corre na Discloud, expõe API HTTP interna na porta 4000
-- `BOT_API_URL` = URL do bot (ex: `https://laguno.discloud.app` ou IP)
-- `BOT_API_SECRET` = segredo de autenticação (Bearer token)
-- Endpoints usados pelo dashboard:
-  - `GET  /guilds` — lista servidores do bot
-  - `GET  /guilds/:id/channels` — canais de texto
-  - `GET  /guilds/:id/roles` — cargos
-  - `POST /guilds/:id/welcome/test` — enviar mensagem de teste
-  - `POST /cache/invalidate/:guildId` — invalidar cache após guardar config
+## Comunicação com o bot — via MongoDB (não HTTP!)
+- A Discloud não expõe HTTP de apps TYPE=bot; a ponte é a BD partilhada (managerBridge no bot)
+- `botstatus` (doc `_id: 'laguno'`) — heartbeat de stats do bot a cada 30s; `/api/stats` e a landing leem daqui (offline = doc >90s)
+- `cacheinvalidations` — o dashboard insere `{ guildId, createdAt }` ao guardar config; o bot aplica em ≤10s
+- Canais/cargos/mensagens de teste: o dashboard fala DIRETAMENTE com a API do Discord (Bot token), não com o bot
+- `BOT_API_URL`/`BOT_API_SECRET` já não são usados pelo dashboard
 
 ## AutoMod nativo do Discord
 - `lib/discordAutoMod.ts` → `syncAutoModRules()` — chamado em `config/route.ts` após guardar
