@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 
 /* ── Dados dos comandos — espelham 1:1 os slash commands do bot ── */
 
-type Cat = 'moderacao' | 'utilidade' | 'geral';
+type Cat = 'moderacao' | 'utilidade' | 'geral' | 'contexto';
 
 interface Opt { n: string; req?: boolean }
 interface Cmd {
@@ -14,6 +14,7 @@ interface Cmd {
   perm?: string;      // permissão do Discord exigida (default_member_permissions)
   opts?: Opt[];       // opções do comando
   subs?: string[];    // subcomandos
+  ctx?: boolean;      // comando de contexto (clique direito → Apps) em vez de slash
 }
 
 const COMMANDS: Cmd[] = [
@@ -32,6 +33,8 @@ const COMMANDS: Cmd[] = [
   { name: 'slowmode', cat: 'moderacao', desc: 'Define o slowmode do canal (0 para desativar, máx. 6 horas).', perm: 'Gerir Canais', opts: [{ n: 'segundos', req: true }] },
   // ── Utilidade ──
   { name: 'avatar',     cat: 'utilidade', desc: 'Mostra o avatar de um utilizador em alta resolução.', opts: [{ n: 'utilizador' }] },
+  { name: 'banner',     cat: 'utilidade', desc: 'Mostra o banner de perfil de um utilizador em alta resolução.', opts: [{ n: 'utilizador' }] },
+  { name: 'lembrete',   cat: 'utilidade', desc: 'O Laguno avisa-te por DM quando chegar a hora — aceita 10m, 2h, 1d, 1h30m.', opts: [{ n: 'tempo', req: true }, { n: 'mensagem', req: true }] },
   { name: 'userinfo',   cat: 'utilidade', desc: 'Mostra informação sobre um membro — conta, cargos, datas.', opts: [{ n: 'utilizador' }] },
   { name: 'serverinfo', cat: 'utilidade', desc: 'Mostra informação sobre o servidor — membros, canais, boosts.', opts: [{ n: 'id' }] },
   { name: 'roleinfo',   cat: 'utilidade', desc: 'Mostra informação sobre um cargo — cor, permissões, membros.', opts: [{ n: 'cargo', req: true }] },
@@ -41,7 +44,11 @@ const COMMANDS: Cmd[] = [
   { name: 'sobre', cat: 'geral', desc: 'O que é o Laguno? Boa pergunta. Tens uns minutos?' },
   { name: 'info',  cat: 'geral', desc: 'Espia o teu próprio servidor como se não soubesses onde vives.' },
   { name: 'ping',  cat: 'geral', desc: 'Testa se o bot ainda está vivo. (Spoiler: está.)' },
-  { name: 'roles', cat: 'geral', desc: 'Envia um painel de self-roles criado no dashboard para o canal.', perm: 'Gerir Cargos', subs: ['panel'], opts: [{ n: 'id', req: true }] },
+  { name: 'roles', cat: 'geral', desc: 'Envia um painel de self-roles criado no dashboard para o canal — em botões ou menu dropdown.', perm: 'Gerir Cargos', subs: ['panel'], opts: [{ n: 'id', req: true }] },
+  { name: 'vote',  cat: 'geral', desc: 'Vota no Laguno nas listas de bots — botões diretos e o estado do teu lembrete de voto.' },
+  // ── Clique direito (menu Apps) ──
+  { name: 'Lembra-me disto', cat: 'contexto', ctx: true, desc: 'Clique direito numa mensagem → Apps. Escolhes o tempo e recebes uma DM com o link direto para a mensagem.' },
+  { name: 'Avatar e Banner', cat: 'contexto', ctx: true, desc: 'Clique direito numa pessoa → Apps. O avatar e o banner dela em grande, numa resposta só para ti.' },
 ];
 
 const CATS: { id: Cat | 'todos'; label: string }[] = [
@@ -49,17 +56,20 @@ const CATS: { id: Cat | 'todos'; label: string }[] = [
   { id: 'moderacao', label: 'Moderação' },
   { id: 'utilidade', label: 'Utilidade' },
   { id: 'geral',     label: 'Geral' },
+  { id: 'contexto',  label: 'Clique direito' },
 ];
 
 const CAT_COLOR: Record<Cat, string> = {
   moderacao: '#f87171',
   utilidade: '#60a5fa',
   geral:     '#6db83e',
+  contexto:  '#c084fc',
 };
 const CAT_LABEL: Record<Cat, string> = {
   moderacao: 'Moderação',
   utilidade: 'Utilidade',
   geral:     'Geral',
+  contexto:  'Clique direito',
 };
 
 /* Normaliza para pesquisa sem acentos */
@@ -142,8 +152,8 @@ export function CommandsExplorer() {
               onMouseLeave={e => { const d = e.currentTarget as HTMLDivElement; d.style.borderColor = 'var(--line)'; d.style.transform = 'none'; }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                <code style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--green)', letterSpacing: '-.01em' }}>
-                  /{c.name}
+                <code style={{ fontSize: 15.5, fontWeight: 700, color: c.ctx ? '#c084fc' : 'var(--green)', letterSpacing: '-.01em' }}>
+                  {c.ctx ? `Apps → ${c.name}` : `/${c.name}`}
                 </code>
                 <span style={{
                   fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase',

@@ -352,6 +352,13 @@ function Content({ page }: { page: PageId }) {
           opts={[{ n: 'utilizador', type: 'Membro', req: false, info: 'Omite para ver o teu próprio perfil.' }]} />
         <Cmd slash="avatar" perm="Qualquer membro" desc="Mostra o avatar de um utilizador em resolução máxima."
           opts={[{ n: 'utilizador', type: 'Membro', req: false, info: 'Omite para ver o teu próprio avatar.' }]} />
+        <Cmd slash="banner" perm="Qualquer membro" desc="Mostra o banner de perfil de um utilizador em resolução máxima. Também disponível por clique direito num membro → Apps → Avatar e Banner."
+          opts={[{ n: 'utilizador', type: 'Membro', req: false, info: 'Omite para ver o teu próprio banner.' }]} />
+        <Cmd slash="lembrete" perm="Qualquer membro" desc="O Laguno avisa-te por DM quando chegar a hora. Máximo de 5 lembretes ativos, de 1 minuto a 30 dias. Também disponível por clique direito numa mensagem → Apps → Lembra-me disto (recebes o link direto da mensagem)."
+          opts={[
+            { n: 'tempo',    type: 'Texto', req: true, info: 'Formato livre: 10m, 2h, 1d, 1h30m.' },
+            { n: 'mensagem', type: 'Texto', req: true, info: 'O que queres que o Laguno te lembre (até 500 caracteres).' },
+          ]} />
         <Cmd slash="serverinfo" perm="Qualquer membro" desc="Mostra informação sobre o servidor: membros, cargos, canais, nível de verificação, data de criação. Podes indicar o ID de outro servidor (info limitada se o Laguno não estiver lá)."
           opts={[{ n: 'id', type: 'Texto', req: false, info: 'ID de outro servidor. Omite para o servidor atual.' }]} />
         <Cmd slash="roleinfo" perm="Qualquer membro" desc="Mostra detalhes de um cargo: cor, permissões, membros e data de criação."
@@ -364,7 +371,7 @@ function Content({ page }: { page: PageId }) {
         <Cmd slash="info" perm="Qualquer membro" desc="Informação resumida sobre o servidor." />
 
         <H2>Self-Roles</H2>
-        <Cmd slash="roles panel" perm="Gerir Servidor" desc="Envia um painel de self-roles para o canal atual."
+        <Cmd slash="roles panel" perm="Gerir Servidor" desc="Envia um painel de self-roles para o canal atual — em botões ou menu dropdown, conforme o estilo escolhido no dashboard."
           opts={[{ n: 'id', type: 'Texto', req: true, info: 'ID do painel criado no dashboard.' }]} />
         <Cmd slash="roles list" perm="Gerir Servidor" desc="Lista todos os painéis de self-roles configurados no servidor." />
 
@@ -372,6 +379,7 @@ function Content({ page }: { page: PageId }) {
         <Cmd slash="sobre" perm="Qualquer membro" desc="Mostra informação sobre o Laguno: versão, servidores, uptime e uma frase aleatória com humor." />
         <Cmd slash="ajuda" perm="Qualquer membro" desc="Lista todos os comandos disponíveis com descrição." />
         <Cmd slash="ping" perm="Qualquer membro" desc="Mostra a latência do bot e da API do Discord em milissegundos." />
+        <Cmd slash="vote" perm="Qualquer membro" desc="Vota no Laguno nas listas de bots — botões diretos para o top.gg e o discordbotlist, e o estado do teu lembrete de voto." />
       </div>
     );
 
@@ -612,7 +620,7 @@ function Content({ page }: { page: PageId }) {
     case 'self-roles': return (
       <div>
         <H1>Self-Roles</H1>
-        <P>Cria painéis de botões que permitem aos membros escolherem e removerem os seus próprios cargos — sem pedir a um moderador, sem tickets, sem espera.</P>
+        <P>Cria painéis que permitem aos membros escolherem e removerem os seus próprios cargos — sem pedir a um moderador, sem tickets, sem espera. Cada painel pode usar botões ou um menu dropdown de seleção múltipla.</P>
 
         <H2>Como criar um painel</H2>
         <Steps items={[
@@ -628,6 +636,7 @@ function Content({ page }: { page: PageId }) {
           {[
             ['Título',       'Título mostrado no topo do painel.'],
             ['Descrição',    'Texto explicativo abaixo do título.'],
+            ['Estilo',       'Botões (um por cargo) ou menu dropdown — no menu, o membro marca os cargos que quer e o Laguno adiciona os marcados e remove os desmarcados (máx. 25 cargos).'],
             ['Cor de destaque', 'Cor da barra lateral do container do painel.'],
             ['Banner',       'Imagem opcional no topo do painel.'],
             ['Cargos',       'Lista de cargos com nome e emoji personalizáveis.'],
@@ -678,7 +687,7 @@ function Content({ page }: { page: PageId }) {
         <H2>Como funciona</H2>
         <Steps items={[
           <span key={1}>No dashboard, vai a <strong style={{ color: 'var(--text-1)' }}>Construtor</strong>.</span>,
-          <span key={2}>Escolhe a cor de destaque e o canal de destino.</span>,
+          <span key={2}>Escolhe a cor de destaque e o canal de destino. Opcionalmente, define o <strong style={{ color: 'var(--text-1)' }}>nome e avatar do remetente</strong> — a mensagem sai com essa identidade em vez do Laguno.</span>,
           <span key={3}>Adiciona blocos na ordem que quiseres: <strong style={{ color: 'var(--text-1)' }}>Texto, Imagem, Separador</strong> ou <strong style={{ color: 'var(--text-1)' }}>Botões</strong>.</span>,
           <span key={4}>Reordena os blocos com as setas e vê a pré-visualização em tempo real.</span>,
           <span key={5}>Clica em <strong style={{ color: 'var(--text-1)' }}>Enviar</strong>. A mensagem é publicada no canal escolhido.</span>,
@@ -687,12 +696,15 @@ function Content({ page }: { page: PageId }) {
         <H2>Blocos disponíveis</H2>
         <div style={{ marginBottom: 16 }}>
           {[
-            ['Texto',     'Markdown livre — ## título, **negrito**, `código`, -# rodapé. Quantos quiseres.'],
+            ['Texto',     'Markdown livre — ## título, **negrito**, `código`, -# rodapé. Quantos quiseres. Cada bloco de texto pode ter um acessório à direita: uma imagem pequena ou um botão.'],
             ['Imagem',    'Uma imagem por URL, colocada onde quiseres (topo, meio, fim).'],
             ['Separador', 'Linha divisória ou espaço em branco para organizar a mensagem.'],
             ['Botões',    'Uma linha de até 5 botões. Cada botão tem a sua ação (ver abaixo).'],
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
         </div>
+
+        <H2>Remetente personalizado</H2>
+        <P>Preenche o nome e/ou o avatar do remetente e a mensagem é enviada com essa identidade — perfeito para anúncios com marca própria. O Laguno usa um webhook criado por ele no canal, por isso os botões continuam a funcionar normalmente. Requer que o bot tenha a permissão <strong style={{ color: 'var(--text-1)' }}>Gerir Webhooks</strong> no canal. O Discord não permite nomes com «discord» ou «clyde».</P>
 
         <H2>Ações dos botões</H2>
         <P>Cada botão que adicionas pode fazer uma de três coisas ao ser clicado:</P>
