@@ -5,7 +5,7 @@ import { useState } from 'react';
 interface Channel  { id: string; name: string; }
 interface Role     { id: string; name: string; color: number; }
 interface RoleEntry { roleId: string; label: string; emoji: string; }
-interface RolePanel { id: string; title: string; description: string; roles: RoleEntry[]; accentColor?: string; bannerUrl?: string; }
+interface RolePanel { id: string; title: string; description: string; style?: 'buttons' | 'menu'; roles: RoleEntry[]; accentColor?: string; bannerUrl?: string; }
 
 interface Props {
   autoroles:  string[];
@@ -53,22 +53,35 @@ function PanelPreview({ panel }: { panel: RolePanel }) {
         {panel.description && (
           <p style={{ fontSize: 13.5, color: '#b5bac1', marginBottom: 4, lineHeight: 1.5 }}>{panel.description}</p>
         )}
-        <p style={{ fontSize: 11, color: '#5c5f66', marginTop: 4 }}>Clica num botão para receber ou remover o cargo.</p>
+        <p style={{ fontSize: 11, color: '#5c5f66', marginTop: 4 }}>
+          {panel.style === 'menu' ? 'Usa o menu para escolher os teus cargos.' : 'Clica num botão para receber ou remover o cargo.'}
+        </p>
         <div style={{ borderTop: '1px solid #3f4147', margin: '12px 0' }} />
         {hasRoles ? (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {panel.roles.map(r => (
-              <div key={r.roleId} style={{
-                background: '#4e5058', color: '#f2f3f5',
-                borderRadius: 4, padding: '6px 16px',
-                fontSize: 13.5, display: 'flex', alignItems: 'center', gap: 6,
-                userSelect: 'none',
-              }}>
-                {r.emoji && <span>{r.emoji}</span>}
-                {r.label}
-              </div>
-            ))}
-          </div>
+          panel.style === 'menu' ? (
+            <div style={{
+              background: '#1e1f22', border: '1px solid #3f4147', borderRadius: 8,
+              padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              fontSize: 13.5, color: '#949ba4', userSelect: 'none',
+            }}>
+              <span>Escolhe os teus cargos ({Math.min(panel.roles.length, 25)} opções)</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {panel.roles.map(r => (
+                <div key={r.roleId} style={{
+                  background: '#4e5058', color: '#f2f3f5',
+                  borderRadius: 4, padding: '6px 16px',
+                  fontSize: 13.5, display: 'flex', alignItems: 'center', gap: 6,
+                  userSelect: 'none',
+                }}>
+                  {r.emoji && <span>{r.emoji}</span>}
+                  {r.label}
+                </div>
+              ))}
+            </div>
+          )
         ) : (
           <p style={{ fontSize: 12.5, color: '#5c5f66' }}>Nenhum cargo adicionado ainda.</p>
         )}
@@ -303,7 +316,7 @@ export function RolesTab({ autoroles, rolePanels, roles, channels, guildId, onCh
             </p>
           </div>
           <button className="btn btn-primary" style={{ flexShrink: 0 }}
-            onClick={() => { setEditingPanel({ id: generateId(), title: '', description: '', roles: [] }); setOpenSend(null); }}>
+            onClick={() => { setEditingPanel({ id: generateId(), title: '', description: '', style: 'buttons', roles: [] }); setOpenSend(null); }}>
             + Novo Painel
           </button>
         </div>
@@ -323,7 +336,7 @@ export function RolesTab({ autoroles, rolePanels, roles, channels, guildId, onCh
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontSize: 13.5, fontWeight: 600 }}>{panel.title || <span style={{ color: 'var(--text-3)' }}>Sem título</span>}</p>
                 <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
-                  {panel.roles.length} cargo(s) — ID: <code style={{ color: 'var(--green)', fontSize: 11 }}>{panel.id}</code>
+                  {panel.roles.length} cargo(s) · {panel.style === 'menu' ? 'menu dropdown' : 'botões'} — ID: <code style={{ color: 'var(--green)', fontSize: 11 }}>{panel.id}</code>
                 </p>
               </div>
               <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
@@ -373,6 +386,29 @@ export function RolesTab({ autoroles, rolePanels, roles, channels, guildId, onCh
                   <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.04em', display: 'block', marginBottom: 6 }}>Descrição <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></label>
                   <input style={field} placeholder="Clica num botão para receber um cargo" value={editingPanel.description}
                     onChange={e => setEditingPanel({ ...editingPanel, description: e.target.value })} />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.04em', display: 'block', marginBottom: 6 }}>Estilo do painel</label>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {([['buttons', 'Botões'], ['menu', 'Menu dropdown']] as const).map(([v, l]) => {
+                      const ativo = (editingPanel.style ?? 'buttons') === v;
+                      return (
+                        <button key={v} onClick={() => setEditingPanel({ ...editingPanel, style: v })} style={{
+                          flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+                          background: ativo ? 'rgba(109,184,62,.12)' : 'var(--card)',
+                          border: `1px solid ${ativo ? 'rgba(109,184,62,.35)' : 'var(--line)'}`,
+                          color: ativo ? 'var(--green)' : 'var(--text-2)',
+                          transition: 'all .15s',
+                        }}>{l}</button>
+                      );
+                    })}
+                  </div>
+                  {(editingPanel.style ?? 'buttons') === 'menu' && (
+                    <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 6, lineHeight: 1.5 }}>
+                      Menu de seleção múltipla (máx. 25 cargos) — o membro marca os cargos que quer e o bot sincroniza: adiciona os marcados e remove os desmarcados.
+                    </p>
+                  )}
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 8, alignItems: 'end' }}>

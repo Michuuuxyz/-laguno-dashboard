@@ -36,7 +36,7 @@ app/
 components/
   GuildSettings.tsx   — componente principal do dashboard (client, tabs)
   WelcomeTab.tsx      — configuração de boas-vindas/despedidas com preview
-  RolesTab.tsx        — painéis de cargos
+  RolesTab.tsx        — painéis de cargos (estilo 'buttons' ou 'menu' dropdown por painel; guardado em rolePanels[].style)
   modules/GiveawayModule.tsx
 lib/
   auth.ts             — NextAuth options

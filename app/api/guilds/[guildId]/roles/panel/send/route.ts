@@ -6,7 +6,7 @@ import clientPromise from '@/lib/mongodb';
 const DISCORD_API = 'https://discord.com/api/v10';
 
 interface RoleEntry { roleId: string; label: string; emoji?: string; }
-interface RolePanel  { id: string; title: string; description?: string; roles: RoleEntry[]; accentColor?: string; bannerUrl?: string; }
+interface RolePanel  { id: string; title: string; description?: string; style?: 'buttons' | 'menu'; roles: RoleEntry[]; accentColor?: string; bannerUrl?: string; }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
@@ -35,11 +35,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     return NextResponse.json({ error: 'O painel não tem cargos configurados' }, { status: 400 });
 
   // Constrói a mensagem Components V2 (igual ao /roles panel do bot)
+  const isMenu = panel.style === 'menu';
   const textContent = [
     `## ${panel.title}`,
     panel.description ?? '',
     '',
-    '-# Clica num botão para receber ou remover o cargo.',
+    `-# ${isMenu ? 'Usa o menu para escolher os teus cargos — marca os que queres, desmarca os que não.' : 'Clica num botão para receber ou remover o cargo.'}`,
   ].filter((l, i) => i !== 1 || panel!.description).join('\n');
 
   const accentInt = panel.accentColor ? parseInt(panel.accentColor.replace('#', ''), 16) : NaN;
@@ -56,21 +57,41 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     components: innerComponents,
   };
 
-  const chunks: RoleEntry[][] = [];
-  for (let i = 0; i < panel.roles.length; i += 5) chunks.push(panel.roles.slice(i, i + 5));
-
-  const rows = chunks.map(chunk => ({
-    type: 1,
-    components: chunk.map(r => {
-      const btn: Record<string, unknown> = {
-        type: 2, style: 2,
-        label: r.label,
-        custom_id: `role_toggle:${r.roleId}`,
-      };
-      if (r.emoji) btn.emoji = { name: r.emoji };
-      return btn;
-    }),
-  }));
+  let rows: Record<string, unknown>[];
+  if (isMenu) {
+    // Menu dropdown — até 25 cargos, seleção múltipla sincronizada pelo bot
+    const options = panel.roles.slice(0, 25).map(r => {
+      const opt: Record<string, unknown> = { label: r.label.slice(0, 100), value: r.roleId };
+      if (r.emoji) opt.emoji = { name: r.emoji };
+      return opt;
+    });
+    rows = [{
+      type: 1,
+      components: [{
+        type: 3,
+        custom_id: `role_menu:${panel.id}`,
+        placeholder: 'Escolhe os teus cargos',
+        min_values: 0,
+        max_values: options.length,
+        options,
+      }],
+    }];
+  } else {
+    const chunks: RoleEntry[][] = [];
+    for (let i = 0; i < panel.roles.length; i += 5) chunks.push(panel.roles.slice(i, i + 5));
+    rows = chunks.map(chunk => ({
+      type: 1,
+      components: chunk.map(r => {
+        const btn: Record<string, unknown> = {
+          type: 2, style: 2,
+          label: r.label,
+          custom_id: `role_toggle:${r.roleId}`,
+        };
+        if (r.emoji) btn.emoji = { name: r.emoji };
+        return btn;
+      }),
+    }));
+  }
 
   const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
     method: 'POST',
