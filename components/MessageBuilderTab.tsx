@@ -11,8 +11,10 @@ interface BuilderButton {
   actionType: ActionType; content: string; ephemeral: boolean; roleId: string; url: string;
 }
 
+type AccKind = 'none' | 'image' | 'button';
+
 type Block =
-  | { id: string; type: 'text';      content: string }
+  | { id: string; type: 'text';      content: string; accKind?: AccKind; accUrl?: string; accBtn?: BuilderButton }
   | { id: string; type: 'image';     url: string }
   | { id: string; type: 'separator'; divider: boolean }
   | { id: string; type: 'buttons';   buttons: BuilderButton[] };
@@ -81,19 +83,30 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
       ? { ...b, buttons: b.buttons.map((btn, j) => j === idx ? { ...btn, ...p } : btn) } : b));
   }
 
+  function mapBtn(btn: BuilderButton) {
+    return {
+      label: btn.label, emoji: btn.emoji, style: btn.style,
+      action: btn.actionType === 'message' ? { type: 'message', content: btn.content, ephemeral: btn.ephemeral }
+            : btn.actionType === 'role'    ? { type: 'role', roleId: btn.roleId }
+            : { type: 'link', url: btn.url },
+    };
+  }
+
   async function send() {
     setStatus('loading'); setMsg(null);
     const payload = {
       channelId, accentColor: accent,
-      blocks: blocks.map(b =>
-        b.type === 'buttons'
-          ? { type: 'buttons', buttons: b.buttons.map(btn => ({
-              label: btn.label, emoji: btn.emoji, style: btn.style,
-              action: btn.actionType === 'message' ? { type: 'message', content: btn.content, ephemeral: btn.ephemeral }
-                    : btn.actionType === 'role'    ? { type: 'role', roleId: btn.roleId }
-                    : { type: 'link', url: btn.url },
-            })) }
-          : b),
+      blocks: blocks.map(b => {
+        if (b.type === 'buttons') return { type: 'buttons', buttons: b.buttons.map(mapBtn) };
+        if (b.type === 'text') {
+          const accessory =
+            b.accKind === 'image' && b.accUrl?.trim() ? { kind: 'image', url: b.accUrl.trim() }
+            : b.accKind === 'button' && b.accBtn ? { kind: 'button', button: mapBtn(b.accBtn) }
+            : undefined;
+          return { type: 'text', content: b.content, ...(accessory ? { accessory } : {}) };
+        }
+        return b;
+      }),
     };
     try {
       const res = await fetch(`/api/guilds/${guildId}/message-builder/send`, {
@@ -150,9 +163,64 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
               </div>
 
               {b.type === 'text' && (
-                <textarea rows={3} style={{ ...input, resize: 'vertical', lineHeight: 1.6 }} value={b.content}
-                  onChange={e => patch(b.id, { content: e.target.value })}
-                  placeholder={'## Título\nTexto com **markdown**\n-# rodapé'} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <textarea rows={3} style={{ ...input, resize: 'vertical', lineHeight: 1.6 }} value={b.content}
+                    onChange={e => patch(b.id, { content: e.target.value })}
+                    placeholder={'## Título\nTexto com **markdown**\n-# rodapé'} />
+
+                  {/* Acessório à direita do texto (Section V2: thumbnail ou botão) */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 8, alignItems: 'center' }}>
+                    <label style={{ ...lbl, marginBottom: 0 }}>À direita</label>
+                    <select style={input} value={b.accKind ?? 'none'}
+                      onChange={e => patch(b.id, { accKind: e.target.value as AccKind, ...(e.target.value === 'button' && !b.accBtn ? { accBtn: newButton() } : {}) })}>
+                      <option value="none">Nada</option>
+                      <option value="image">Imagem pequena</option>
+                      <option value="button">Botão</option>
+                    </select>
+                  </div>
+
+                  {b.accKind === 'image' && (
+                    <input style={input} value={b.accUrl ?? ''} onChange={e => patch(b.id, { accUrl: e.target.value })}
+                      placeholder="https://exemplo.com/imagem.png (aparece à direita do texto)" />
+                  )}
+
+                  {b.accKind === 'button' && b.accBtn && (
+                    <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: 10, background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 50px 1fr', gap: 6 }}>
+                        <input style={input} value={b.accBtn.label} onChange={e => patch(b.id, { accBtn: { ...b.accBtn!, label: e.target.value } })} placeholder="Texto do botão" />
+                        <input style={input} value={b.accBtn.emoji} onChange={e => patch(b.id, { accBtn: { ...b.accBtn!, emoji: e.target.value } })} placeholder=":)" />
+                        <select style={input} value={b.accBtn.actionType} onChange={e => patch(b.id, { accBtn: { ...b.accBtn!, actionType: e.target.value as ActionType } })}>
+                          <option value="message">Mensagem</option>
+                          <option value="role">Cargo</option>
+                          <option value="link">Link</option>
+                        </select>
+                      </div>
+                      {b.accBtn.actionType === 'message' && <>
+                        <textarea rows={2} style={{ ...input, resize: 'vertical' }} value={b.accBtn.content} onChange={e => patch(b.id, { accBtn: { ...b.accBtn!, content: e.target.value } })} placeholder="Mensagem ao clicar" />
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-2)', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={b.accBtn.ephemeral} onChange={e => patch(b.id, { accBtn: { ...b.accBtn!, ephemeral: e.target.checked } })} /> Só quem clica vê
+                        </label>
+                      </>}
+                      {b.accBtn.actionType === 'role' && (
+                        <select style={input} value={b.accBtn.roleId} onChange={e => patch(b.id, { accBtn: { ...b.accBtn!, roleId: e.target.value } })}>
+                          <option value="">— Cargo —</option>
+                          {roles.map(r => <option key={r.id} value={r.id}>@{r.name}</option>)}
+                        </select>
+                      )}
+                      {b.accBtn.actionType === 'link' && (
+                        <input style={input} value={b.accBtn.url} onChange={e => patch(b.id, { accBtn: { ...b.accBtn!, url: e.target.value } })} placeholder="https://..." />
+                      )}
+                      {b.accBtn.actionType !== 'link' && (
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          {STYLE_OPTS.map(s => (
+                            <button key={s.v} onClick={() => patch(b.id, { accBtn: { ...b.accBtn!, style: s.v } })} title={s.label}
+                              style={{ width: 24, height: 24, borderRadius: 6, background: s.bg, cursor: 'pointer', border: b.accBtn!.style === s.v ? '2px solid #fff' : '2px solid transparent' }} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
               {b.type === 'image' && (
                 <input style={input} value={b.url} onChange={e => patch(b.id, { url: e.target.value })} placeholder="https://exemplo.com/imagem.png" />
@@ -246,8 +314,27 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
                 <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
                   <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {blocks.map(b => {
-                      if (b.type === 'text') return b.content.trim()
-                        ? <p key={b.id} style={{ fontSize: 13.5, color: '#dbdee1', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: md(b.content) }} /> : null;
+                      if (b.type === 'text') {
+                        if (!b.content.trim()) return null;
+                        const texto = <p style={{ fontSize: 13.5, color: '#dbdee1', lineHeight: 1.6, flex: 1, minWidth: 0 }} dangerouslySetInnerHTML={{ __html: md(b.content) }} />;
+                        if (b.accKind === 'image' && b.accUrl?.trim()) return (
+                          <div key={b.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                            {texto}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={b.accUrl} alt="" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                          </div>
+                        );
+                        if (b.accKind === 'button' && b.accBtn) return (
+                          <div key={b.id} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                            {texto}
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: STYLE_BG[b.accBtn.actionType === 'link' ? 5 : b.accBtn.style], color: '#fff', borderRadius: 4, padding: '6px 14px', fontSize: 13.5, fontWeight: 500, flexShrink: 0 }}>
+                              {b.accBtn.emoji && <span>{b.accBtn.emoji}</span>}{b.accBtn.label || 'Botão'}
+                              {b.accBtn.actionType === 'link' && <span style={{ opacity: .6, fontSize: 11 }}>↗</span>}
+                            </div>
+                          </div>
+                        );
+                        return <div key={b.id}>{texto}</div>;
+                      }
                       if (b.type === 'image') return b.url.trim()
                         // eslint-disable-next-line @next/next/no-img-element
                         ? <img key={b.id} src={b.url} alt="" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 4, display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} /> : null;
