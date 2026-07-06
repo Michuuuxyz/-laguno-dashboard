@@ -170,7 +170,7 @@ function GuildRail({ guilds, currentGuildId, user }: { guilds: Guild[]; currentG
       })}
 
       {/* Add server */}
-      <Link href={`https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`}
+      <Link href={`https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&scope=bot+applications.commands&permissions=1102666262758`}
         title="Adicionar servidor" target="_blank" rel="noreferrer"
         style={{ marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', border: '2px dashed var(--line)', color: 'var(--green)', transition: 'border-color .15s, border-radius .2s', flexShrink: 0 }}
         onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderRadius = '20px'; a.style.borderColor = 'var(--green)'; a.style.background = 'rgba(109,184,62,.08)'; }}

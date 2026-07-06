@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID;
-const INVITE    = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`;
+const INVITE    = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=1102666262758`;
 
 /* ── Ícones clássicos de linha ── */
 const ic = (p: React.ReactNode) => (

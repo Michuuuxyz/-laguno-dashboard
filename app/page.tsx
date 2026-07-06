@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID;
-const INVITE    = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846`;
+const INVITE    = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=1102666262758`;
 
 /* Estatísticas em direto do bot (opcional — só renderiza se disponível).
    Lidas do heartbeat que o bot grava no MongoDB (coleção botstatus). */

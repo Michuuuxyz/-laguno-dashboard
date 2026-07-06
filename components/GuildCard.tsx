@@ -6,7 +6,7 @@ import Link from 'next/link';
 interface Props { id: string; name: string; iconUrl: string | null; botPresent: boolean; index?: number; }
 
 export function GuildCard({ id, name, iconUrl, botPresent, index = 0 }: Props) {
-  const invite = `https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&scope=bot+applications.commands&permissions=1102129391846&guild_id=${id}`;
+  const invite = `https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&scope=bot+applications.commands&permissions=1102666262758&guild_id=${id}`;
 
   const initial = name.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperCase() || name.charAt(0).toUpperCase();
 

@@ -51,6 +51,8 @@ function md(text: string): string {
 export function MessageBuilderTab({ guildId, channels, roles }: Props) {
   const [channelId, setChannelId] = useState('');
   const [accent, setAccent]       = useState('#6db83e');
+  const [senderName, setSenderName]     = useState('');
+  const [senderAvatar, setSenderAvatar] = useState('');
   const [blocks, setBlocks]       = useState<Block[]>([
     { id: uid(), type: 'text', content: '## Anúncio\nEscreve aqui a tua mensagem. Aceita **markdown**.' },
   ]);
@@ -96,6 +98,8 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
     setStatus('loading'); setMsg(null);
     const payload = {
       channelId, accentColor: accent,
+      senderName: senderName.trim() || undefined,
+      senderAvatar: senderAvatar.trim() || undefined,
       blocks: blocks.map(b => {
         if (b.type === 'buttons') return { type: 'buttons', buttons: b.buttons.map(mapBtn) };
         if (b.type === 'text') {
@@ -133,19 +137,36 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }} className="mb-grid">
         {/* ── Editor ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Cor + canal */}
-          <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '14px 16px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 12, alignItems: 'end' }}>
-            <div>
-              <label style={lbl}>Cor</label>
-              <input type="color" value={accent} onChange={e => setAccent(e.target.value)} style={{ width: 40, height: 34, borderRadius: 8, border: '1px solid var(--line)', background: 'none', cursor: 'pointer', padding: 2 }} />
+          {/* Cor + canal + remetente */}
+          <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 12, alignItems: 'end' }}>
+              <div>
+                <label style={lbl}>Cor</label>
+                <input type="color" value={accent} onChange={e => setAccent(e.target.value)} style={{ width: 40, height: 34, borderRadius: 8, border: '1px solid var(--line)', background: 'none', cursor: 'pointer', padding: 2 }} />
+              </div>
+              <div>
+                <label style={lbl}>Canal de destino</label>
+                <select style={input} value={channelId} onChange={e => setChannelId(e.target.value)}>
+                  <option value="">— Escolhe um canal —</option>
+                  {channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
+                </select>
+              </div>
             </div>
-            <div>
-              <label style={lbl}>Canal de destino</label>
-              <select style={input} value={channelId} onChange={e => setChannelId(e.target.value)}>
-                <option value="">— Escolhe um canal —</option>
-                {channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
-              </select>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={lbl}>Nome do remetente</label>
+                <input style={input} value={senderName} onChange={e => setSenderName(e.target.value)} maxLength={80} placeholder="Laguno (por defeito)" />
+              </div>
+              <div>
+                <label style={lbl}>Avatar do remetente (URL)</label>
+                <input style={input} value={senderAvatar} onChange={e => setSenderAvatar(e.target.value)} placeholder="https://... (por defeito, o do Laguno)" />
+              </div>
             </div>
+            {(senderName.trim() || senderAvatar.trim()) && (
+              <p style={{ fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.5 }}>
+                Com remetente personalizado, a mensagem é enviada por webhook — o Laguno precisa da permissão &quot;Gerir Webhooks&quot; no canal. Nomes com &quot;discord&quot; ou &quot;clyde&quot; não são permitidos pelo Discord.
+              </p>
+            )}
           </div>
 
           {/* Blocos */}
@@ -305,10 +326,11 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
           <div style={{ background: '#313338', borderRadius: 10, padding: 14, fontFamily: '"gg sans","Noto Sans",sans-serif', position: 'sticky', top: 90 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/laguno.png" alt="Laguno" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
+              <img src={senderAvatar.trim() || '/laguno.png'} alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }}
+                onError={e => { (e.currentTarget as HTMLImageElement).src = '/laguno.png'; }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>Laguno</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>{senderName.trim() || 'Laguno'}</span>
                   <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
                 </div>
                 <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
