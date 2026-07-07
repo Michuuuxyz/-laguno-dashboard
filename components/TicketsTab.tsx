@@ -12,6 +12,7 @@ interface Config {
   enabled?: boolean; supportRoles?: string[]; categoryChannelId?: string | null;
   supportChannelId?: string | null; transcriptChannelId?: string | null;
   perUserLimit?: number; defaultFormat?: string; namingScheme?: string;
+  claimEnabled?: boolean; claimLabel?: string; claimEmoji?: string; closeLabel?: string; closeEmoji?: string;
 }
 
 const sid = () => Math.random().toString(36).slice(2, 8);
@@ -37,7 +38,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
 const STYLE_OPTS = [{ v: 1, l: 'Azul' }, { v: 2, l: 'Cinza' }, { v: 3, l: 'Verde' }, { v: 4, l: 'Vermelho' }];
 
 export function TicketsTab({ guildId, channels, roles }: { guildId: string; channels: Channel[]; roles: Role[] }) {
-  const [config, setConfig] = useState<Config>({ enabled: false, supportRoles: [], perUserLimit: 1, defaultFormat: 'channel', namingScheme: 'ticket-{number}' });
+  const [config, setConfig] = useState<Config>({ enabled: false, supportRoles: [], perUserLimit: 1, defaultFormat: 'channel', namingScheme: 'ticket-{number}', claimEnabled: true, claimLabel: 'Reivindicar', claimEmoji: '🙋', closeLabel: 'Fechar', closeEmoji: '🔒' });
   const [panels, setPanels] = useState<Panel[]>([]);
   const [categories, setCategories] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,6 +158,25 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                 <option value="">+ adicionar cargo…</option>
                 {roles.filter(r => !(config.supportRoles ?? []).includes(r.id)).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
+            </div>
+
+            {/* Botões de controlo dentro do ticket */}
+            <div style={{ gridColumn: '1 / -1', borderTop: '1px solid var(--line)', paddingTop: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600 }}>Botão &quot;Reivindicar&quot;</p>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2 }}>Permite à staff assumir um ticket. Desliga para o esconder.</p>
+                </div>
+                <Toggle on={config.claimEnabled !== false} onChange={() => setC({ claimEnabled: !(config.claimEnabled !== false) })} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 10 }}>
+                {config.claimEnabled !== false && <>
+                  <div><label style={lbl}>Texto do &quot;Reivindicar&quot;</label><input style={input} value={config.claimLabel ?? ''} onChange={e => setC({ claimLabel: e.target.value })} placeholder="Reivindicar" /></div>
+                  <div><label style={lbl}>Emoji</label><input style={input} value={config.claimEmoji ?? ''} onChange={e => setC({ claimEmoji: e.target.value })} placeholder="🙋" /></div>
+                </>}
+                <div><label style={lbl}>Texto do &quot;Fechar&quot;</label><input style={input} value={config.closeLabel ?? ''} onChange={e => setC({ closeLabel: e.target.value })} placeholder="Fechar" /></div>
+                <div><label style={lbl}>Emoji</label><input style={input} value={config.closeEmoji ?? ''} onChange={e => setC({ closeEmoji: e.target.value })} placeholder="🔒" /></div>
+              </div>
             </div>
           </div>
         )}

@@ -64,6 +64,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
       'tickets.perUserLimit':        Math.min(10, Math.max(1, Number(c.perUserLimit) || 1)),
       'tickets.defaultFormat':       c.defaultFormat === 'thread' ? 'thread' : 'channel',
       'tickets.namingScheme':        String(c.namingScheme || 'ticket-{number}').slice(0, 50),
+      'tickets.claimEnabled':        c.claimEnabled !== false,
+      'tickets.claimLabel':          String(c.claimLabel || 'Reivindicar').slice(0, 80),
+      'tickets.claimEmoji':          String(c.claimEmoji || '').slice(0, 40),
+      'tickets.closeLabel':          String(c.closeLabel || 'Fechar').slice(0, 80),
+      'tickets.closeEmoji':          String(c.closeEmoji || '').slice(0, 40),
     };
     await db.collection('guildconfigs').updateOne({ guildId }, { $set: { ...set, guildId } }, { upsert: true });
   }
