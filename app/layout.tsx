@@ -36,11 +36,9 @@ export const metadata: Metadata = {
     description: 'Moderação com personalidade, logs automáticos, boas-vindas, self-roles e sorteios.',
     images: ['/laguno.png'],
   },
-  icons: {
-    icon: '/laguno.png',
-    shortcut: '/laguno.png',
-    apple: '/laguno.png',
-  },
+  // Favicon/ícones: geridos pela convenção de ficheiros do Next
+  // (app/favicon.ico, app/icon.png, app/apple-icon.png) — dimensões corretas
+  // para os motores de busca mostrarem o logo em vez do globo genérico.
   verification: {
     google: 'rBfbA1oSkEOg7n8ZwyK9IvOVv3tgCeYM5Bx1BKo_Z_g',
   },
