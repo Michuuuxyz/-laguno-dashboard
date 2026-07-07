@@ -6,6 +6,7 @@ import { WelcomeTab } from './WelcomeTab';
 import { RolesTab } from './RolesTab';
 import { GiveawayModule } from './modules/GiveawayModule';
 import { MessageBuilderTab } from './MessageBuilderTab';
+import { TicketsTab } from './TicketsTab';
 import { WORD_TEMPLATE_WORDS } from '@/lib/wordTemplates';
 import { useStats } from '@/lib/hooks/useStats';
 
@@ -200,6 +201,7 @@ const IconSettings= () => <svg width="15" height="15" viewBox="0 0 24 24" fill="
 const IconChevron = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 const IconCheck   = () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
 const IconGift    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>;
+const IconTicket  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z"/><path d="M9 7v10"/></svg>;
 
 /* ── Sidebar nav structure ── */
 const NAV = [
@@ -229,6 +231,7 @@ const NAV = [
     section: 'EXTRA',
     items: [
       { id: 'giveaways',  label: 'Sorteios',          icon: <IconGift /> },
+      { id: 'tickets',    label: 'Tickets',           icon: <IconTicket /> },
     ],
   },
   {
@@ -1120,6 +1123,15 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* CONSTRUTOR DE MENSAGENS */}
         {active === 'builder' && (
           <MessageBuilderTab guildId={guildId} channels={channels} roles={roles} />
+        )}
+
+        {/* TICKETS */}
+        {active === 'tickets' && (
+          <div>
+            <ModuleHeader icon={<IconTicket />} accent="#38bdf8" title="Tickets"
+              desc="Painéis com botões para os membros abrirem tickets privados, com formulário e transcript." />
+            <TicketsTab guildId={guildId} channels={channels} roles={roles} />
+          </div>
         )}
 
         {/* LOGS */}
