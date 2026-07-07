@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'Comandos — Laguno',
   description: 'Todos os comandos do Laguno: moderação (ban, kick, warn, timeout), utilidade (avatar, userinfo, serverinfo) e mais. Tudo em português.',
   alternates: { canonical: '/comandos' },
+  keywords: ['comandos laguno', 'comandos bot discord', 'comando ban discord', 'comando kick discord', 'comando warn discord', 'slash commands português', 'lista de comandos discord'],
   openGraph: {
     title: 'Comandos — Laguno',
     description: 'Todos os comandos do Laguno: moderação, utilidade e mais. Em português.',

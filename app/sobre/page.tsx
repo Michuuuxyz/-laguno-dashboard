@@ -8,6 +8,8 @@ import { OrbitingCircles } from '@/components/OrbitingCircles';
 export const metadata: Metadata = {
   title: 'Sobre — Laguno',
   description: 'O Laguno foi feito por um miúdo que se fartou de bots que não percebem a língua do servidor.',
+  alternates: { canonical: '/sobre' },
+  keywords: ['sobre laguno', 'quem fez o laguno', 'laguno bot história', 'bot discord português', 'bot discord brasileiro'],
   openGraph: {
     title: 'Sobre — Laguno',
     description: 'O Laguno foi feito por um miúdo que se fartou de bots que não percebem a língua do servidor.',

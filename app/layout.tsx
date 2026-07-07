@@ -68,6 +68,7 @@ const JSON_LD = {
       description: 'Bot de moderação de Discord em português, com personalidade.',
       sameAs: [
         'https://top.gg/bot/706487689519562833',
+        'https://discord.ly/laguno',
         'https://discordbotlist.com/bots/706487689519562833',
         'https://discord.gg/tVyHSRjEY9',
       ],
@@ -91,6 +92,11 @@ const JSON_LD = {
       inLanguage: 'pt',
       author: { '@id': 'https://lagunoapp.xyz/#organization' },
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+      sameAs: [
+        'https://top.gg/bot/706487689519562833',
+        'https://discord.ly/laguno',
+        'https://discordbotlist.com/bots/706487689519562833',
+      ],
     },
   ],
 };

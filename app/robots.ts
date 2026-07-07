@@ -8,5 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: ['/dashboard', '/api'],
     },
     sitemap: 'https://lagunoapp.xyz/sitemap.xml',
+    host: 'https://lagunoapp.xyz',
   };
 }

@@ -18,10 +18,14 @@ export function SiteFooter() {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
         <Link href="/features"          className="footer-link">Funcionalidades</Link>
+        <Link href="/comandos"          className="footer-link">Comandos</Link>
         <Link href="/docs"              className="footer-link">Documentação</Link>
         <Link href="/sobre"             className="footer-link">Sobre</Link>
         <Link href="/legal?tab=terms"   className="footer-link">Termos</Link>
         <Link href="/legal?tab=privacy" className="footer-link">Privacidade</Link>
+        {/* Listagens — backlinks para o Laguno aparecer melhor nas pesquisas */}
+        <a href="https://top.gg/bot/706487689519562833" target="_blank" rel="noreferrer" className="footer-link">top.gg</a>
+        <a href="https://discord.ly/laguno" target="_blank" rel="noreferrer" className="footer-link">discord.ly</a>
         <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
           by <span style={{ color: 'var(--text-2)', fontWeight: 500 }}>Michuu</span>
           <span style={{ margin: '0 6px' }}>·</span>© 2026

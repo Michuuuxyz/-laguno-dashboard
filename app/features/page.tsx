@@ -7,6 +7,8 @@ import { ScrollReveal } from '@/components/ScrollReveal';
 export const metadata: Metadata = {
   title: 'Funcionalidades',
   description: 'Descobre tudo o que o Laguno pode fazer pelo teu servidor — moderação, boas-vindas, logs, self-roles e sorteios.',
+  alternates: { canonical: '/features' },
+  keywords: ['laguno funcionalidades', 'bot discord moderação', 'auto-mod discord', 'boas-vindas discord', 'self-roles discord', 'sorteios discord', 'logs discord', 'bot discord português'],
   openGraph: {
     title: 'Funcionalidades | Laguno',
     description: 'Descobre tudo o que o Laguno pode fazer pelo teu servidor — moderação, boas-vindas, logs, self-roles e sorteios.',
