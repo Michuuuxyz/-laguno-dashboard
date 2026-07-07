@@ -27,6 +27,7 @@ const NAV = [
       { id: 'self-roles',   label: 'Self-Roles' },
       { id: 'giveaways',    label: 'Sorteios' },
       { id: 'builder',      label: 'Construtor de Mensagens' },
+      { id: 'tickets',      label: 'Tickets' },
     ],
   },
 ] as const;
@@ -34,7 +35,7 @@ const NAV = [
 type PageId =
   | 'introduction' | 'add-laguno' | 'dashboard' | 'faq'
   | 'commands' | 'variables' | 'moderation' | 'welcome'
-  | 'logs' | 'automod' | 'self-roles' | 'giveaways' | 'builder';
+  | 'logs' | 'automod' | 'self-roles' | 'giveaways' | 'builder' | 'tickets';
 
 /* ─────────────────────────────── SMALL ATOMS ─── */
 const G = '#6db83e';
@@ -720,6 +721,71 @@ function Content({ page }: { page: PageId }) {
         ))}
         <Note type="tip">Cada botão pode ter uma cor (azul, cinza, verde ou vermelho) e um emoji. Podes ter várias linhas de botões na mesma mensagem.</Note>
         <Note type="warn">Para os botões de cargo funcionarem, o Laguno precisa de ter o seu cargo acima dos cargos que vai atribuir na hierarquia do servidor.</Note>
+      </div>
+    );
+
+    /* ── TICKETS ── */
+    case 'tickets': return (
+      <div>
+        <H1>Tickets</H1>
+        <P>Um sistema de suporte completo: os membros clicam num botão de um painel e abre-se um espaço <strong style={{ color: 'var(--text-1)' }}>privado</strong> entre eles e a tua equipa. Cada painel é montado no dashboard, com pré-visualização em direto, e ao fechar gera um <strong style={{ color: 'var(--text-1)' }}>transcript em HTML</strong>.</P>
+
+        <H2>Configuração inicial</H2>
+        <Steps items={[
+          <span key={1}>No dashboard, vai a <strong style={{ color: 'var(--text-1)' }}>Tickets</strong> e ativa o sistema.</span>,
+          <span key={2}>Escolhe os <strong style={{ color: 'var(--text-1)' }}>cargos de suporte</strong> (quem vê e gere os tickets), a <strong style={{ color: 'var(--text-1)' }}>categoria</strong> onde os canais são criados e o <strong style={{ color: 'var(--text-1)' }}>canal de transcripts</strong>.</span>,
+          <span key={3}>Define o <strong style={{ color: 'var(--text-1)' }}>formato por defeito</strong> (canal privado ou thread privada), o limite de tickets por membro e o nome do canal.</span>,
+          <span key={4}>Cria um <strong style={{ color: 'var(--text-1)' }}>painel</strong>, adiciona categorias/botões e clica em <strong style={{ color: 'var(--text-1)' }}>Guardar tudo</strong>.</span>,
+          <span key={5}>Escolhe o canal e clica em <strong style={{ color: 'var(--text-1)' }}>Enviar painel</strong>. Os membros já podem abrir tickets.</span>,
+        ]} />
+
+        <H2>Opções gerais</H2>
+        <div style={{ marginBottom: 16 }}>
+          {[
+            ['Formato',           'Canal privado (dentro de uma categoria) ou thread privada. Configurável por painel ou por categoria.'],
+            ['Cargos de suporte', 'Cargos que veem todos os tickets, podem reivindicar, fechar e gerir membros.'],
+            ['Categoria',         'Onde os canais de ticket são criados (para o formato "canal").'],
+            ['Canal base',        'Canal onde as threads são criadas (para o formato "thread").'],
+            ['Transcripts',       'Canal onde o histórico HTML é publicado ao fechar cada ticket.'],
+            ['Limite por membro', 'Quantos tickets abertos cada membro pode ter ao mesmo tempo.'],
+          ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
+        </div>
+
+        <H2>Painéis e categorias</H2>
+        <P>Cada <strong style={{ color: 'var(--text-1)' }}>painel</strong> é a mensagem com botões que os membros veem. Tem título, descrição, cor e banner opcional. Dentro do painel, cada <strong style={{ color: 'var(--text-1)' }}>categoria</strong> é um botão — e pode ter tudo à sua medida:</P>
+        <div style={{ marginBottom: 16 }}>
+          {[
+            ['Texto, emoji e cor',      'A aparência do botão no painel.'],
+            ['Mensagem de abertura',    'O que aparece dentro do ticket quando é aberto.'],
+            ['Formato',                 'Canal ou thread — pode diferir do formato por defeito.'],
+            ['Formulário',              'Até 5 perguntas (curtas ou longas) que o membro responde antes de o ticket abrir. A staff recebe logo o contexto.'],
+          ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
+        </div>
+        <Note type="tip">O construtor tem pré-visualização em direto — vês o painel exatamente como vai ficar no Discord enquanto o editas.</Note>
+
+        <H2>Dentro de um ticket</H2>
+        <P>Quando um ticket abre, o Laguno publica uma mensagem com botões de controlo (personalizáveis no dashboard):</P>
+        {[
+          { t: 'Reivindicar', c: '#3ba55d', d: 'A staff assume o ticket. Podes desativar este botão ou mudar o seu texto e emoji.' },
+          { t: 'Fechar', c: '#ed4245', d: 'Pede um motivo e fecha o ticket. Gera o transcript, envia-o ao canal de transcripts e por DM ao membro, e apaga/arquiva o canal.' },
+        ].map(f => (
+          <div key={f.t} style={{ borderLeft: `3px solid ${f.c}`, padding: '12px 16px', background: 'var(--surface)', borderRadius: '0 8px 8px 0', marginBottom: 10 }}>
+            <p style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-1)', marginBottom: 5 }}>{f.t}</p>
+            <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{f.d}</p>
+          </div>
+        ))}
+
+        <H2>Comandos dentro do ticket</H2>
+        <div style={{ marginBottom: 16 }}>
+          {[
+            ['/ticket add',      'Adiciona um membro ao ticket.'],
+            ['/ticket remove',   'Remove um membro do ticket.'],
+            ['/ticket renomear', 'Muda o nome do canal do ticket.'],
+            ['/ticket fechar',   'Fecha o ticket (staff ou o próprio dono).'],
+          ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
+        </div>
+
+        <Note type="warn">O Laguno precisa da permissão <strong style={{ color: 'var(--text-1)' }}>Gerir Canais</strong> para criar e apagar os tickets, e do seu cargo acima na hierarquia para gerir as permissões.</Note>
       </div>
     );
 

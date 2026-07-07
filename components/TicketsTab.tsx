@@ -36,6 +36,55 @@ function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
 }
 
 const STYLE_OPTS = [{ v: 1, l: 'Azul' }, { v: 2, l: 'Cinza' }, { v: 3, l: 'Verde' }, { v: 4, l: 'Vermelho' }];
+const BTN_BG: Record<number, string> = { 1: '#5865f2', 2: '#4e5058', 3: '#3ba55d', 4: '#ed4245' };
+
+function pmd(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/^## (.*)$/gm, '<strong style="font-size:16px">$1</strong>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-size:12px">$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+/* Pré-visualização em direto do painel — igual ao construtor de mensagens */
+function PanelPreview({ panel }: { panel: Panel }) {
+  const accent = panel.color || '#6db83e';
+  return (
+    <div>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Pré-visualização</p>
+      <div style={{ background: '#313338', borderRadius: 10, padding: 14, fontFamily: '"gg sans","Noto Sans",sans-serif', position: 'sticky', top: 90 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/laguno.png" alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>Laguno</span>
+              <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
+            </div>
+            <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
+              {panel.bannerUrl?.trim() && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={panel.bannerUrl} alt="" style={{ width: '100%', maxHeight: 140, objectFit: 'cover', display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+              )}
+              <div style={{ padding: '12px 14px' }}>
+                <p style={{ fontSize: 13.5, color: '#dbdee1', lineHeight: 1.55 }} dangerouslySetInnerHTML={{ __html: pmd(`## ${panel.title || 'Central de Suporte'}\n${panel.description || ''}`) }} />
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+                  {(panel.categories ?? []).map(c => (
+                    <div key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: BTN_BG[c.style ?? 2] ?? '#4e5058', color: '#fff', borderRadius: 4, padding: '6px 14px', fontSize: 13.5, fontWeight: 500 }}>
+                      {c.emoji && <span>{c.emoji}</span>}{c.label || 'Abrir ticket'}
+                    </div>
+                  ))}
+                  {(panel.categories ?? []).length === 0 && <span style={{ fontSize: 12.5, color: '#80848e', fontStyle: 'italic' }}>Adiciona categorias para veres os botões.</span>}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function TicketsTab({ guildId, channels, roles }: { guildId: string; channels: Channel[]; roles: Role[] }) {
   const [config, setConfig] = useState<Config>({ enabled: false, supportRoles: [], perUserLimit: 1, defaultFormat: 'channel', namingScheme: 'ticket-{number}', claimEnabled: true, claimLabel: 'Reivindicar', claimEmoji: '🙋', closeLabel: 'Fechar', closeEmoji: '🔒' });
@@ -209,7 +258,9 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                 </div>
 
                 {open && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid var(--line)', marginTop: 14, paddingTop: 14 }}>
+                  <div style={{ borderTop: '1px solid var(--line)', marginTop: 14, paddingTop: 14 }}>
+                  <div className="tk-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 12 }}>
                       <div><label style={lbl}>Título</label><input style={input} value={panel.title ?? ''} onChange={e => patchPanel(panel.panelId, { title: e.target.value })} /></div>
                       <div><label style={lbl}>Cor</label><div style={{ display: 'flex', gap: 6 }}><input type="color" value={panel.color ?? '#6db83e'} onChange={e => patchPanel(panel.panelId, { color: e.target.value })} style={{ width: 38, height: 36, borderRadius: 8, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /><input style={input} value={panel.color ?? ''} onChange={e => patchPanel(panel.panelId, { color: e.target.value })} /></div></div>
@@ -268,12 +319,16 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                       <button onClick={() => sendPanel(panel.panelId)} style={{ background: 'var(--green)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>Enviar painel</button>
                     </div>
                   </div>
+                  <PanelPreview panel={panel} />
+                  </div>
+                  </div>
                 )}
               </div>
             );
           })}
         </div>
       )}
+      <style>{`@media (max-width: 860px) { .tk-grid { grid-template-columns: 1fr !important; } }`}</style>
 
       {/* ── Guardar ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'sticky', bottom: 0, paddingTop: 4 }}>
