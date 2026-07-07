@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next';
 
 // Convenção de metadados do Next — serve automaticamente em /sitemap.xml.
-// URLs no domínio canónico (NÃO-www) para não apontar para redirects.
-const BASE = 'https://lagunoapp.xyz';
+// URLs no domínio canónico (www, o principal na Vercel) para não apontar
+// para redirects.
+const BASE = 'https://www.lagunoapp.xyz';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Comandos — Laguno',
     description: 'Todos os comandos do Laguno: moderação, utilidade e mais. Em português.',
-    url: 'https://lagunoapp.xyz/comandos',
+    url: 'https://www.lagunoapp.xyz/comandos',
   },
 };
 

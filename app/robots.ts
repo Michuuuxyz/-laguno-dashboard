@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/dashboard', '/api'],
     },
-    sitemap: 'https://lagunoapp.xyz/sitemap.xml',
-    host: 'https://lagunoapp.xyz',
+    sitemap: 'https://www.lagunoapp.xyz/sitemap.xml',
+    host: 'https://www.lagunoapp.xyz',
   };
 }

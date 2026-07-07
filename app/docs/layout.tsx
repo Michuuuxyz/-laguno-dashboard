@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Documentação | Laguno',
     description: 'Guias de configuração do Laguno, passo a passo e em português.',
-    url: 'https://lagunoapp.xyz/docs',
+    url: 'https://www.lagunoapp.xyz/docs',
   },
 };
 

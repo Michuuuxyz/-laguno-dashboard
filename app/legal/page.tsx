@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Legal | Laguno',
     description: 'Termos de Serviço e Política de Privacidade do Laguno Bot.',
-    url: 'https://lagunoapp.xyz/legal',
+    url: 'https://www.lagunoapp.xyz/legal',
   },
   robots: {
     index: false,

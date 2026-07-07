@@ -4,7 +4,7 @@ import { PageTransition } from '@/components/PageTransition';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://lagunoapp.xyz'),
+  metadataBase: new URL('https://www.lagunoapp.xyz'),
   title: {
     default: 'Laguno — O bot em português com personalidade',
     template: '%s | Laguno',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'pt_PT',
-    url: 'https://lagunoapp.xyz',
+    url: 'https://www.lagunoapp.xyz',
     siteName: 'Laguno',
     title: 'Laguno — O bot em português com personalidade',
     description: 'Moderação com personalidade, logs automáticos, boas-vindas, self-roles e sorteios. Configurado em dois minutos, a correr sem ti.',
@@ -61,10 +61,10 @@ const JSON_LD = {
   '@graph': [
     {
       '@type': 'Organization',
-      '@id': 'https://lagunoapp.xyz/#organization',
+      '@id': 'https://www.lagunoapp.xyz/#organization',
       name: 'Laguno',
-      url: 'https://lagunoapp.xyz',
-      logo: 'https://lagunoapp.xyz/laguno.png',
+      url: 'https://www.lagunoapp.xyz',
+      logo: 'https://www.lagunoapp.xyz/laguno.png',
       description: 'Bot de moderação de Discord em português, com personalidade.',
       sameAs: [
         'https://top.gg/bot/706487689519562833',
@@ -75,22 +75,22 @@ const JSON_LD = {
     },
     {
       '@type': 'WebSite',
-      '@id': 'https://lagunoapp.xyz/#website',
+      '@id': 'https://www.lagunoapp.xyz/#website',
       name: 'Laguno',
       alternateName: 'Laguno Bot',
-      url: 'https://lagunoapp.xyz',
+      url: 'https://www.lagunoapp.xyz',
       inLanguage: 'pt',
-      publisher: { '@id': 'https://lagunoapp.xyz/#organization' },
+      publisher: { '@id': 'https://www.lagunoapp.xyz/#organization' },
     },
     {
       '@type': 'SoftwareApplication',
       name: 'Laguno',
       applicationCategory: 'CommunicationApplication',
       operatingSystem: 'Discord',
-      url: 'https://lagunoapp.xyz',
+      url: 'https://www.lagunoapp.xyz',
       description: 'Bot de moderação de Discord 100% em português: ban, kick, warn, auto-moderação, boas-vindas, self-roles, sorteios e logs. Configurado num dashboard, com personalidade.',
       inLanguage: 'pt',
-      author: { '@id': 'https://lagunoapp.xyz/#organization' },
+      author: { '@id': 'https://www.lagunoapp.xyz/#organization' },
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
       sameAs: [
         'https://top.gg/bot/706487689519562833',

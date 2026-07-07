@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Laguno — Bot de Discord em português',
     description: 'Bane spammers. Regista tudo. Dá boas-vindas. Em português, para toda a comunidade lusófona.',
-    url: 'https://lagunoapp.xyz',
+    url: 'https://www.lagunoapp.xyz',
   },
 };
 
