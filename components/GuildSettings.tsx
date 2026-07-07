@@ -134,7 +134,9 @@ const LOG_CATEGORIES: { id: keyof LogsConfig; label: string; icon: React.ReactNo
     events: [
       { id: 'memberJoin',     label: 'Entrada',           desc: 'Novo membro entrou no servidor.' },
       { id: 'memberLeave',    label: 'Saída',             desc: 'Membro saiu ou foi expulso.' },
-      { id: 'memberUpdate',   label: 'Atualização',       desc: 'Nick ou avatar alterado.' },
+      { id: 'memberUpdate',   label: 'Nick alterado',     desc: 'Apelido (nickname) do servidor mudou.' },
+      { id: 'nameChange',     label: 'Nome alterado',     desc: 'Username ou nome global do Discord mudou.' },
+      { id: 'avatarChange',   label: 'Avatar alterado',   desc: 'Avatar do servidor ou global mudou.' },
       { id: 'memberBoost',    label: 'Boost',             desc: 'Membro deu boost ao servidor.' },
       { id: 'memberBoostEnd', label: 'Boost terminado',   desc: 'Boost de um membro expirou.' },
     ],
