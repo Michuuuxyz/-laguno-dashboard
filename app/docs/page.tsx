@@ -24,7 +24,8 @@ const NAV = [
       { id: 'welcome',      label: 'Boas-vindas & Despedida' },
       { id: 'logs',         label: 'Registos (Logs)' },
       { id: 'automod',      label: 'Auto-Moderação' },
-      { id: 'self-roles',   label: 'Self-Roles' },
+      { id: 'reaction-roles', label: 'Reaction Roles' },
+      { id: 'auto-role',    label: 'Auto-Role' },
       { id: 'giveaways',    label: 'Sorteios' },
       { id: 'builder',      label: 'Construtor de Mensagens' },
       { id: 'tickets',      label: 'Tickets' },
@@ -35,7 +36,7 @@ const NAV = [
 type PageId =
   | 'introduction' | 'add-laguno' | 'dashboard' | 'faq'
   | 'commands' | 'variables' | 'moderation' | 'welcome'
-  | 'logs' | 'automod' | 'self-roles' | 'giveaways' | 'builder' | 'tickets';
+  | 'logs' | 'automod' | 'reaction-roles' | 'auto-role' | 'giveaways' | 'builder' | 'tickets';
 
 /* ─────────────────────────────── SMALL ATOMS ─── */
 const G = '#6db83e';
@@ -163,7 +164,7 @@ function Content({ page }: { page: PageId }) {
         <div style={{ marginBottom: 24 }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: G, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 8 }}>Documentação</p>
           <H1>Bem-vindo ao Laguno</H1>
-          <P>O <strong style={{ color: 'var(--text-1)' }}>Laguno</strong> é um bot para Discord em português para toda a comunidade lusófona. Oferece moderação com personalidade, logs automáticos, boas-vindas, auto-moderação, self-roles e sorteios — tudo configurado num dashboard web sem escrever uma linha de código.</P>
+          <P>O <strong style={{ color: 'var(--text-1)' }}>Laguno</strong> é um bot para Discord em português para toda a comunidade lusófona. Oferece moderação com personalidade, logs automáticos, boas-vindas, auto-moderação, reaction roles e sorteios — tudo configurado num dashboard web sem escrever uma linha de código.</P>
           <P>Esta documentação cobre todos os módulos e comandos. Navega pela barra lateral para encontrar o que precisas.</P>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px,1fr))', gap: 12, marginBottom: 28 }}>
@@ -186,7 +187,8 @@ function Content({ page }: { page: PageId }) {
             { l: 'Boas-vindas', d: 'Mensagens automáticas de entrada e despedida.' },
             { l: 'Registos', d: 'Logs completos de moderação, membros, canais e voz.' },
             { l: 'Auto-Moderação', d: '6 regras nativas do Discord + filtro de CAPS e anti-flood.' },
-            { l: 'Self-Roles', d: 'Painéis de botões para membros escolherem cargos.' },
+            { l: 'Reaction Roles', d: 'Painéis de botões/menu para membros escolherem cargos.' },
+            { l: 'Auto-Role', d: 'Cargos dados automaticamente a quem entra no servidor.' },
             { l: 'Sorteios', d: 'Criação e gestão de giveaways pelo dashboard.' },
             { l: 'Construtor de Mensagens', d: 'Mensagens com botões interativos (Components V2).' },
           ].map(m => (
@@ -226,7 +228,7 @@ function Content({ page }: { page: PageId }) {
             ['Gerir Expressões', 'Para o comando /addemoji.'],
             ['Gerir Canais', 'Para /lock, /unlock e /slowmode.'],
             ['Ler e Enviar Mensagens', 'Para responder a comandos e enviar logs.'],
-            ['Gerir Cargos', 'Para atribuir e remover cargos (self-roles e mute).'],
+            ['Gerir Cargos', 'Para atribuir e remover cargos (reaction roles, auto-role e mute).'],
           ].map(([p, d]) => <PropRow key={p} label={p} desc={d} />)}
         </div>
         <Note type="tip">O Laguno não guarda o conteúdo das mensagens — só regista metadados para os logs (autor, canal, timestamp).</Note>
@@ -371,10 +373,10 @@ function Content({ page }: { page: PageId }) {
           ]} />
         <Cmd slash="info" perm="Qualquer membro" desc="Informação resumida sobre o servidor." />
 
-        <H2>Self-Roles</H2>
-        <Cmd slash="roles panel" perm="Gerir Servidor" desc="Envia um painel de self-roles para o canal atual — em botões ou menu dropdown, conforme o estilo escolhido no dashboard."
+        <H2>Reaction Roles</H2>
+        <Cmd slash="roles panel" perm="Gerir Servidor" desc="Envia um painel de Reaction Roles para o canal atual — em botões ou menu dropdown, conforme o estilo escolhido no dashboard."
           opts={[{ n: 'id', type: 'Texto', req: true, info: 'ID do painel criado no dashboard.' }]} />
-        <Cmd slash="roles list" perm="Gerir Servidor" desc="Lista todos os painéis de self-roles configurados no servidor." />
+        <Cmd slash="roles list" perm="Gerir Servidor" desc="Lista todos os painéis de Reaction Roles configurados no servidor." />
 
         <H2>Geral</H2>
         <Cmd slash="sobre" perm="Qualquer membro" desc="Mostra informação sobre o Laguno: versão, servidores, uptime e uma frase aleatória com humor." />
@@ -618,18 +620,18 @@ function Content({ page }: { page: PageId }) {
     );
 
     /* ── SELF-ROLES ── */
-    case 'self-roles': return (
+    case 'reaction-roles': return (
       <div>
-        <H1>Self-Roles</H1>
-        <P>Cria painéis que permitem aos membros escolherem e removerem os seus próprios cargos — sem pedir a um moderador, sem tickets, sem espera. Cada painel pode usar botões ou um menu dropdown de seleção múltipla.</P>
+        <H1>Reaction Roles</H1>
+        <P>Painéis que permitem aos membros escolherem e removerem os seus próprios cargos — sem pedir a um moderador, sem espera. Cada painel pode usar botões ou um menu dropdown de seleção múltipla.</P>
 
         <H2>Como criar um painel</H2>
         <Steps items={[
-          <span key={1}>No dashboard, vai a <strong style={{ color: 'var(--text-1)' }}>Self-Roles</strong> e clica em <strong style={{ color: 'var(--text-1)' }}>Criar painel</strong>.</span>,
+          <span key={1}>No dashboard, vai a <strong style={{ color: 'var(--text-1)' }}>Reaction Roles</strong> e clica em <strong style={{ color: 'var(--text-1)' }}>Novo Painel</strong>.</span>,
           <span key={2}>Define o título e a descrição do painel (texto que aparece acima dos botões).</span>,
           <span key={3}>Adiciona os cargos que queres incluir. Podes personalizar o nome e emoji de cada botão.</span>,
-          <span key={4}>Clica em <strong style={{ color: 'var(--text-1)' }}>Guardar</strong>. O painel fica com um ID único.</span>,
-          <span key={5}>Num canal do servidor, usa <code style={{ color: G }}>/roles panel id:[ID]</code> para publicar o painel.</span>,
+          <span key={4}>Clica em <strong style={{ color: 'var(--text-1)' }}>Guardar Painel</strong>. O painel fica com um ID único.</span>,
+          <span key={5}>Escolhe um canal e clica em <strong style={{ color: 'var(--text-1)' }}>Enviar</strong> (ou usa <code style={{ color: G }}>/roles panel id:[ID]</code> num canal).</span>,
         ]} />
 
         <H2>Configurações do painel</H2>
@@ -643,8 +645,26 @@ function Content({ page }: { page: PageId }) {
             ['Cargos',       'Lista de cargos com nome e emoji personalizáveis.'],
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
         </div>
-        <Note type="warn">O Laguno precisa de ter o seu cargo acima dos cargos que vai atribuir na hierarquia do servidor. Caso contrário, não consegue atribuir o cargo.</Note>
+        <Note type="warn">O Laguno precisa de ter o seu cargo acima dos cargos que vai atribuir na hierarquia do servidor. Caso contrário, não consegue atribuir o cargo. Cargos com permissões sensíveis (Admin, Ban…) nunca são auto-atribuídos, por segurança.</Note>
         <Note type="tip">Podes ter múltiplos painéis em canais diferentes — por exemplo, um para jogos, outro para idiomas, outro para notificações.</Note>
+      </div>
+    );
+
+    /* ── AUTO-ROLE ── */
+    case 'auto-role': return (
+      <div>
+        <H1>Auto-Role</H1>
+        <P>Cargos dados <strong style={{ color: 'var(--text-1)' }}>automaticamente</strong> a cada membro assim que entra no servidor. Ideal para dar acesso base, um cargo de &quot;membro&quot; ou separar humanos de bots.</P>
+
+        <H2>Como configurar</H2>
+        <Steps items={[
+          <span key={1}>No dashboard, vai a <strong style={{ color: 'var(--text-1)' }}>Auto-Role</strong>.</span>,
+          <span key={2}>Ativa os cargos que queres dar na entrada (podes escolher vários).</span>,
+          <span key={3}>Clica em <strong style={{ color: 'var(--text-1)' }}>Guardar</strong>. A partir daí, cada novo membro recebe-os automaticamente.</span>,
+        ]} />
+
+        <Note type="warn">Como nos Reaction Roles, o cargo do Laguno tem de estar acima dos cargos a atribuir na hierarquia do servidor.</Note>
+        <Note type="tip">Combina bem com as Boas-Vindas: o membro entra, recebe o cargo base e vê logo a mensagem de boas-vindas.</Note>
       </div>
     );
 
@@ -711,7 +731,7 @@ function Content({ page }: { page: PageId }) {
         <P>Cada botão que adicionas pode fazer uma de três coisas ao ser clicado:</P>
         {[
           { t: 'Enviar mensagem', c: '#6db83e', d: 'O bot responde com uma mensagem tua — privada (só quem clica vê) ou pública no canal. Perfeito para FAQ, regras, info ou suporte.' },
-          { t: 'Dar / tirar cargo', c: '#a855f7', d: 'Alterna um cargo no membro que clica — como os self-roles, mas dentro de qualquer mensagem.' },
+          { t: 'Dar / tirar cargo', c: '#a855f7', d: 'Alterna um cargo no membro que clica — como os Reaction Roles, mas dentro de qualquer mensagem.' },
           { t: 'Abrir link', c: '#5865f2', d: 'Botão que abre um URL externo (site, servidor de suporte, etc.). Tem de ser um link https:// válido.' },
         ].map(f => (
           <div key={f.t} style={{ borderLeft: `3px solid ${f.c}`, padding: '12px 16px', background: 'var(--surface)', borderRadius: '0 8px 8px 0', marginBottom: 10 }}>
