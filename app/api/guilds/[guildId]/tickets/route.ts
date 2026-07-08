@@ -14,7 +14,16 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ guildI
   const db = (await clientPromise).db();
   const cfg = await db.collection('guildconfigs').findOne({ guildId }, { projection: { tickets: 1 } });
   const panels = await db.collection('ticketpanels').find({ guildId }).sort({ createdAt: 1 }).toArray();
-  return NextResponse.json({ config: cfg?.tickets ?? {}, panels });
+
+  // Estatísticas da "base de dados" de tickets deste servidor (por número de tickets).
+  const tickets = db.collection('tickets');
+  const [total, open] = await Promise.all([
+    tickets.countDocuments({ guildId }),
+    tickets.countDocuments({ guildId, status: 'open' }),
+  ]);
+  const stats = { total, open, closed: total - open };
+
+  return NextResponse.json({ config: cfg?.tickets ?? {}, panels, stats });
 }
 
 // Limpa um botão de ticket (categoria ou extra). O que faz vem de `action`.
@@ -91,6 +100,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
       'tickets.claimEmoji':          String(c.claimEmoji || '').slice(0, 40),
       'tickets.closeLabel':          String(c.closeLabel || 'Fechar').slice(0, 80),
       'tickets.closeEmoji':          String(c.closeEmoji || '').slice(0, 40),
+      // Base da mensagem dentro do ticket (aceita variáveis {number} {user} …)
+      'tickets.openingTitle':        String(c.openingTitle ?? '🎫 Ticket #{number} — {category}').slice(0, 200),
+      'tickets.openingMessage':      String(c.openingMessage ?? '').slice(0, 1500),
+      'tickets.openingColor':        String(c.openingColor || '#6db83e').slice(0, 9),
+      'tickets.openingBanner':       String(c.openingBanner || '').slice(0, 500),
       'tickets.extraButtons':        (Array.isArray(c.extraButtons) ? c.extraButtons : []).slice(0, 5).map((b) => sanitizeButton(b as TButton)),
     };
     await db.collection('guildconfigs').updateOne({ guildId }, { $set: { ...set, guildId } }, { upsert: true });

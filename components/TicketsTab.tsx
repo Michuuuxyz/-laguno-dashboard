@@ -14,8 +14,10 @@ interface Config {
   supportChannelId?: string | null; transcriptChannelId?: string | null;
   perUserLimit?: number; defaultFormat?: string; namingScheme?: string;
   claimEnabled?: boolean; claimLabel?: string; claimEmoji?: string; closeLabel?: string; closeEmoji?: string;
+  openingTitle?: string; openingMessage?: string; openingColor?: string; openingBanner?: string;
   extraButtons?: TButton[];
 }
+interface Stats { total: number; open: number; closed: number }
 
 const sid = () => Math.random().toString(36).slice(2, 8);
 
@@ -191,6 +193,48 @@ function PanelPreview({ panel }: { panel: Panel }) {
   );
 }
 
+/* Como fica a mensagem DENTRO do ticket — título/corpo/cor/banner do servidor,
+   com as variáveis já preenchidas por um exemplo. */
+function InnerTicketPreview({ cfg }: { cfg: Config }) {
+  const accent = cfg.openingColor || '#6db83e';
+  const fill = (s: string) => (s || '')
+    .replace(/{number}/g, '1').replace(/{user}/g, '@membro').replace(/{username}/g, 'membro')
+    .replace(/{category}/g, 'Suporte').replace(/{server}/g, 'o teu servidor');
+  const title = fill(cfg.openingTitle || '🎫 Ticket #{number} — {category}');
+  const body = fill(cfg.openingMessage || 'A equipa já foi notificada.');
+  return (
+    <div>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Como fica dentro do ticket</p>
+      <div style={{ background: '#313338', borderRadius: 10, padding: 14, fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/laguno.png" alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>Laguno</span>
+              <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
+            </div>
+            <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
+              {cfg.openingBanner?.trim() && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={cfg.openingBanner} alt="" style={{ width: '100%', maxHeight: 120, objectFit: 'cover', display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+              )}
+              <div style={{ padding: '12px 14px' }}>
+                <p style={{ fontSize: 12.5, color: '#8fa4d4', marginBottom: 6 }}>@membro</p>
+                <p style={{ fontSize: 13.5, color: '#dbdee1', lineHeight: 1.55 }} dangerouslySetInnerHTML={{ __html: pmd(`## ${title}\n${body}`) }} />
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+                  {cfg.claimEnabled !== false && <span style={btnChip(3)}>{cfg.claimEmoji ? `${cfg.claimEmoji} ` : ''}{cfg.claimLabel || 'Reivindicar'}</span>}
+                  <span style={btnChip(4)}>{cfg.closeEmoji ? `${cfg.closeEmoji} ` : ''}{cfg.closeLabel || 'Fechar'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function TicketsTab({ guildId, channels, roles }: { guildId: string; channels: Channel[]; roles: Role[] }) {
   const [config, setConfig] = useState<Config>({ enabled: false, supportRoles: [], perUserLimit: 1, defaultFormat: 'channel', namingScheme: 'ticket-{number}', claimEnabled: true, claimLabel: 'Reivindicar', claimEmoji: '🙋', closeLabel: 'Fechar', closeEmoji: '🔒' });
   const [panels, setPanels] = useState<Panel[]>([]);
@@ -202,6 +246,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
   const [sendTarget, setSendTarget] = useState<Record<string, string>>({});
   const [showAdv, setShowAdv] = useState(false);
   const [advCat, setAdvCat] = useState<Record<string, boolean>>({});
+  const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -211,6 +256,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
       setConfig({ enabled: false, supportRoles: [], perUserLimit: 1, defaultFormat: 'channel', namingScheme: 'ticket-{number}', ...data.config });
       setPanels(data.panels ?? []);
       setCategories(cats ?? []);
+      setStats(data.stats ?? null);
       setLoading(false);
     });
   }, [guildId]);
@@ -260,6 +306,18 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+      {/* ── Base de dados deste servidor: tickets por número ── */}
+      {stats && (stats.total > 0 || config.enabled) && (
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {[{ n: stats.total, l: 'tickets no total' }, { n: stats.open, l: 'abertos agora' }, { n: stats.closed, l: 'já fechados' }].map(s => (
+            <div key={s.l} style={{ ...card, flex: '1 1 140px', padding: '12px 16px' }}>
+              <p style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: 'var(--text-1)' }}>{s.n}</p>
+              <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 4 }}>{s.l}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── Config geral ── */}
       <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -370,6 +428,33 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
               </div>
             </Step>
 
+            {/* Passo 4 — A mensagem dentro do ticket */}
+            <Step n={4} title="A mensagem dentro do ticket" desc="O painel que abre no canal assim que alguém cria um ticket. Personaliza o título, o texto, a cor e o banner — igual para todo o servidor.">
+              <div className="tk-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+                  <div><label style={lbl}>Título</label><input style={input} value={config.openingTitle ?? ''} onChange={e => setC({ openingTitle: e.target.value })} placeholder="🎫 Ticket #{number} — {category}" /></div>
+                  <div>
+                    <label style={lbl}>Mensagem de boas-vindas <span style={{ opacity: .6, textTransform: 'none' }}>(base do servidor)</span></label>
+                    <textarea rows={3} style={{ ...input, resize: 'vertical' }} value={config.openingMessage ?? ''} onChange={e => setC({ openingMessage: e.target.value })} placeholder="Obrigado por abrires um ticket. A equipa já foi notificada…" />
+                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5, lineHeight: 1.45 }}>Cada categoria pode ter a sua própria mensagem — se tiver, é essa que aparece; senão, aparece esta.</p>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,180px),1fr))', gap: 12 }}>
+                    <div><label style={lbl}>Cor de destaque</label><div style={{ display: 'flex', gap: 6 }}><input type="color" value={config.openingColor ?? '#6db83e'} onChange={e => setC({ openingColor: e.target.value })} style={{ width: 38, height: 36, borderRadius: 8, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /><input style={input} value={config.openingColor ?? ''} onChange={e => setC({ openingColor: e.target.value })} /></div></div>
+                    <div><label style={lbl}>Banner (URL, opcional)</label><input style={input} value={config.openingBanner ?? ''} onChange={e => setC({ openingBanner: e.target.value })} placeholder="https://…" /></div>
+                  </div>
+                  <div>
+                    <p style={{ ...lbl, marginBottom: 6 }}>Variáveis que podes usar</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {['{number}', '{user}', '{username}', '{category}', '{server}'].map(v => (
+                        <code key={v} style={{ fontSize: 11, background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 5, padding: '2px 6px', color: 'var(--text-2)' }}>{v}</code>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <InnerTicketPreview cfg={config} />
+              </div>
+            </Step>
+
             {/* Opções avançadas */}
             <div style={{ borderTop: '1px solid var(--line)', paddingTop: 12, marginTop: 16 }}>
               <button onClick={() => setShowAdv(v => !v)} style={{ background: 'none', border: 'none', color: 'var(--text-2)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: 0 }}>
@@ -392,12 +477,12 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
         )}
       </div>
 
-      {/* ── Passo 4 — Painéis ── */}
+      {/* ── Passo 5 — Painéis ── */}
       {config.enabled && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ display: 'flex', gap: 11 }}>
-              <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(56,189,248,.14)', color: '#38bdf8', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>4</span>
+              <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(56,189,248,.14)', color: '#38bdf8', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>5</span>
               <div>
                 <p style={{ fontSize: 13.5, fontWeight: 700 }}>Painéis — o que os membros veem</p>
                 <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.55, maxWidth: 460 }}>A mensagem com botões que envias para um canal. Cada botão abre um tipo de ticket.</p>
