@@ -132,12 +132,19 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
           <Stage ref={stageRef} width={display} height={CANVAS_H * scale} scaleX={scale} scaleY={scale}
             onMouseDown={e => { if (e.target === e.target.getStage()) setSelId(null); }}>
             <Layer>
-              <Rect x={0} y={0} width={CANVAS_W} height={CANVAS_H} fill={card.bgColor || '#0d0d0f'} />
+              {card.bgType === 'gradient' ? (
+                <Rect x={0} y={0} width={CANVAS_W} height={CANVAS_H} listening={false}
+                  fillLinearGradientStartPoint={{ x: 0, y: 0 }} fillLinearGradientEndPoint={{ x: CANVAS_W, y: CANVAS_H }}
+                  fillLinearGradientColorStops={[0, card.bgColor || '#0d0d0f', 1, card.bgColor2 || card.bgColor || '#1a1a1e']} />
+              ) : (
+                <Rect x={0} y={0} width={CANVAS_W} height={CANVAS_H} fill={card.bgColor || '#0d0d0f'} listening={false} />
+              )}
               {card.bgType === 'image' && bgImg && (() => {
                 const r = Math.max(CANVAS_W / bgImg.width, CANVAS_H / bgImg.height);
                 const w = bgImg.width * r, h = bgImg.height * r;
                 return <KImage image={bgImg} x={(CANVAS_W - w) / 2} y={(CANVAS_H - h) / 2} width={w} height={h} listening={false} />;
               })()}
+              {(card.bgOverlay ?? 0) > 0 && <Rect x={0} y={0} width={CANVAS_W} height={CANVAS_H} fill="#000000" opacity={card.bgOverlay} listening={false} />}
 
               {card.layers.map(l => {
                 if (l.type === 'shape') {
@@ -208,13 +215,17 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
         <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: 12 }}>
           <p style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>Fundo</p>
           <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            {(['color', 'image'] as const).map(t => (
-              <button key={t} onClick={() => setBg({ bgType: t })} style={{ flex: 1, padding: '6px', borderRadius: 7, fontSize: 12, cursor: 'pointer', border: `1px solid ${card.bgType === t ? 'var(--green)' : 'var(--line)'}`, background: card.bgType === t ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: card.bgType === t ? 'var(--green)' : 'var(--text-2)' }}>{t === 'color' ? 'Cor' : 'Imagem'}</button>
+            {(['color', 'gradient', 'image'] as const).map(t => (
+              <button key={t} onClick={() => setBg({ bgType: t })} style={{ flex: 1, padding: '6px', borderRadius: 7, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${card.bgType === t ? 'var(--green)' : 'var(--line)'}`, background: card.bgType === t ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: card.bgType === t ? 'var(--green)' : 'var(--text-2)' }}>{t === 'color' ? 'Cor' : t === 'gradient' ? 'Gradiente' : 'Imagem'}</button>
             ))}
           </div>
-          {card.bgType === 'color'
-            ? <div style={{ display: 'flex', gap: 6 }}><input type="color" value={card.bgColor || '#0d0d0f'} onChange={e => setBg({ bgColor: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /><input style={inp} value={card.bgColor || ''} onChange={e => setBg({ bgColor: e.target.value })} /></div>
-            : <input style={inp} value={card.bgUrl || ''} onChange={e => setBg({ bgUrl: e.target.value })} placeholder="https://…/fundo.png" />}
+          {card.bgType === 'color' && <div style={{ display: 'flex', gap: 6 }}><input type="color" value={card.bgColor || '#0d0d0f'} onChange={e => setBg({ bgColor: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /><input style={inp} value={card.bgColor || ''} onChange={e => setBg({ bgColor: e.target.value })} /></div>}
+          {card.bgType === 'gradient' && <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ flex: 1 }}><label style={lbl}>Início</label><input type="color" value={card.bgColor || '#0d0d0f'} onChange={e => setBg({ bgColor: e.target.value })} style={{ width: '100%', height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /></div>
+            <div style={{ flex: 1 }}><label style={lbl}>Fim</label><input type="color" value={card.bgColor2 || '#1a1a1e'} onChange={e => setBg({ bgColor2: e.target.value })} style={{ width: '100%', height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /></div>
+          </div>}
+          {card.bgType === 'image' && <input style={inp} value={card.bgUrl || ''} onChange={e => setBg({ bgUrl: e.target.value })} placeholder="https://…/fundo.png" />}
+          <div style={{ marginTop: 10 }}><label style={lbl}>Escurecer fundo ({Math.round((card.bgOverlay ?? 0) * 100)}%)</label><input type="range" min={0} max={100} value={Math.round((card.bgOverlay ?? 0) * 100)} onChange={e => setBg({ bgOverlay: parseInt(e.target.value) / 100 })} style={{ width: '100%' }} /></div>
         </div>
 
         {/* Elemento selecionado */}

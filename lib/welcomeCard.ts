@@ -8,7 +8,8 @@ export interface WCShape  { id: string; type: 'shape'; kind: 'rect' | 'circle'; 
 export type WCLayer = WCText | WCAvatar | WCShape;
 export interface WelcomeCardTemplate {
   width: number; height: number;
-  bgType: 'color' | 'image'; bgColor?: string; bgUrl?: string;
+  bgType: 'color' | 'gradient' | 'image';
+  bgColor?: string; bgColor2?: string; bgUrl?: string; bgOverlay?: number;
   layers: WCLayer[];
 }
 
