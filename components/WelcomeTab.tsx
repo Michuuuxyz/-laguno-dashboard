@@ -428,6 +428,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
         body: JSON.stringify({
           channelId: cfg.channelId, message: cfg.message, accentColor: cfg.accentColor, type,
           bannerUrl: cfg.bannerUrl ?? '', showAvatar: cfg.showAvatar ?? false, footer: cfg.footer ?? '',
+          card: (type === 'welcome' && welcome.cardEnabled) ? welcome.card : undefined,
         }),
       });
       set(res.ok ? 'ok' : 'err');
@@ -490,13 +491,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
               </div>
 
               {welcome.cardEnabled ? (
-                <>
-                  <WelcomeCardEditor card={welcome.card ?? defaultCard()} onChange={c => setW({ card: c })} />
-                  <div>
-                    <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 6 }}>Texto enviado junto com a imagem <span style={{ opacity: .6 }}>(opcional — útil para mencionar o membro)</span></p>
-                    <MessagePreview message={welcome.message} accentColor={welcome.accentColor} guildName={guildName} onEdit={() => setEditingModal('welcome')} />
-                  </div>
-                </>
+                <WelcomeCardEditor card={welcome.card ?? defaultCard()} onChange={c => setW({ card: c })} />
               ) : (
                 <MessagePreview
                   message={welcome.message}
@@ -513,7 +508,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
                   color: testStatusWelcome === 'ok' ? 'var(--green)' : testStatusWelcome === 'err' ? '#f87171' : 'var(--text-2)',
                   fontSize: 12.5, cursor: welcome.channelId ? 'pointer' : 'not-allowed', opacity: !welcome.channelId ? .5 : 1,
                 }}>
-                  {testStatusWelcome === 'loading' ? 'A enviar...' : testStatusWelcome === 'ok' ? '✓ Enviado!' : testStatusWelcome === 'err' ? '✕ Erro' : 'Testar Mensagem'}
+                  {testStatusWelcome === 'loading' ? 'A enviar...' : testStatusWelcome === 'ok' ? '✓ Enviado!' : testStatusWelcome === 'err' ? '✕ Erro' : welcome.cardEnabled ? 'Testar cartão' : 'Testar Mensagem'}
                 </button>
               </div>
             </div>

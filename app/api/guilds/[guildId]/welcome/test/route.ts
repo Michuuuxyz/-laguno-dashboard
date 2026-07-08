@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
 import { channelBelongsToGuild } from '@/lib/channelGuard';
+import type { WelcomeCardTemplate } from '@/lib/welcomeCard';
 
 const DISCORD_API = 'https://discord.com/api/v10';
 
@@ -21,13 +22,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
   if (!access) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json();
-  const { channelId, message, accentColor, bannerUrl, showAvatar, footer } = body as {
+  const { channelId, message, accentColor, bannerUrl, showAvatar, footer, card } = body as {
     channelId?: string; message?: string; accentColor?: string;
-    bannerUrl?: string; showAvatar?: boolean; footer?: string;
+    bannerUrl?: string; showAvatar?: boolean; footer?: string; card?: WelcomeCardTemplate;
   };
 
-  if (!channelId || !message) {
-    return NextResponse.json({ error: 'channelId e message são obrigatórios' }, { status: 400 });
+  if (!channelId) {
+    return NextResponse.json({ error: 'channelId é obrigatório' }, { status: 400 });
   }
 
   if (!await channelBelongsToGuild(channelId, guildId))
@@ -45,6 +46,44 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
   const memberCount = guild?.approximate_member_count ?? 0;
   const userId = access.userId ?? '349527593634234370';
 
+  // ── Modo "Cartão de imagem" — gera o PNG (com o teu avatar/dados reais) e envia ──
+  if (card?.layers?.length) {
+    let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
+    let displayName = 'Membro', username = 'membro';
+    try {
+      const uRes = await fetch(`${DISCORD_API}/users/${userId}`, { headers: { Authorization: `Bot ${token}` } });
+      if (uRes.ok) {
+        const u = await uRes.json() as { username?: string; global_name?: string; avatar?: string };
+        username = u.username ?? username;
+        displayName = u.global_name ?? u.username ?? displayName;
+        if (u.avatar) avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${u.avatar}.png?size=256`;
+      }
+    } catch { /* usa o default */ }
+
+    let png: Buffer;
+    try {
+      const { renderWelcomeCard } = await import('@/lib/cardRenderer');
+      png = await renderWelcomeCard(card, { avatarUrl, displayName, username, memberCount, serverName: guildName }, new URL(req.url).origin);
+    } catch (err) {
+      console.error('[welcome/test card]', err);
+      return NextResponse.json({ error: 'Falha ao gerar o cartão.' }, { status: 500 });
+    }
+
+    const content = `🧪 **[TESTE]**${message?.trim() ? ' ' + parseMessage(message, userId, guildName, memberCount) : ''}`;
+    const form = new FormData();
+    form.append('payload_json', JSON.stringify({ content, allowed_mentions: { parse: [] } }));
+    form.append('files[0]', new Blob([new Uint8Array(png)], { type: 'image/png' }), 'welcome.png');
+    const cardRes = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
+      method: 'POST', headers: { Authorization: `Bot ${token}` }, body: form,
+    });
+    if (!cardRes.ok) {
+      const err = await cardRes.json().catch(() => ({}));
+      return NextResponse.json({ error: 'Discord recusou o cartão', detail: err }, { status: 502 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  if (!message) return NextResponse.json({ error: 'message é obrigatório' }, { status: 400 });
   const parsedMessage = `🧪 **[TESTE]** ${parseMessage(message, userId, guildName, memberCount)}`;
 
   // Build accent color as integer
