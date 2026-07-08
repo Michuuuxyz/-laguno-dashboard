@@ -320,7 +320,7 @@ textarea.input { resize: vertical; line-height: 1.6; }
 hr { border: none; border-top: 1px solid var(--line); }
 
 /* ── Radix NavigationMenu (tema Laguno) ──────── */
-.lgnav-root { position: relative; display: flex; justify-content: center; z-index: 90; }
+.lgnav-root { position: relative; display: flex; justify-content: center; width: 100%; z-index: 90; }
 .lgnav-list { display: flex; align-items: center; gap: 2px; list-style: none; margin: 0; padding: 0; }
 
 .lgnav-trigger, .lgnav-link {
@@ -339,14 +339,13 @@ hr { border: none; border-top: 1px solid var(--line); }
 .lgnav-trigger[data-state="open"] > .lgnav-caret { transform: rotate(180deg); }
 
 .lgnav-content {
-  position: absolute; top: 0; left: 0; width: 100%;
+  position: absolute; top: 0; left: 0; width: auto;
   animation-duration: 260ms; animation-timing-function: cubic-bezier(.22,1,.36,1);
 }
 .lgnav-content[data-motion="from-start"] { animation-name: lgnav-inLeft; }
 .lgnav-content[data-motion="from-end"]   { animation-name: lgnav-inRight; }
 .lgnav-content[data-motion="to-start"]   { animation-name: lgnav-outLeft; }
 .lgnav-content[data-motion="to-end"]     { animation-name: lgnav-outRight; }
-@media (min-width: 600px) { .lgnav-content { width: auto; } }
 
 .lgnav-indicator {
   display: flex; align-items: flex-end; justify-content: center;
@@ -367,18 +366,16 @@ hr { border: none; border-top: 1px solid var(--line); }
   width: 100%; background: var(--card); border: 1px solid var(--line);
   border-radius: 16px; overflow: hidden;
   box-shadow: 0 22px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(109,184,62,.04);
+  width: var(--radix-navigation-menu-viewport-width);
   height: var(--radix-navigation-menu-viewport-height);
   transition: width, height, 300ms cubic-bezier(.22,1,.36,1);
 }
 .lgnav-viewport[data-state="open"]   { animation: lgnav-scaleIn 200ms ease; }
 .lgnav-viewport[data-state="closed"] { animation: lgnav-scaleOut 200ms ease; }
-@media (min-width: 600px) { .lgnav-viewport { width: var(--radix-navigation-menu-viewport-width); } }
 
 .lgnav-panel { display: grid; padding: 12px; margin: 0; column-gap: 8px; list-style: none; }
-@media (min-width: 600px) {
-  .lgnav-panel.one { width: 560px; grid-template-columns: .9fr 1fr; }
-  .lgnav-panel.two { width: 560px; grid-auto-flow: column; grid-template-rows: repeat(3, 1fr); }
-}
+.lgnav-panel.one { width: 560px; grid-template-columns: .9fr 1fr; }
+.lgnav-panel.two { width: 560px; grid-auto-flow: column; grid-template-rows: repeat(3, 1fr); }
 
 .lgnav-itemlink {
   display: flex; align-items: flex-start; gap: 12px;
