@@ -18,6 +18,8 @@ interface Config {
   extraButtons?: TButton[];
 }
 interface Stats { total: number; open: number; closed: number }
+// Identidade do bot NESTE servidor (nome/avatar personalizados), para os previews
+interface BotIdentity { name: string; avatar: string }
 
 const sid = () => Math.random().toString(36).slice(2, 8);
 
@@ -167,7 +169,7 @@ function TicketPreview({ cat, cfg }: { cat: Category; cfg: Config }) {
 }
 
 /* Pré-visualização em direto do painel — igual ao construtor de mensagens */
-function PanelPreview({ panel }: { panel: Panel }) {
+function PanelPreview({ panel, bot }: { panel: Panel; bot?: BotIdentity | null }) {
   const accent = panel.color || '#6db83e';
   return (
     <div>
@@ -175,10 +177,10 @@ function PanelPreview({ panel }: { panel: Panel }) {
       <div style={{ background: '#313338', borderRadius: 10, padding: 14, fontFamily: '"gg sans","Noto Sans",sans-serif', position: 'sticky', top: 90 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/laguno.png" alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
+          <img src={bot?.avatar || '/laguno.png'} alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>Laguno</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>{bot?.name || 'Laguno'}</span>
               <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
             </div>
             <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
@@ -211,7 +213,7 @@ function PanelPreview({ panel }: { panel: Panel }) {
 
 /* Como fica a mensagem DENTRO do ticket — título/corpo/cor/banner do servidor,
    com as variáveis já preenchidas por um exemplo. */
-function InnerTicketPreview({ cfg }: { cfg: Config }) {
+function InnerTicketPreview({ cfg, bot }: { cfg: Config; bot?: BotIdentity | null }) {
   const accent = cfg.openingColor || '#6db83e';
   const fill = (s: string) => (s || '')
     .replace(/{number}/g, '1').replace(/{user}/g, '@membro').replace(/{username}/g, 'membro')
@@ -224,10 +226,10 @@ function InnerTicketPreview({ cfg }: { cfg: Config }) {
       <div style={{ background: '#313338', borderRadius: 10, padding: 14, fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/laguno.png" alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
+          <img src={bot?.avatar || '/laguno.png'} alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>Laguno</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>{bot?.name || 'Laguno'}</span>
               <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
             </div>
             <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
@@ -263,6 +265,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
   const [showAdv, setShowAdv] = useState(false);
   const [advCat, setAdvCat] = useState<Record<string, boolean>>({});
   const [stats, setStats] = useState<Stats | null>(null);
+  const [bot, setBot] = useState<BotIdentity | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -275,6 +278,12 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
       setStats(data.stats ?? null);
       setLoading(false);
     });
+    // Identidade personalizada do bot neste servidor — para os previews baterem
+    // certo com o que os membros veem quando o painel é enviado.
+    fetch(`/api/guilds/${guildId}/bot-profile`).then(r => r.ok ? r.json() : null).catch(() => null)
+      .then((d: { nick?: string; globalName?: string; guildAvatar?: string | null; globalAvatar?: string } | null) => {
+        if (d) setBot({ name: (d.nick?.trim() || d.globalName) ?? 'Laguno', avatar: (d.guildAvatar || d.globalAvatar) ?? '/laguno.png' });
+      });
   }, [guildId]);
 
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 3500); };
@@ -485,7 +494,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                     </div>
                   </div>
                 </div>
-                <InnerTicketPreview cfg={config} />
+                <InnerTicketPreview cfg={config} bot={bot} />
               </div>
             </Step>
 
@@ -680,7 +689,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                       <button onClick={() => sendPanel(panel.panelId)} style={{ background: 'var(--green)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>Enviar painel</button>
                     </div>
                   </div>
-                  <PanelPreview panel={panel} />
+                  <PanelPreview panel={panel} bot={bot} />
                   </div>
                   </div>
                 )}

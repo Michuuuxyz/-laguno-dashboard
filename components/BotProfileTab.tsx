@@ -60,10 +60,11 @@ export function BotProfileTab({ guildId }: { guildId: string }) {
 
   if (!loaded) return <div className="skel" style={{ height: 220, borderRadius: 12 }} />;
 
-  // Valores efetivos para o preview
+  // Valores efetivos para o preview (3 estados: null = limpar → usa global,
+  // string = nova imagem, undefined = não mexido → mostra o atual do servidor)
   const previewName = nick.trim() || loaded.globalName;
-  const previewAvatar = avatar ?? loaded.guildAvatar ?? loaded.globalAvatar;
-  const previewBanner = banner ?? loaded.guildBanner ?? null;
+  const previewAvatar = avatar === null ? loaded.globalAvatar : (avatar ?? loaded.guildAvatar ?? loaded.globalAvatar);
+  const previewBanner = banner === null ? null : (banner ?? loaded.guildBanner);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 18, alignItems: 'start' }} className="bp-grid">
@@ -86,7 +87,8 @@ export function BotProfileTab({ guildId }: { guildId: string }) {
                 <img src={previewAvatar} alt="" style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--line)' }} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <button onClick={() => avatarInput.current?.click()} style={{ ...input, width: 'auto', cursor: 'pointer', padding: '6px 12px', fontSize: 12.5 }}>Carregar…</button>
-                  {(avatar || loaded.guildAvatar) && <button onClick={() => setAvatar(null)} style={{ background: 'none', border: 'none', color: '#f87171', fontSize: 11.5, cursor: 'pointer', textAlign: 'left', padding: 0 }}>Remover (usar global)</button>}
+                  {(avatar || (avatar === undefined && loaded.guildAvatar)) && <button onClick={() => setAvatar(null)} style={{ background: 'none', border: 'none', color: '#f87171', fontSize: 11.5, cursor: 'pointer', textAlign: 'left', padding: 0 }}>Remover (usar global)</button>}
+                  {avatar === null && <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>Vai usar o avatar global.</span>}
                 </div>
                 <input ref={avatarInput} type="file" accept="image/png,image/jpeg,image/gif,image/webp" style={{ display: 'none' }} onChange={e => pickImage('avatar', e.target.files?.[0])} />
               </div>
@@ -96,7 +98,8 @@ export function BotProfileTab({ guildId }: { guildId: string }) {
               <label style={lbl}>Banner</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <button onClick={() => bannerInput.current?.click()} style={{ ...input, cursor: 'pointer', padding: '6px 12px', fontSize: 12.5, textAlign: 'center' }}>Carregar banner…</button>
-                {(banner || loaded.guildBanner) && <button onClick={() => setBanner(null)} style={{ background: 'none', border: 'none', color: '#f87171', fontSize: 11.5, cursor: 'pointer', padding: 0 }}>Remover banner</button>}
+                {(banner || (banner === undefined && loaded.guildBanner)) && <button onClick={() => setBanner(null)} style={{ background: 'none', border: 'none', color: '#f87171', fontSize: 11.5, cursor: 'pointer', padding: 0 }}>Remover banner</button>}
+                {banner === null && <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>Banner removido.</span>}
                 <input ref={bannerInput} type="file" accept="image/png,image/jpeg,image/gif,image/webp" style={{ display: 'none' }} onChange={e => pickImage('banner', e.target.files?.[0])} />
               </div>
             </div>
