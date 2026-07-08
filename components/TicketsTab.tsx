@@ -6,7 +6,7 @@ interface Channel { id: string; name: string }
 interface Role { id: string; name: string; color?: number }
 
 interface Question { id: string; label: string; placeholder?: string; style?: 'short' | 'paragraph'; required?: boolean }
-interface TButton { id: string; label: string; emoji?: string; style?: number; content?: string; ephemeral?: boolean }
+interface TButton { id: string; label: string; emoji?: string; style?: number; action?: string; content?: string; ephemeral?: boolean; roleId?: string; url?: string }
 interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; categoryChannelId?: string | null; supportChannelId?: string | null; supportRoles?: string[]; form?: Question[]; buttons?: TButton[] }
 interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; categories?: Category[]; channelId?: string | null }
 interface Config {
@@ -26,6 +26,53 @@ const input: React.CSSProperties = {
 const card: React.CSSProperties = { background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '16px 18px' };
 const lbl: React.CSSProperties = { fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'block' };
 const miniBtn: React.CSSProperties = { width: 26, height: 26, borderRadius: 6, border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--text-2)', cursor: 'pointer', fontSize: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+
+const ACTION_OPTS = [
+  { v: 'message', l: 'Enviar uma mensagem' },
+  { v: 'role', l: 'Dar / tirar um cargo' },
+  { v: 'link', l: 'Abrir um link' },
+  { v: 'close', l: 'Fechar o ticket' },
+];
+
+/* Editor de um botão dentro do ticket — texto/emoji/cor + a AÇÃO que executa.
+   Partilhado pelos botões da categoria e pelos botões extra do servidor. */
+function ButtonEditor({ b, roles, onChange, onRemove }: {
+  b: TButton; roles: Role[]; onChange: (patch: Partial<TButton>) => void; onRemove: () => void;
+}) {
+  const action = b.action || 'message';
+  return (
+    <div style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 6, display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--card)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 56px 1fr auto', gap: 6, alignItems: 'center' }}>
+        <input style={input} value={b.label} onChange={e => onChange({ label: e.target.value })} placeholder="Texto do botão" />
+        <input style={input} value={b.emoji ?? ''} onChange={e => onChange({ emoji: e.target.value })} placeholder="😀" />
+        <select style={{ ...input, opacity: action === 'link' ? .5 : 1 }} value={b.style ?? 2} disabled={action === 'link'} onChange={e => onChange({ style: parseInt(e.target.value) })}>{STYLE_OPTS.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}</select>
+        <button onClick={onRemove} style={{ ...miniBtn, color: '#f87171', borderColor: 'rgba(248,113,113,.3)' }}>✕</button>
+      </div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <span style={{ fontSize: 11.5, color: 'var(--text-3)', flexShrink: 0, fontWeight: 600 }}>Ao clicar:</span>
+        <select style={input} value={action} onChange={e => onChange({ action: e.target.value })}>{ACTION_OPTS.map(a => <option key={a.v} value={a.v}>{a.l}</option>)}</select>
+      </div>
+      {action === 'message' && <>
+        <textarea rows={2} style={{ ...input, resize: 'vertical' }} value={b.content ?? ''} onChange={e => onChange({ content: e.target.value })} placeholder="Texto mostrado ao clicar (as regras, um FAQ, instruções…)" />
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-2)', cursor: 'pointer' }}>
+          <input type="checkbox" checked={b.ephemeral !== false} onChange={e => onChange({ ephemeral: e.target.checked })} /> Só quem clica vê a resposta
+        </label>
+      </>}
+      {action === 'role' && (
+        <select style={input} value={b.roleId ?? ''} onChange={e => onChange({ roleId: e.target.value })}>
+          <option value="">— escolhe o cargo a dar/tirar —</option>
+          {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+        </select>
+      )}
+      {action === 'link' && (
+        <input style={input} value={b.url ?? ''} onChange={e => onChange({ url: e.target.value })} placeholder="https://… — o botão abre este endereço" />
+      )}
+      {action === 'close' && (
+        <p style={{ fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.45 }}>Fecha o ticket ali mesmo, pedindo o motivo. Só a equipa e o dono do ticket o conseguem fechar.</p>
+      )}
+    </div>
+  );
+}
 
 function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
   return (
@@ -311,23 +358,14 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 12 }}>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600 }}>Botões extra</p>
-                    <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2, maxWidth: 400 }}>Os teus próprios botões, iguais em <strong>todos</strong> os tickets. Ao clicar, respondem com o texto que definires.</p>
+                    <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2, maxWidth: 400 }}>Os teus próprios botões, iguais em <strong>todos</strong> os tickets. Cada um pode responder com texto, dar um cargo, abrir um link ou fechar o ticket.</p>
                   </div>
-                  {(config.extraButtons ?? []).length < 5 && <button onClick={() => setC({ extraButtons: [...(config.extraButtons ?? []), { id: sid(), label: 'Botão', style: 2, content: '', ephemeral: true }] })} style={{ background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 6, padding: '4px 10px', fontSize: 12, color: 'var(--green)', cursor: 'pointer', flexShrink: 0 }}>+ Botão</button>}
+                  {(config.extraButtons ?? []).length < 5 && <button onClick={() => setC({ extraButtons: [...(config.extraButtons ?? []), { id: sid(), label: 'Botão', style: 2, action: 'message', content: '', ephemeral: true }] })} style={{ background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 6, padding: '4px 10px', fontSize: 12, color: 'var(--green)', cursor: 'pointer', flexShrink: 0 }}>+ Botão</button>}
                 </div>
                 {(config.extraButtons ?? []).map(b => (
-                  <div key={b.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 6, display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--card)' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 60px 1fr auto', gap: 6, alignItems: 'center' }}>
-                      <input style={input} value={b.label} onChange={e => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, label: e.target.value } : x) })} placeholder="Texto do botão" />
-                      <input style={input} value={b.emoji ?? ''} onChange={e => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, emoji: e.target.value } : x) })} placeholder="😀" />
-                      <select style={input} value={b.style ?? 2} onChange={e => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, style: parseInt(e.target.value) } : x) })}>{STYLE_OPTS.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}</select>
-                      <button onClick={() => setC({ extraButtons: (config.extraButtons ?? []).filter(x => x.id !== b.id) })} style={{ ...miniBtn, color: '#f87171', borderColor: 'rgba(248,113,113,.3)' }}>✕</button>
-                    </div>
-                    <textarea rows={2} style={{ ...input, resize: 'vertical' }} value={b.content ?? ''} onChange={e => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, content: e.target.value } : x) })} placeholder="Texto mostrado ao clicar (ex: regras, FAQ, links úteis…)" />
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-2)', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={b.ephemeral !== false} onChange={e => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, ephemeral: e.target.checked } : x) })} /> Só quem clica vê a resposta
-                    </label>
-                  </div>
+                  <ButtonEditor key={b.id} b={b} roles={roles}
+                    onChange={patch => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, ...patch } : x) })}
+                    onRemove={() => setC({ extraButtons: (config.extraButtons ?? []).filter(x => x.id !== b.id) })} />
                 ))}
               </div>
             </Step>
@@ -490,25 +528,16 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                               ))}
                             </div>
 
-                            {/* Botões dentro do ticket (respondem com texto ao clicar) */}
+                            {/* Botões dentro do ticket — cada um com a sua ação */}
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                                <label style={{ ...lbl, marginBottom: 0 }}>Botões dentro do ticket <span style={{ opacity: .6, textTransform: 'none' }}>(respondem com texto ao clicar)</span></label>
-                                {(cat.buttons ?? []).length < 10 && <button onClick={() => patchCat(panel.panelId, cat.id, { buttons: [...(cat.buttons ?? []), { id: sid(), label: 'Botão', style: 2, content: '', ephemeral: true }] })} style={{ background: 'none', border: '1px solid var(--line)', borderRadius: 6, padding: '2px 8px', fontSize: 11.5, color: 'var(--green)', cursor: 'pointer' }}>+ Botão</button>}
+                                <label style={{ ...lbl, marginBottom: 0 }}>Botões dentro do ticket <span style={{ opacity: .6, textTransform: 'none' }}>(só nesta categoria)</span></label>
+                                {(cat.buttons ?? []).length < 10 && <button onClick={() => patchCat(panel.panelId, cat.id, { buttons: [...(cat.buttons ?? []), { id: sid(), label: 'Botão', style: 2, action: 'message', content: '', ephemeral: true }] })} style={{ background: 'none', border: '1px solid var(--line)', borderRadius: 6, padding: '2px 8px', fontSize: 11.5, color: 'var(--green)', cursor: 'pointer' }}>+ Botão</button>}
                               </div>
                               {(cat.buttons ?? []).map(b => (
-                                <div key={b.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 6, display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--card)' }}>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 60px 1fr auto', gap: 6, alignItems: 'center' }}>
-                                    <input style={input} value={b.label} onChange={e => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, label: e.target.value } : x) })} placeholder="Texto do botão" />
-                                    <input style={input} value={b.emoji ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, emoji: e.target.value } : x) })} placeholder="😀" />
-                                    <select style={input} value={b.style ?? 2} onChange={e => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, style: parseInt(e.target.value) } : x) })}>{STYLE_OPTS.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}</select>
-                                    <button onClick={() => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).filter(x => x.id !== b.id) })} style={{ ...miniBtn, color: '#f87171', borderColor: 'rgba(248,113,113,.3)' }}>✕</button>
-                                  </div>
-                                  <textarea rows={2} style={{ ...input, resize: 'vertical' }} value={b.content ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, content: e.target.value } : x) })} placeholder="Texto mostrado ao clicar (ex: as regras, um FAQ, instruções…)" />
-                                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-2)', cursor: 'pointer' }}>
-                                    <input type="checkbox" checked={b.ephemeral !== false} onChange={e => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, ephemeral: e.target.checked } : x) })} /> Só quem clica vê a resposta
-                                  </label>
-                                </div>
+                                <ButtonEditor key={b.id} b={b} roles={roles}
+                                  onChange={patch => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, ...patch } : x) })}
+                                  onRemove={() => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).filter(x => x.id !== b.id) })} />
                               ))}
                             </div>
 

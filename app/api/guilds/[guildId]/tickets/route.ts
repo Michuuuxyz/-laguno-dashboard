@@ -3,7 +3,7 @@ import { assertGuildAccess } from '@/lib/guildAuth';
 import clientPromise from '@/lib/mongodb';
 
 interface Question { id: string; label: string; placeholder?: string; style?: string; required?: boolean }
-interface TButton { id: string; label: string; emoji?: string; style?: number; content?: string; ephemeral?: boolean }
+interface TButton { id: string; label: string; emoji?: string; style?: number; action?: string; content?: string; ephemeral?: boolean; roleId?: string; url?: string }
 interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; categoryChannelId?: string | null; supportChannelId?: string | null; supportRoles?: string[]; form?: Question[]; buttons?: TButton[] }
 interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; categories?: Category[] }
 
@@ -15,6 +15,22 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ guildI
   const cfg = await db.collection('guildconfigs').findOne({ guildId }, { projection: { tickets: 1 } });
   const panels = await db.collection('ticketpanels').find({ guildId }).sort({ createdAt: 1 }).toArray();
   return NextResponse.json({ config: cfg?.tickets ?? {}, panels });
+}
+
+// Limpa um botão de ticket (categoria ou extra). O que faz vem de `action`.
+function sanitizeButton(b: TButton): Record<string, unknown> {
+  const action = ['message', 'role', 'link', 'close'].includes(String(b.action)) ? String(b.action) : 'message';
+  return {
+    id:        String(b.id || Math.random().toString(36).slice(2, 8)),
+    label:     String(b.label || 'Botão').slice(0, 80),
+    emoji:     String(b.emoji || '').slice(0, 40),
+    style:     [1, 2, 3, 4].includes(Number(b.style)) ? Number(b.style) : 2,
+    action,
+    content:   String(b.content || '').slice(0, 2000),
+    ephemeral: b.ephemeral !== false,
+    roleId:    String(b.roleId || '').slice(0, 32),
+    url:       String(b.url || '').slice(0, 500),
+  };
 }
 
 // Limpa e limita um painel vindo do cliente (sem tocar em channelId/messageId).
@@ -37,14 +53,7 @@ function sanitizePanel(p: Panel): Record<string, unknown> {
       style:       q.style === 'paragraph' ? 'paragraph' : 'short',
       required:    q.required !== false,
     })),
-    buttons: (c.buttons ?? []).slice(0, 10).map((b) => ({
-      id:        String(b.id || Math.random().toString(36).slice(2, 8)),
-      label:     String(b.label || 'Botão').slice(0, 80),
-      emoji:     String(b.emoji || '').slice(0, 40),
-      style:     [1, 2, 3, 4].includes(Number(b.style)) ? Number(b.style) : 2,
-      content:   String(b.content || '').slice(0, 2000),
-      ephemeral: b.ephemeral !== false,
-    })),
+    buttons: (c.buttons ?? []).slice(0, 10).map((b) => sanitizeButton(b)),
   }));
   return {
     title:          String(p.title || 'Central de Suporte').slice(0, 100),
@@ -82,14 +91,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
       'tickets.claimEmoji':          String(c.claimEmoji || '').slice(0, 40),
       'tickets.closeLabel':          String(c.closeLabel || 'Fechar').slice(0, 80),
       'tickets.closeEmoji':          String(c.closeEmoji || '').slice(0, 40),
-      'tickets.extraButtons':        (Array.isArray(c.extraButtons) ? c.extraButtons : []).slice(0, 5).map((b: Record<string, unknown>) => ({
-        id:        String(b.id || Math.random().toString(36).slice(2, 8)),
-        label:     String(b.label || 'Botão').slice(0, 80),
-        emoji:     String(b.emoji || '').slice(0, 40),
-        style:     [1, 2, 3, 4].includes(Number(b.style)) ? Number(b.style) : 2,
-        content:   String(b.content || '').slice(0, 2000),
-        ephemeral: b.ephemeral !== false,
-      })),
+      'tickets.extraButtons':        (Array.isArray(c.extraButtons) ? c.extraButtons : []).slice(0, 5).map((b) => sanitizeButton(b as TButton)),
     };
     await db.collection('guildconfigs').updateOne({ guildId }, { $set: { ...set, guildId } }, { upsert: true });
   }
