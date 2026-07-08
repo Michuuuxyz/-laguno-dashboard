@@ -79,6 +79,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
       'tickets.claimEmoji':          String(c.claimEmoji || '').slice(0, 40),
       'tickets.closeLabel':          String(c.closeLabel || 'Fechar').slice(0, 80),
       'tickets.closeEmoji':          String(c.closeEmoji || '').slice(0, 40),
+      'tickets.extraButtons':        (Array.isArray(c.extraButtons) ? c.extraButtons : []).slice(0, 5).map((b: Record<string, unknown>) => ({
+        id:        String(b.id || Math.random().toString(36).slice(2, 8)),
+        label:     String(b.label || 'Botão').slice(0, 80),
+        emoji:     String(b.emoji || '').slice(0, 40),
+        style:     [1, 2, 3, 4].includes(Number(b.style)) ? Number(b.style) : 2,
+        content:   String(b.content || '').slice(0, 2000),
+        ephemeral: b.ephemeral !== false,
+      })),
     };
     await db.collection('guildconfigs').updateOne({ guildId }, { $set: { ...set, guildId } }, { upsert: true });
   }

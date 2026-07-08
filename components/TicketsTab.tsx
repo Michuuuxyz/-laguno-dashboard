@@ -14,6 +14,7 @@ interface Config {
   supportChannelId?: string | null; transcriptChannelId?: string | null;
   perUserLimit?: number; defaultFormat?: string; namingScheme?: string;
   claimEnabled?: boolean; claimLabel?: string; claimEmoji?: string; closeLabel?: string; closeEmoji?: string;
+  extraButtons?: TButton[];
 }
 
 const sid = () => Math.random().toString(36).slice(2, 8);
@@ -87,6 +88,11 @@ function TicketPreview({ cat, cfg }: { cat: Category; cfg: Config }) {
           {custom.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
               {custom.map(b => <span key={b.id} style={btnChip(b.style ?? 2)}>{b.emoji ? `${b.emoji} ` : ''}{b.label}</span>)}
+            </div>
+          )}
+          {(cfg.extraButtons ?? []).filter(b => b.label?.trim()).length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+              {(cfg.extraButtons ?? []).filter(b => b.label?.trim()).map(b => <span key={b.id} style={btnChip(b.style ?? 2)}>{b.emoji ? `${b.emoji} ` : ''}{b.label}</span>)}
             </div>
           )}
         </div>
@@ -297,6 +303,31 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                 </>}
                 <div><label style={lbl}>Texto do &quot;Fechar&quot;</label><input style={input} value={config.closeLabel ?? ''} onChange={e => setC({ closeLabel: e.target.value })} placeholder="Fechar" /></div>
                 <div><label style={lbl}>Emoji</label><input style={input} value={config.closeEmoji ?? ''} onChange={e => setC({ closeEmoji: e.target.value })} placeholder="🔒" /></div>
+              </div>
+
+              {/* Botões extra — aparecem em TODOS os tickets */}
+              <div style={{ borderTop: '1px solid var(--line)', marginTop: 14, paddingTop: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 12 }}>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600 }}>Botões extra</p>
+                    <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2, maxWidth: 400 }}>Os teus próprios botões, iguais em <strong>todos</strong> os tickets. Ao clicar, respondem com o texto que definires.</p>
+                  </div>
+                  {(config.extraButtons ?? []).length < 5 && <button onClick={() => setC({ extraButtons: [...(config.extraButtons ?? []), { id: sid(), label: 'Botão', style: 2, content: '', ephemeral: true }] })} style={{ background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 6, padding: '4px 10px', fontSize: 12, color: 'var(--green)', cursor: 'pointer', flexShrink: 0 }}>+ Botão</button>}
+                </div>
+                {(config.extraButtons ?? []).map(b => (
+                  <div key={b.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 6, display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--card)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 60px 1fr auto', gap: 6, alignItems: 'center' }}>
+                      <input style={input} value={b.label} onChange={e => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, label: e.target.value } : x) })} placeholder="Texto do botão" />
+                      <input style={input} value={b.emoji ?? ''} onChange={e => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, emoji: e.target.value } : x) })} placeholder="😀" />
+                      <select style={input} value={b.style ?? 2} onChange={e => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, style: parseInt(e.target.value) } : x) })}>{STYLE_OPTS.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}</select>
+                      <button onClick={() => setC({ extraButtons: (config.extraButtons ?? []).filter(x => x.id !== b.id) })} style={{ ...miniBtn, color: '#f87171', borderColor: 'rgba(248,113,113,.3)' }}>✕</button>
+                    </div>
+                    <textarea rows={2} style={{ ...input, resize: 'vertical' }} value={b.content ?? ''} onChange={e => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, content: e.target.value } : x) })} placeholder="Texto mostrado ao clicar (ex: regras, FAQ, links úteis…)" />
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-2)', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={b.ephemeral !== false} onChange={e => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, ephemeral: e.target.checked } : x) })} /> Só quem clica vê a resposta
+                    </label>
+                  </div>
+                ))}
               </div>
             </Step>
 
