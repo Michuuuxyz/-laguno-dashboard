@@ -751,17 +751,30 @@ function Content({ page }: { page: PageId }) {
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
         </div>
 
-        <H2>Painéis e categorias</H2>
-        <P>Cada <strong style={{ color: 'var(--text-1)' }}>painel</strong> é a mensagem com botões que os membros veem. Tem título, descrição, cor e banner opcional. Dentro do painel, cada <strong style={{ color: 'var(--text-1)' }}>categoria</strong> é um botão — e pode ter tudo à sua medida:</P>
+        <H2>Painéis</H2>
+        <P>Cada <strong style={{ color: 'var(--text-1)' }}>painel</strong> é a mensagem com botões que os membros veem. Personaliza:</P>
         <div style={{ marginBottom: 16 }}>
           {[
-            ['Texto, emoji e cor',      'A aparência do botão no painel.'],
-            ['Mensagem de abertura',    'O que aparece dentro do ticket quando é aberto.'],
-            ['Formato',                 'Canal ou thread — pode diferir do formato por defeito.'],
-            ['Formulário',              'Até 5 perguntas (curtas ou longas) que o membro responde antes de o ticket abrir. A staff recebe logo o contexto.'],
+            ['Título e descrição', 'Texto com markdown (## título, **negrito**, etc.).'],
+            ['Cor',                'A cor de destaque do container.'],
+            ['Banner',            'Imagem por URL, com posição à escolha: no topo ou depois dos botões.'],
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
         </div>
-        <Note type="tip">O construtor tem pré-visualização em direto — vês o painel exatamente como vai ficar no Discord enquanto o editas.</Note>
+        <Note type="tip">Pré-visualização em direto — vês o painel exatamente como vai ficar no Discord enquanto o editas.</Note>
+
+        <H2>Categorias — cada uma independente</H2>
+        <P>Dentro do painel, cada <strong style={{ color: 'var(--text-1)' }}>categoria</strong> é um botão que abre um tipo de ticket. Podes reordená-las com as setas, e cada uma é totalmente à sua medida:</P>
+        <div style={{ marginBottom: 16 }}>
+          {[
+            ['Botão',            'Texto, emoji e cor do botão no painel.'],
+            ['Formato',          'Canal privado ou thread — pode diferir do formato por defeito.'],
+            ['Destino próprio',  'A categoria escolhe para onde vão os seus tickets. Ex: "Parcerias" vai para uma categoria/canal, "Suporte" para outro. Em branco = usa o destino do servidor.'],
+            ['Cargos extra',     'Cargos que veem SÓ esta categoria, além dos cargos de suporte globais.'],
+            ['Mensagem de abertura', 'O que aparece dentro do ticket quando abre.'],
+            ['Formulário',       'Até 5 perguntas (curtas ou longas) que o membro responde antes de abrir. A staff recebe logo o contexto.'],
+            ['Botões próprios',  'Botões que aparecem só nos tickets desta categoria (ver abaixo).'],
+          ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
+        </div>
 
         <H2>Dentro de um ticket</H2>
         <P>Quando um ticket abre, o Laguno publica uma mensagem com botões de controlo (personalizáveis no dashboard):</P>
@@ -774,6 +787,16 @@ function Content({ page }: { page: PageId }) {
             <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{f.d}</p>
           </div>
         ))}
+
+        <H2>Botões personalizados</H2>
+        <P>Além do Reivindicar/Fechar, podes adicionar os <strong style={{ color: 'var(--text-1)' }}>teus próprios botões</strong> que respondem com um texto ao serem clicados — privado (só quem clica) ou público. Perfeito para regras, FAQ ou links úteis. Há dois níveis:</P>
+        <div style={{ marginBottom: 16 }}>
+          {[
+            ['Botões extra',     'Configurados no Passo 3. Aparecem em TODOS os tickets (até 5).'],
+            ['Botões por categoria', 'Configurados dentro da categoria. Aparecem só nos tickets dessa categoria (até 10).'],
+          ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
+        </div>
+        <Note type="tip">Cada categoria tem uma pré-visualização do ticket — vês a mensagem de abertura com todos os botões antes de a enviares.</Note>
 
         <H2>Comandos dentro do ticket</H2>
         <div style={{ marginBottom: 16 }}>
