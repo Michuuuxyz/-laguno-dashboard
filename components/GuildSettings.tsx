@@ -60,6 +60,7 @@ interface Config {
   welcome: WelcomeConfig; goodbye: GoodbyeConfig;
   autoroles: string[]; rolePanels: RolePanel[];
   logs: LogsConfig;
+  tickets?: { enabled?: boolean };
 }
 
 /* Módulos de comandos do bot — têm de bater certo com o COMMAND_MODULE do bot */
@@ -712,6 +713,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
             { id: 'welcome',    label: 'Boas-Vindas', icon: <IconUsers />,   on: !!(config.welcome?.enabled || config.goodbye?.enabled), desc: 'Mensagens de entrada e saída.' },
             { id: 'logs',       label: 'Logs',        icon: <IconFile />,    on: logsOn, desc: logsOn ? 'Eventos a serem registados.' : 'Sem canal de logs configurado.' },
             { id: 'roles',      label: 'Self-Roles',  icon: <IconTag />,     on: rolesOn, desc: `${config.autoroles.length} auto-role${config.autoroles.length !== 1 ? 's' : ''} · ${config.rolePanels.length} painel${config.rolePanels.length !== 1 ? 'éis' : ''}` },
+            { id: 'tickets',    label: 'Tickets',     icon: <IconTicket />,  on: !!config.tickets?.enabled, desc: config.tickets?.enabled ? 'Sistema de tickets ativo.' : 'Desativado. Ativa para os membros abrirem tickets.' },
             { id: 'warns',      label: 'Auto-ação de Avisos', icon: <IconWarn />, on: !!config.warns.autoAction?.enabled, desc: config.warns.autoAction?.enabled ? `${config.warns.autoAction.action} ao fim de ${config.warns.autoAction.threshold} avisos.` : 'Sem ação automática configurada.' },
           ];
           const recentWarns = warns.slice(0, 3);

@@ -23,6 +23,7 @@ const input: React.CSSProperties = {
 };
 const card: React.CSSProperties = { background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '16px 18px' };
 const lbl: React.CSSProperties = { fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'block' };
+const miniBtn: React.CSSProperties = { width: 26, height: 26, borderRadius: 6, border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--text-2)', cursor: 'pointer', fontSize: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
 
 function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
   return (
@@ -153,6 +154,18 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
   const patchPanel = (id: string, v: Partial<Panel>) => setPanels(ps => ps.map(p => p.panelId === id ? { ...p, ...v } : p));
   const patchCat = (pid: string, cid: string, v: Partial<Category>) =>
     setPanels(ps => ps.map(p => p.panelId !== pid ? p : { ...p, categories: (p.categories ?? []).map(c => c.id === cid ? { ...c, ...v } : c) }));
+  const moveCat = (pid: string, cid: string, dir: -1 | 1) =>
+    setPanels(ps => ps.map(p => {
+      if (p.panelId !== pid) return p;
+      const cats = [...(p.categories ?? [])];
+      const i = cats.findIndex(c => c.id === cid);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= cats.length) return p;
+      [cats[i], cats[j]] = [cats[j], cats[i]];
+      return { ...p, categories: cats };
+    }));
+  const removeCat = (pid: string, cid: string) =>
+    setPanels(ps => ps.map(p => p.panelId !== pid ? p : { ...p, categories: (p.categories ?? []).filter(c => c.id !== cid) }));
 
   if (loading) return <div className="skel" style={{ height: 200, borderRadius: 12 }} />;
 
@@ -326,8 +339,17 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        {(panel.categories ?? []).map(cat => (
+                        {(panel.categories ?? []).map((cat, ci, arr) => (
                           <div key={cat.id} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            {/* Cabeçalho: nome + reordenar + remover */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                              <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Categoria {ci + 1}</span>
+                              <div style={{ display: 'flex', gap: 4 }}>
+                                <button title="Mover para cima" onClick={() => moveCat(panel.panelId, cat.id, -1)} disabled={ci === 0} style={{ ...miniBtn, opacity: ci === 0 ? .3 : 1 }}>↑</button>
+                                <button title="Mover para baixo" onClick={() => moveCat(panel.panelId, cat.id, 1)} disabled={ci === arr.length - 1} style={{ ...miniBtn, opacity: ci === arr.length - 1 ? .3 : 1 }}>↓</button>
+                                <button title="Remover" onClick={() => removeCat(panel.panelId, cat.id)} style={{ ...miniBtn, color: '#f87171', borderColor: 'rgba(248,113,113,.3)' }}>✕</button>
+                              </div>
+                            </div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8 }}>
                               <div><label style={lbl}>Texto do botão</label><input style={input} value={cat.label} onChange={e => patchCat(panel.panelId, cat.id, { label: e.target.value })} /></div>
                               <div><label style={lbl}>Emoji</label><input style={input} value={cat.emoji ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { emoji: e.target.value })} placeholder="🎫" /></div>
@@ -351,9 +373,6 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                               ))}
                             </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                              <button onClick={() => patchPanel(panel.panelId, { categories: (panel.categories ?? []).filter(c => c.id !== cat.id) })} style={{ background: 'none', border: 'none', color: '#f87171', fontSize: 12, cursor: 'pointer' }}>Remover categoria</button>
-                            </div>
                           </div>
                         ))}
                       </div>
