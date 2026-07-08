@@ -96,7 +96,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
       'tickets.transcriptChannelId': c.transcriptChannelId || null,
       'tickets.perUserLimit':        Math.min(10, Math.max(1, Number(c.perUserLimit) || 1)),
       'tickets.defaultFormat':       c.defaultFormat === 'thread' ? 'thread' : 'channel',
-      'tickets.namingScheme':        String(c.namingScheme || 'ticket-{number}').slice(0, 50),
+      'tickets.namingScheme':        String(c.namingScheme || '{category}-{number}').slice(0, 50),
       'tickets.claimEnabled':        c.claimEnabled !== false,
       'tickets.claimLabel':          String(c.claimLabel || 'Reivindicar').slice(0, 80),
       'tickets.claimEmoji':          String(c.claimEmoji || '').slice(0, 40),

@@ -248,7 +248,7 @@ function InnerTicketPreview({ cfg }: { cfg: Config }) {
 }
 
 export function TicketsTab({ guildId, channels, roles }: { guildId: string; channels: Channel[]; roles: Role[] }) {
-  const [config, setConfig] = useState<Config>({ enabled: false, supportRoles: [], perUserLimit: 1, defaultFormat: 'channel', namingScheme: 'ticket-{number}', claimEnabled: true, claimLabel: 'Reivindicar', claimEmoji: '🙋', closeLabel: 'Fechar', closeEmoji: '🔒' });
+  const [config, setConfig] = useState<Config>({ enabled: false, supportRoles: [], perUserLimit: 1, defaultFormat: 'channel', namingScheme: '{category}-{number}', claimEnabled: true, claimLabel: 'Reivindicar', claimEmoji: '🙋', closeLabel: 'Fechar', closeEmoji: '🔒' });
   const [panels, setPanels] = useState<Panel[]>([]);
   const [categories, setCategories] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -265,7 +265,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
       fetch(`/api/guilds/${guildId}/tickets`).then(r => r.ok ? r.json() : { config: {}, panels: [] }).catch(() => ({ config: {}, panels: [] })),
       fetch(`/api/guilds/${guildId}/categories`).then(r => r.ok ? r.json() : []).catch(() => []),
     ]).then(([data, cats]) => {
-      setConfig({ enabled: false, supportRoles: [], perUserLimit: 1, defaultFormat: 'channel', namingScheme: 'ticket-{number}', ...data.config });
+      setConfig({ enabled: false, supportRoles: [], perUserLimit: 1, defaultFormat: 'channel', namingScheme: '{category}-{number}', ...data.config });
       setPanels(data.panels ?? []);
       setCategories(cats ?? []);
       setStats(data.stats ?? null);
@@ -479,8 +479,9 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                     <input type="number" min={1} max={10} style={input} value={config.perUserLimit ?? 1} onChange={e => setC({ perUserLimit: Math.max(1, Math.min(10, parseInt(e.target.value) || 1)) })} />
                   </div>
                   <div>
-                    <label style={lbl}>Nome do canal <span style={{ opacity: .6, textTransform: 'none' }}>{'{number}'} · {'{username}'}</span></label>
-                    <input style={input} value={config.namingScheme ?? ''} onChange={e => setC({ namingScheme: e.target.value })} placeholder="ticket-{number}" />
+                    <label style={lbl}>Nome do canal <span style={{ opacity: .6, textTransform: 'none' }}>{'{number}'} · {'{username}'} · {'{category}'}</span></label>
+                    <input style={input} value={config.namingScheme ?? ''} onChange={e => setC({ namingScheme: e.target.value })} placeholder="{category}-{number}" />
+                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5, lineHeight: 1.45 }}>Usa <code style={{ background: 'var(--elevated)', padding: '1px 4px', borderRadius: 4 }}>{'{category}'}</code> para o nome seguir o botão. Ex: <code style={{ background: 'var(--elevated)', padding: '1px 4px', borderRadius: 4 }}>{'{category}-{number}'}</code> → <strong>suporte-15</strong>, <strong>parcerias-16</strong>.</p>
                   </div>
                 </div>
               )}
