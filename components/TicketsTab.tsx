@@ -65,6 +65,36 @@ function pmd(text: string): string {
     .replace(/\n/g, '<br>');
 }
 
+/* Chip que imita um botão do Discord */
+function btnChip(style: number): React.CSSProperties {
+  return { display: 'inline-flex', alignItems: 'center', gap: 5, background: BTN_BG[style] ?? '#4e5058', color: '#fff', borderRadius: 4, padding: '5px 12px', fontSize: 12.5, fontWeight: 500 };
+}
+
+/* Pré-visualização do TICKET (mensagem de abertura + botões) para uma categoria */
+function TicketPreview({ cat, cfg }: { cat: Category; cfg: Config }) {
+  const accent = cat.color || '#6db83e';
+  const custom = (cat.buttons ?? []).filter(b => b.label?.trim());
+  return (
+    <div style={{ marginTop: 2 }}>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Pré-visualização do ticket</p>
+      <div style={{ background: '#313338', borderRadius: 8, padding: 12, fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
+        <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, padding: '10px 12px' }}>
+          <p style={{ fontSize: 13, color: '#dbdee1', lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pmd(`## 🎫 Ticket #1 — ${cat.label || 'Suporte'}\n${cat.openingMessage || 'A equipa já foi notificada.'}`) }} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+            {cfg.claimEnabled !== false && <span style={btnChip(3)}>{cfg.claimEmoji ? `${cfg.claimEmoji} ` : ''}{cfg.claimLabel || 'Reivindicar'}</span>}
+            <span style={btnChip(4)}>{cfg.closeEmoji ? `${cfg.closeEmoji} ` : ''}{cfg.closeLabel || 'Fechar'}</span>
+          </div>
+          {custom.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+              {custom.map(b => <span key={b.id} style={btnChip(b.style ?? 2)}>{b.emoji ? `${b.emoji} ` : ''}{b.label}</span>)}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* Pré-visualização em direto do painel — igual ao construtor de mensagens */
 function PanelPreview({ panel }: { panel: Panel }) {
   const accent = panel.color || '#6db83e';
@@ -401,6 +431,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                               ))}
                             </div>
 
+                            <TicketPreview cat={cat} cfg={config} />
                           </div>
                         ))}
                       </div>
