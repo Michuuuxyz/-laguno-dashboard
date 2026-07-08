@@ -4,7 +4,8 @@
 
 export interface WCText   { id: string; type: 'text'; x: number; y: number; width: number; text: string; size: number; color: string; font: string; align: 'left' | 'center' | 'right' }
 export interface WCAvatar { id: string; type: 'avatar'; x: number; y: number; size: number; shape: 'circle' | 'square'; borderColor?: string; borderWidth?: number }
-export type WCLayer = WCText | WCAvatar;
+export interface WCShape  { id: string; type: 'shape'; kind: 'rect' | 'circle'; x: number; y: number; width: number; height: number; fill: string; opacity: number; radius?: number; strokeColor?: string; strokeWidth?: number }
+export type WCLayer = WCText | WCAvatar | WCShape;
 export interface WelcomeCardTemplate {
   width: number; height: number;
   bgType: 'color' | 'image'; bgColor?: string; bgUrl?: string;

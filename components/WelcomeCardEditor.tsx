@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Stage, Layer, Rect, Text, Circle, Image as KImage, Transformer } from 'react-konva';
+import { Stage, Layer, Rect, Text, Circle, Ellipse, Image as KImage, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { CARD_W, CARD_H, type WCLayer, type WelcomeCardTemplate } from '@/lib/welcomeCard';
 
@@ -85,6 +85,8 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
   const remove = (id: string) => { onChange({ ...card, layers: card.layers.filter(l => l.id !== id) }); setSelId(null); };
   const addText = () => { const id = sid(); onChange({ ...card, layers: [...card.layers, { id, type: 'text', x: 262, y: 170, width: 500, text: 'Novo texto', size: 40, color: '#ffffff', font: 'Poppins Bold', align: 'center' }] }); setSelId(id); };
   const addAvatar = () => { const id = sid(); onChange({ ...card, layers: [...card.layers, { id, type: 'avatar', x: 100, y: 100, size: 160, shape: 'circle', borderColor: '#6db83e', borderWidth: 6 }] }); setSelId(id); };
+  // Formas entram no FUNDO da pilha (atrás do texto/avatar) — servem de painel.
+  const addShape = () => { const id = sid(); onChange({ ...card, layers: [{ id, type: 'shape', kind: 'rect', x: 160, y: 130, width: 704, height: 150, fill: '#000000', opacity: 0.4, radius: 24, strokeColor: '#6db83e', strokeWidth: 0 }, ...card.layers] }); setSelId(id); };
 
   const sel = card.layers.find(l => l.id === selId) ?? null;
 
@@ -95,6 +97,7 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
         <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
           <button onClick={addText} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Texto</button>
           <button onClick={addAvatar} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Avatar</button>
+          <button onClick={addShape} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Forma</button>
           <span style={{ fontSize: 11.5, color: 'var(--text-3)', alignSelf: 'center' }}>Arrasta os elementos. Clica num para editar à direita.</span>
         </div>
         <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)', width: display, maxWidth: '100%' }}>
@@ -109,6 +112,22 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
               })()}
 
               {card.layers.map(l => {
+                if (l.type === 'shape') {
+                  const common = {
+                    id: l.id, draggable: true,
+                    fill: l.fill, opacity: l.opacity,
+                    stroke: l.strokeWidth ? l.strokeColor : undefined, strokeWidth: l.strokeWidth || 0,
+                    onClick: () => setSelId(l.id), onTap: () => setSelId(l.id),
+                  };
+                  if (l.kind === 'circle') {
+                    return <Ellipse key={l.id} {...common} x={l.x + l.width / 2} y={l.y + l.height / 2} radiusX={l.width / 2} radiusY={l.height / 2}
+                      onDragEnd={(e) => patch(l.id, { x: Math.round(e.target.x() - l.width / 2), y: Math.round(e.target.y() - l.height / 2) })}
+                      onTransformEnd={(e) => { const n = e.target; const sx = n.scaleX(), sy = n.scaleY(); n.scaleX(1); n.scaleY(1); const w = Math.max(10, Math.round(l.width * sx)), h = Math.max(10, Math.round(l.height * sy)); patch(l.id, { width: w, height: h, x: Math.round(n.x() - w / 2), y: Math.round(n.y() - h / 2) }); }} />;
+                  }
+                  return <Rect key={l.id} {...common} x={l.x} y={l.y} width={l.width} height={l.height} cornerRadius={l.radius || 0}
+                    onDragEnd={(e) => patch(l.id, { x: Math.round(e.target.x()), y: Math.round(e.target.y()) })}
+                    onTransformEnd={(e) => { const n = e.target; const sx = n.scaleX(), sy = n.scaleY(); n.scaleX(1); n.scaleY(1); patch(l.id, { x: Math.round(n.x()), y: Math.round(n.y()), width: Math.max(10, Math.round(l.width * sx)), height: Math.max(10, Math.round(l.height * sy)) }); }} />;
+                }
                 if (l.type === 'avatar') {
                   const common = {
                     id: l.id, draggable: true,
@@ -140,7 +159,7 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
               })}
 
               <Transformer ref={trRef} rotateEnabled={false} borderStroke="#6db83e" anchorStroke="#6db83e" anchorFill="#0d0d0f"
-                enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+                enabledAnchors={sel?.type === 'shape' ? undefined : ['top-left', 'top-right', 'bottom-left', 'bottom-right']}
                 boundBoxFunc={(oldB, newB) => newB.width < 20 ? oldB : newB} />
             </Layer>
           </Stage>
@@ -172,10 +191,10 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
         {sel ? (
           <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <p style={{ fontSize: 12.5, fontWeight: 700 }}>{sel.type === 'text' ? 'Texto' : 'Avatar'}</p>
+              <p style={{ fontSize: 12.5, fontWeight: 700 }}>{sel.type === 'text' ? 'Texto' : sel.type === 'avatar' ? 'Avatar' : 'Forma'}</p>
               <button onClick={() => remove(sel.id)} style={{ fontSize: 11.5, color: '#f87171', background: 'none', border: 'none', cursor: 'pointer' }}>Remover</button>
             </div>
-            {sel.type === 'text' ? <>
+            {sel.type === 'text' && <>
               <div><label style={lbl}>Conteúdo</label><input style={inp} value={sel.text} onChange={e => patch(sel.id, { text: e.target.value })} /></div>
               <div><label style={lbl}>Fonte</label><select style={inp} value={sel.font} onChange={e => patch(sel.id, { font: e.target.value })}>{FONTS.map(f => <option key={f.v} value={f.v}>{f.l}</option>)}</select></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'end' }}>
@@ -183,12 +202,23 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
                 <div><label style={lbl}>Cor</label><input type="color" value={sel.color} onChange={e => patch(sel.id, { color: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /></div>
               </div>
               <div><label style={lbl}>Alinhamento</label><div style={{ display: 'flex', gap: 4 }}>{(['left', 'center', 'right'] as const).map(a => <button key={a} onClick={() => patch(sel.id, { align: a })} style={{ flex: 1, padding: '6px', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${sel.align === a ? 'var(--green)' : 'var(--line)'}`, background: sel.align === a ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: sel.align === a ? 'var(--green)' : 'var(--text-2)' }}>{a === 'left' ? 'Esq' : a === 'center' ? 'Centro' : 'Dir'}</button>)}</div></div>
-            </> : <>
+            </>}
+            {sel.type === 'avatar' && <>
               <div><label style={lbl}>Forma</label><div style={{ display: 'flex', gap: 4 }}>{(['circle', 'square'] as const).map(s => <button key={s} onClick={() => patch(sel.id, { shape: s })} style={{ flex: 1, padding: '6px', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${sel.shape === s ? 'var(--green)' : 'var(--line)'}`, background: sel.shape === s ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: sel.shape === s ? 'var(--green)' : 'var(--text-2)' }}>{s === 'circle' ? 'Círculo' : 'Quadrado'}</button>)}</div></div>
               <div><label style={lbl}>Tamanho ({sel.size})</label><input type="range" min={40} max={340} value={sel.size} onChange={e => patch(sel.id, { size: parseInt(e.target.value) })} style={{ width: '100%' }} /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'end' }}>
                 <div><label style={lbl}>Borda ({sel.borderWidth || 0})</label><input type="range" min={0} max={20} value={sel.borderWidth || 0} onChange={e => patch(sel.id, { borderWidth: parseInt(e.target.value) })} style={{ width: '100%' }} /></div>
                 <div><label style={lbl}>Cor</label><input type="color" value={sel.borderColor || '#6db83e'} onChange={e => patch(sel.id, { borderColor: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /></div>
+              </div>
+            </>}
+            {sel.type === 'shape' && <>
+              <div><label style={lbl}>Tipo</label><div style={{ display: 'flex', gap: 4 }}>{(['rect', 'circle'] as const).map(k => <button key={k} onClick={() => patch(sel.id, { kind: k })} style={{ flex: 1, padding: '6px', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${sel.kind === k ? 'var(--green)' : 'var(--line)'}`, background: sel.kind === k ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: sel.kind === k ? 'var(--green)' : 'var(--text-2)' }}>{k === 'rect' ? 'Retângulo' : 'Círculo'}</button>)}</div></div>
+              <div><label style={lbl}>Cor de preenchimento</label><div style={{ display: 'flex', gap: 6 }}><input type="color" value={sel.fill} onChange={e => patch(sel.id, { fill: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /><input style={inp} value={sel.fill} onChange={e => patch(sel.id, { fill: e.target.value })} /></div></div>
+              <div><label style={lbl}>Transparência ({Math.round(sel.opacity * 100)}%)</label><input type="range" min={0} max={100} value={Math.round(sel.opacity * 100)} onChange={e => patch(sel.id, { opacity: parseInt(e.target.value) / 100 })} style={{ width: '100%' }} /></div>
+              {sel.kind === 'rect' && <div><label style={lbl}>Cantos redondos ({sel.radius || 0})</label><input type="range" min={0} max={80} value={sel.radius || 0} onChange={e => patch(sel.id, { radius: parseInt(e.target.value) })} style={{ width: '100%' }} /></div>}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'end' }}>
+                <div><label style={lbl}>Contorno ({sel.strokeWidth || 0})</label><input type="range" min={0} max={16} value={sel.strokeWidth || 0} onChange={e => patch(sel.id, { strokeWidth: parseInt(e.target.value) })} style={{ width: '100%' }} /></div>
+                <div><label style={lbl}>Cor</label><input type="color" value={sel.strokeColor || '#6db83e'} onChange={e => patch(sel.id, { strokeColor: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /></div>
               </div>
             </>}
           </div>

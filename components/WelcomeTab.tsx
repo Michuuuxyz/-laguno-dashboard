@@ -473,7 +473,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
               <div>
                 <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 6 }}>Estilo da mensagem de entrada</p>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  {[{ v: false, l: 'Mensagem rica', d: 'Container com texto e variáveis' }, { v: true, l: 'Cartão de imagem', d: 'Imagem desenhada, estilo MEE6' }].map(o => {
+                  {[{ v: false, l: 'Mensagem rica', d: 'Container com texto e variáveis' }, { v: true, l: 'Cartão de imagem', d: 'Uma imagem desenhada à tua medida' }].map(o => {
                     const on = !!welcome.cardEnabled === o.v;
                     return (
                       <button key={String(o.v)} onClick={() => setW({ cardEnabled: o.v, ...(o.v && !welcome.card ? { card: defaultCard() } : {}) })} style={{
