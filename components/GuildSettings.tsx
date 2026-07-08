@@ -660,7 +660,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
 
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div key={active} className="tab-enter" style={{ position: 'relative' }}>
 
         {/* Aviso: bot offline */}
         {BOT_STATUS_BANNER && !statsLoading && !botOnline && (

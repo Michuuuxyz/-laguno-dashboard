@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { Reveal } from './Reveal';
 
 interface Channel { id: string; name: string }
 interface Role { id: string; name: string; color?: number }
@@ -345,6 +346,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
       )}
 
       {/* ── Config geral ── */}
+      <Reveal>
       <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
@@ -520,9 +522,11 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
           </div>
         )}
       </div>
+      </Reveal>
 
       {/* ── Passo 5 — Painéis ── */}
       {config.enabled && (
+        <Reveal delay={70}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ display: 'flex', gap: 11 }}>
@@ -697,6 +701,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
             );
           })}
         </div>
+        </Reveal>
       )}
       <style>{`@media (max-width: 860px) { .tk-grid { grid-template-columns: 1fr !important; } }`}</style>
 
