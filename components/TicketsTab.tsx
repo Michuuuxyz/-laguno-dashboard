@@ -7,7 +7,7 @@ interface Role { id: string; name: string; color?: number }
 
 interface Question { id: string; label: string; placeholder?: string; style?: 'short' | 'paragraph'; required?: boolean }
 interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; form?: Question[] }
-interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; categories?: Category[]; channelId?: string | null }
+interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; categories?: Category[]; channelId?: string | null }
 interface Config {
   enabled?: boolean; supportRoles?: string[]; categoryChannelId?: string | null;
   supportChannelId?: string | null; transcriptChannelId?: string | null;
@@ -80,7 +80,7 @@ function PanelPreview({ panel }: { panel: Panel }) {
               <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
             </div>
             <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
-              {panel.bannerUrl?.trim() && (
+              {panel.bannerUrl?.trim() && (panel.bannerPosition ?? 'top') !== 'bottom' && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={panel.bannerUrl} alt="" style={{ width: '100%', maxHeight: 140, objectFit: 'cover', display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
               )}
@@ -95,6 +95,10 @@ function PanelPreview({ panel }: { panel: Panel }) {
                   {(panel.categories ?? []).length === 0 && <span style={{ fontSize: 12.5, color: '#80848e', fontStyle: 'italic' }}>Adiciona categorias para veres os botões.</span>}
                 </div>
               </div>
+              {panel.bannerUrl?.trim() && (panel.bannerPosition ?? 'top') === 'bottom' && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={panel.bannerUrl} alt="" style={{ width: '100%', maxHeight: 140, objectFit: 'cover', display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+              )}
             </div>
           </div>
         </div>
@@ -327,7 +331,8 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                       <div><label style={lbl}>Título</label><input style={input} value={panel.title ?? ''} onChange={e => patchPanel(panel.panelId, { title: e.target.value })} /></div>
                       <div><label style={lbl}>Cor</label><div style={{ display: 'flex', gap: 6 }}><input type="color" value={panel.color ?? '#6db83e'} onChange={e => patchPanel(panel.panelId, { color: e.target.value })} style={{ width: 38, height: 36, borderRadius: 8, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /><input style={input} value={panel.color ?? ''} onChange={e => patchPanel(panel.panelId, { color: e.target.value })} /></div></div>
                       <div style={{ gridColumn: '1 / -1' }}><label style={lbl}>Descrição</label><textarea rows={2} style={{ ...input, resize: 'vertical' }} value={panel.description ?? ''} onChange={e => patchPanel(panel.panelId, { description: e.target.value })} /></div>
-                      <div style={{ gridColumn: '1 / -1' }}><label style={lbl}>Banner (URL, opcional)</label><input style={input} value={panel.bannerUrl ?? ''} onChange={e => patchPanel(panel.panelId, { bannerUrl: e.target.value })} placeholder="https://…" /></div>
+                      <div><label style={lbl}>Banner (URL, opcional)</label><input style={input} value={panel.bannerUrl ?? ''} onChange={e => patchPanel(panel.panelId, { bannerUrl: e.target.value })} placeholder="https://…" /></div>
+                      <div><label style={lbl}>Posição do banner</label><select style={input} value={panel.bannerPosition ?? 'top'} onChange={e => patchPanel(panel.panelId, { bannerPosition: e.target.value })}><option value="top">Em cima (topo)</option><option value="bottom">Em baixo (depois dos botões)</option></select></div>
                     </div>
 
                     {/* Categorias (botões) */}

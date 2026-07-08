@@ -4,7 +4,7 @@ import clientPromise from '@/lib/mongodb';
 
 interface Question { id: string; label: string; placeholder?: string; style?: string; required?: boolean }
 interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; form?: Question[] }
-interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; categories?: Category[] }
+interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; categories?: Category[] }
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
@@ -35,11 +35,12 @@ function sanitizePanel(p: Panel): Record<string, unknown> {
     })),
   }));
   return {
-    title:       String(p.title || 'Central de Suporte').slice(0, 100),
-    description: String(p.description || '').slice(0, 2000),
-    color:       String(p.color || '#6db83e').slice(0, 9),
-    bannerUrl:   String(p.bannerUrl || '').slice(0, 500),
-    categories:  cats,
+    title:          String(p.title || 'Central de Suporte').slice(0, 100),
+    description:    String(p.description || '').slice(0, 2000),
+    color:          String(p.color || '#6db83e').slice(0, 9),
+    bannerUrl:      String(p.bannerUrl || '').slice(0, 500),
+    bannerPosition: p.bannerPosition === 'bottom' ? 'bottom' : 'top',
+    categories:     cats,
   };
 }
 
