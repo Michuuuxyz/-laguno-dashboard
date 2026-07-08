@@ -729,14 +729,16 @@ function Content({ page }: { page: PageId }) {
       <div>
         <H1>Tickets</H1>
         <P>Um sistema de suporte completo: os membros clicam num botão de um painel e abre-se um espaço <strong style={{ color: 'var(--text-1)' }}>privado</strong> entre eles e a tua equipa. Cada painel é montado no dashboard, com pré-visualização em direto, e ao fechar gera um <strong style={{ color: 'var(--text-1)' }}>transcript em HTML</strong>.</P>
+        <Note type="tip">No topo do módulo, cada servidor mostra a sua própria contagem de tickets — <strong style={{ color: 'var(--text-1)' }}>total</strong>, <strong style={{ color: 'var(--text-1)' }}>abertos agora</strong> e <strong style={{ color: 'var(--text-1)' }}>já fechados</strong>. A numeração é independente por servidor.</Note>
 
         <H2>Configuração inicial</H2>
         <Steps items={[
           <span key={1}>No dashboard, vai a <strong style={{ color: 'var(--text-1)' }}>Tickets</strong> e ativa o sistema.</span>,
           <span key={2}>Escolhe os <strong style={{ color: 'var(--text-1)' }}>cargos de suporte</strong> (quem vê e gere os tickets), a <strong style={{ color: 'var(--text-1)' }}>categoria</strong> onde os canais são criados e o <strong style={{ color: 'var(--text-1)' }}>canal de transcripts</strong>.</span>,
           <span key={3}>Define o <strong style={{ color: 'var(--text-1)' }}>formato por defeito</strong> (canal privado ou thread privada), o limite de tickets por membro e o nome do canal.</span>,
-          <span key={4}>Cria um <strong style={{ color: 'var(--text-1)' }}>painel</strong>, adiciona categorias/botões e clica em <strong style={{ color: 'var(--text-1)' }}>Guardar tudo</strong>.</span>,
-          <span key={5}>Escolhe o canal e clica em <strong style={{ color: 'var(--text-1)' }}>Enviar painel</strong>. Os membros já podem abrir tickets.</span>,
+          <span key={4}>Personaliza a <strong style={{ color: 'var(--text-1)' }}>mensagem dentro do ticket</strong> — título, texto, cor e banner (Passo 4).</span>,
+          <span key={5}>Cria um <strong style={{ color: 'var(--text-1)' }}>painel</strong>, adiciona categorias/botões e clica em <strong style={{ color: 'var(--text-1)' }}>Guardar tudo</strong>.</span>,
+          <span key={6}>Escolhe o canal e clica em <strong style={{ color: 'var(--text-1)' }}>Enviar painel</strong>. Os membros já podem abrir tickets.</span>,
         ]} />
 
         <H2>Opções gerais</H2>
@@ -748,6 +750,27 @@ function Content({ page }: { page: PageId }) {
             ['Canal base',        'Canal onde as threads são criadas (para o formato "thread").'],
             ['Transcripts',       'Canal onde o histórico HTML é publicado ao fechar cada ticket.'],
             ['Limite por membro', 'Quantos tickets abertos cada membro pode ter ao mesmo tempo.'],
+          ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
+        </div>
+
+        <H2>A mensagem dentro do ticket</H2>
+        <P>O painel que abre no canal assim que alguém cria um ticket. Personaliza-o ao nível do servidor (Passo 4), com pré-visualização em direto:</P>
+        <div style={{ marginBottom: 16 }}>
+          {[
+            ['Título',   'O cabeçalho do painel. Ex: "🎫 Ticket #{number} — {category}". Podes pôr o emoji que quiseres, ou nenhum.'],
+            ['Mensagem', 'O texto de boas-vindas base. Cada categoria pode ter o seu próprio — se tiver, é esse que aparece; senão, usa este.'],
+            ['Cor',      'A cor de destaque do painel dentro do ticket.'],
+            ['Banner',   'Uma imagem por URL no topo do painel.'],
+          ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
+        </div>
+        <P>Estas <strong style={{ color: 'var(--text-1)' }}>variáveis</strong> são substituídas quando o ticket abre:</P>
+        <div style={{ marginBottom: 16 }}>
+          {[
+            ['{number}',   'O número do ticket (independente por servidor).'],
+            ['{user}',     'Menciona o membro que abriu o ticket.'],
+            ['{username}', 'O nome do membro, sem menção.'],
+            ['{category}', 'O nome da categoria/botão que abriu o ticket.'],
+            ['{server}',   'O nome do servidor.'],
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
         </div>
 
@@ -770,7 +793,7 @@ function Content({ page }: { page: PageId }) {
             ['Formato',          'Canal privado ou thread — pode diferir do formato por defeito.'],
             ['Destino próprio',  'A categoria escolhe para onde vão os seus tickets. Ex: "Parcerias" vai para uma categoria/canal, "Suporte" para outro. Em branco = usa o destino do servidor.'],
             ['Cargos extra',     'Cargos que veem SÓ esta categoria, além dos cargos de suporte globais.'],
-            ['Mensagem de abertura', 'O que aparece dentro do ticket quando abre.'],
+            ['Mensagem de abertura', 'O texto dentro do ticket, só para esta categoria. Se ficar em branco, usa a mensagem base do servidor (Passo 4).'],
             ['Formulário',       'Até 5 perguntas (curtas ou longas) que o membro responde antes de abrir. A staff recebe logo o contexto.'],
             ['Botões próprios',  'Botões que aparecem só nos tickets desta categoria (ver abaixo).'],
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
@@ -789,14 +812,23 @@ function Content({ page }: { page: PageId }) {
         ))}
 
         <H2>Botões personalizados</H2>
-        <P>Além do Reivindicar/Fechar, podes adicionar os <strong style={{ color: 'var(--text-1)' }}>teus próprios botões</strong> que respondem com um texto ao serem clicados — privado (só quem clica) ou público. Perfeito para regras, FAQ ou links úteis. Há dois níveis:</P>
+        <P>Além do Reivindicar/Fechar, podes adicionar os <strong style={{ color: 'var(--text-1)' }}>teus próprios botões</strong>. Em cada um escolhes uma <strong style={{ color: 'var(--text-1)' }}>ação</strong> — o que ele faz ao ser clicado:</P>
+        <div style={{ marginBottom: 16 }}>
+          {[
+            ['Enviar mensagem', 'Responde com um texto — privado (só quem clica) ou público. Ideal para regras, FAQ ou instruções.'],
+            ['Dar / tirar cargo', 'Dá um cargo ao membro que clica — ou retira-o, se já o tiver. Ex: marcar como verificado, dar acesso.'],
+            ['Abrir um link',   'Um botão que abre um URL (site, formulário, servidor de apoio).'],
+            ['Fechar o ticket', 'Atalho para fechar ali mesmo, pedindo o motivo. Só a staff e o dono do ticket o conseguem fechar.'],
+          ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
+        </div>
+        <P>Existem em dois níveis:</P>
         <div style={{ marginBottom: 16 }}>
           {[
             ['Botões extra',     'Configurados no Passo 3. Aparecem em TODOS os tickets (até 5).'],
             ['Botões por categoria', 'Configurados dentro da categoria. Aparecem só nos tickets dessa categoria (até 10).'],
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
         </div>
-        <Note type="tip">Cada categoria tem uma pré-visualização do ticket — vês a mensagem de abertura com todos os botões antes de a enviares.</Note>
+        <Note type="tip">Cada categoria tem uma pré-visualização do ticket — vês a mensagem de abertura com todos os botões antes de a enviares. Para dar/tirar um cargo, o cargo do Laguno tem de estar acima dele na hierarquia.</Note>
 
         <H2>Comandos dentro do ticket</H2>
         <div style={{ marginBottom: 16 }}>
