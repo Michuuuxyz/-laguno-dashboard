@@ -4,7 +4,6 @@ import { Navbar } from '@/components/Navbar';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ScrollReveal } from '@/components/ScrollReveal';
 import { HeroBadge } from '@/components/HeroBadge';
-import { HeroAtmosphere } from '@/components/HeroAtmosphere';
 import {
   MockWindow, MockMsg, MockText, MockSub, Mention, DCContainer, DCSep,
 } from '@/components/DiscordMock';
@@ -54,9 +53,8 @@ export default async function Home() {
       <Navbar />
 
       {/* ── HERO — a tese, na voz do crocodilo ── */}
-      <section style={{ minHeight: '88vh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', marginTop: -72 }}>
-        <HeroAtmosphere />
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 880, margin: '0 auto', padding: 'clamp(96px,14vh,150px) clamp(20px,4vw,56px) clamp(48px,8vh,80px)', textAlign: 'center' }}>
+      <section style={{ minHeight: '82vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 880, margin: '0 auto', padding: 'clamp(48px,8vh,80px) clamp(20px,4vw,56px)', textAlign: 'center' }}>
           <HeroBadge />
 
           <h1 className="display" style={{

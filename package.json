@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-navigation-menu": "^1.2.18",
     "autoprefixer": "^10.4.19",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.2",
