@@ -154,6 +154,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
   const [openPanel, setOpenPanel] = useState<string | null>(null);
   const [sendTarget, setSendTarget] = useState<Record<string, string>>({});
   const [showAdv, setShowAdv] = useState(false);
+  const [advCat, setAdvCat] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     Promise.all([
@@ -417,12 +418,20 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                                 <button title="Remover" onClick={() => removeCat(panel.panelId, cat.id)} style={{ ...miniBtn, color: '#f87171', borderColor: 'rgba(248,113,113,.3)' }}>✕</button>
                               </div>
                             </div>
+                            {/* ── Essencial: aparência do botão + mensagem ── */}
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8 }}>
                               <div><label style={lbl}>Texto do botão</label><input style={input} value={cat.label} onChange={e => patchCat(panel.panelId, cat.id, { label: e.target.value })} /></div>
                               <div><label style={lbl}>Emoji</label><input style={input} value={cat.emoji ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { emoji: e.target.value })} placeholder="🎫" /></div>
                               <div><label style={lbl}>Cor do botão</label><select style={input} value={cat.style ?? 2} onChange={e => patchCat(panel.panelId, cat.id, { style: parseInt(e.target.value) })}>{STYLE_OPTS.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}</select></div>
-                              <div><label style={lbl}>Formato</label><select style={input} value={cat.format ?? 'default'} onChange={e => patchCat(panel.panelId, cat.id, { format: e.target.value })}><option value="default">Por defeito</option><option value="channel">Canal</option><option value="thread">Thread</option></select></div>
                             </div>
+                            <div><label style={lbl}>Mensagem de abertura do ticket</label><textarea rows={2} style={{ ...input, resize: 'vertical' }} value={cat.openingMessage ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { openingMessage: e.target.value })} /></div>
+
+                            {/* ── Avançado (destino, cargos, formato, formulário, botões) ── */}
+                            <button onClick={() => setAdvCat(s => ({ ...s, [cat.id]: !s[cat.id] }))} style={{ background: 'none', border: 'none', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0', alignSelf: 'flex-start' }}>
+                              Opções avançadas <span style={{ fontSize: 9 }}>{advCat[cat.id] ? '▲' : '▼'}</span>
+                            </button>
+                            {advCat[cat.id] && (<>
+                            <div><label style={lbl}>Formato</label><select style={input} value={cat.format ?? 'default'} onChange={e => patchCat(panel.panelId, cat.id, { format: e.target.value })}><option value="default">Por defeito (do servidor)</option><option value="channel">Canal privado</option><option value="thread">Thread privada</option></select></div>
                             {/* Destino próprio desta categoria (senão usa o do servidor) */}
                             {(() => {
                               const fmt = (cat.format && cat.format !== 'default') ? cat.format : (config.defaultFormat ?? 'channel');
@@ -466,8 +475,6 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                               </select>
                             </div>
 
-                            <div><label style={lbl}>Mensagem de abertura do ticket</label><textarea rows={2} style={{ ...input, resize: 'vertical' }} value={cat.openingMessage ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { openingMessage: e.target.value })} /></div>
-
                             {/* Formulário */}
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -504,6 +511,8 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                                 </div>
                               ))}
                             </div>
+
+                            </>)}
 
                             <TicketPreview cat={cat} cfg={config} />
                           </div>
