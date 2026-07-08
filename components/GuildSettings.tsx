@@ -7,6 +7,7 @@ import { RolesTab } from './RolesTab';
 import { GiveawayModule } from './modules/GiveawayModule';
 import { MessageBuilderTab } from './MessageBuilderTab';
 import { TicketsTab } from './TicketsTab';
+import { BotProfileTab } from './BotProfileTab';
 import { WORD_TEMPLATE_WORDS } from '@/lib/wordTemplates';
 import { useStats } from '@/lib/hooks/useStats';
 
@@ -1110,6 +1111,15 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
             <ModuleHeader icon={<IconTicket />} accent="#38bdf8" title="Tickets"
               desc="Painéis com botões para os membros abrirem tickets privados, com formulário e transcript." />
             <TicketsTab guildId={guildId} channels={channels} roles={roles} />
+          </div>
+        )}
+
+        {/* PERSONALIZAR O BOT */}
+        {active === 'botprofile' && (
+          <div>
+            <ModuleHeader icon={<IconUsers />} accent="#8b5cf6" title="Personalizar o Bot"
+              desc="Muda o nome, a foto, o banner e a bio do Laguno só neste servidor." />
+            <BotProfileTab guildId={guildId} />
           </div>
         )}
 
