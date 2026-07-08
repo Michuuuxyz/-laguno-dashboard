@@ -126,10 +126,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     }
   }
 
-  // Invalida a cache do bot
-  fetch(`${process.env.BOT_API_URL}/cache/invalidate/${guildId}`, {
-    method: 'POST', headers: { Authorization: `Bearer ${process.env.BOT_API_SECRET}` },
-  }).catch(() => null);
+  // Invalida a cache do bot via ponte Mongo (a Discloud não expõe porta HTTP,
+  // por isso o fetch antigo nunca chegava — a config ficava presa até ao TTL).
+  // O bot consome esta coleção a cada 10s. Mesmo padrão de /config e /automod.
+  await db.collection('cacheinvalidations').insertOne({ guildId, createdAt: new Date() }).catch(() => null);
 
   return NextResponse.json({ ok: true });
 }
