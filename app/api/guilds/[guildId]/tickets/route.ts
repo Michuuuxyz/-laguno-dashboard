@@ -100,6 +100,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
       'tickets.claimEnabled':        c.claimEnabled !== false,
       'tickets.claimLabel':          String(c.claimLabel || 'Reivindicar').slice(0, 80),
       'tickets.claimEmoji':          String(c.claimEmoji || '').slice(0, 40),
+      'tickets.claimMessage':        String(c.claimMessage ?? '').slice(0, 500),
       'tickets.closeLabel':          String(c.closeLabel || 'Fechar').slice(0, 80),
       'tickets.closeEmoji':          String(c.closeEmoji || '').slice(0, 40),
       // Base da mensagem dentro do ticket (aceita variáveis {number} {user} …)

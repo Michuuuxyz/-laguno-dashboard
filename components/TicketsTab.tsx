@@ -13,7 +13,7 @@ interface Config {
   enabled?: boolean; supportRoles?: string[]; categoryChannelId?: string | null;
   supportChannelId?: string | null; transcriptChannelId?: string | null;
   perUserLimit?: number; defaultFormat?: string; namingScheme?: string;
-  claimEnabled?: boolean; claimLabel?: string; claimEmoji?: string; closeLabel?: string; closeEmoji?: string;
+  claimEnabled?: boolean; claimLabel?: string; claimEmoji?: string; claimMessage?: string; closeLabel?: string; closeEmoji?: string;
   openingTitle?: string; openingMessage?: string; openingColor?: string; openingBanner?: string;
   extraButtons?: TButton[];
 }
@@ -90,14 +90,18 @@ function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
 const STYLE_OPTS = [{ v: 1, l: 'Azul' }, { v: 2, l: 'Cinza' }, { v: 3, l: 'Verde' }, { v: 4, l: 'Vermelho' }];
 const BTN_BG: Record<number, string> = { 1: '#5865f2', 2: '#4e5058', 3: '#3ba55d', 4: '#ed4245' };
 
-/* Passo guiado — número + título + explicação, conteúdo indentado */
-function Step({ n, title, desc, children }: { n: number; title: string; desc: string; children: React.ReactNode }) {
+/* Passo guiado — número + título + explicação, conteúdo indentado.
+   `optional` mostra um selo para o novato saber que pode saltar o passo. */
+function Step({ n, title, desc, optional, children }: { n: number; title: string; desc: string; optional?: boolean; children: React.ReactNode }) {
   return (
     <div style={{ borderTop: '1px solid var(--line)', paddingTop: 16, marginTop: 16 }}>
       <div style={{ display: 'flex', gap: 11, marginBottom: 12 }}>
-        <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(56,189,248,.14)', color: '#38bdf8', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</span>
+        <span style={{ width: 22, height: 22, borderRadius: '50%', background: optional ? 'var(--elevated)' : 'rgba(56,189,248,.14)', color: optional ? 'var(--text-3)' : '#38bdf8', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</span>
         <div>
-          <p style={{ fontSize: 13.5, fontWeight: 700 }}>{title}</p>
+          <p style={{ fontSize: 13.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {title}
+            {optional && <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 5, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: '.04em' }}>opcional</span>}
+          </p>
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.55 }}>{desc}</p>
         </div>
       </div>
@@ -344,6 +348,17 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
         {config.enabled && (
           <div>
 
+            {/* Explicação simples para quem nunca montou tickets */}
+            <div style={{ background: 'rgba(56,189,248,.06)', border: '1px solid rgba(56,189,248,.2)', borderRadius: 10, padding: '12px 14px' }}>
+              <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Como funciona</p>
+              <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                Um <strong>painel</strong> é uma mensagem com botões. Quando um membro clica num botão, abre-se um <strong>canal privado</strong> só entre ele e a tua equipa — é o &quot;ticket&quot;.
+              </p>
+              <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginTop: 8 }}>
+                <strong>Só precisas de 3 coisas:</strong> escolher a tua equipa (Passo 1), escolher onde ficam os tickets (Passo 2) e criar um painel lá em baixo. Os passos marcados <span style={{ fontWeight: 700, color: 'var(--text-3)' }}>opcional</span> já vêm prontos — podes deixá-los como estão.
+              </p>
+            </div>
+
             {/* Passo 1 — Equipa */}
             <Step n={1} title="A tua equipa de suporte" desc="Os cargos que veem, reivindicam e fecham os tickets. Sem isto, só quem tiver a permissão 'Gerir Canais' os consegue ver.">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
@@ -406,7 +421,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
             </Step>
 
             {/* Passo 3 — Botões */}
-            <Step n={3} title="Botões dentro do ticket" desc="Os botões que a equipa vê dentro de cada ticket. Podes mudar os textos e emojis.">
+            <Step n={3} optional title="Botões dentro do ticket" desc="Os botões que a equipa vê dentro de cada ticket (Reivindicar, Fechar…). Já vêm prontos — só mexe se quiseres mudar textos, emojis ou adicionar os teus.">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, maxWidth: 460 }}>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600 }}>Botão &quot;Reivindicar&quot;</p>
@@ -422,6 +437,13 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                 <div><label style={lbl}>Texto do &quot;Fechar&quot;</label><input style={input} value={config.closeLabel ?? ''} onChange={e => setC({ closeLabel: e.target.value })} placeholder="Fechar" /></div>
                 <div><label style={lbl}>Emoji</label><input style={input} value={config.closeEmoji ?? ''} onChange={e => setC({ closeEmoji: e.target.value })} placeholder="🔒" /></div>
               </div>
+              {config.claimEnabled !== false && (
+                <div style={{ marginTop: 10 }}>
+                  <label style={lbl}>Mensagem ao reivindicar <span style={{ opacity: .6, textTransform: 'none' }}>({'{user}'} · {'{number}'})</span></label>
+                  <input style={input} value={config.claimMessage ?? ''} onChange={e => setC({ claimMessage: e.target.value })} placeholder="{user} reivindicou este ticket e vai tratar dele." />
+                  <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5, lineHeight: 1.45 }}>O que o bot escreve no ticket quando alguém da equipa clica em Reivindicar. <code style={{ background: 'var(--elevated)', padding: '1px 4px', borderRadius: 4 }}>{'{user}'}</code> = quem reivindicou · <code style={{ background: 'var(--elevated)', padding: '1px 4px', borderRadius: 4 }}>{'{number}'}</code> = nº do ticket.</p>
+                </div>
+              )}
 
               {/* Botões extra — aparecem em TODOS os tickets */}
               <div style={{ borderTop: '1px solid var(--line)', marginTop: 14, paddingTop: 12 }}>
@@ -441,7 +463,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
             </Step>
 
             {/* Passo 4 — A mensagem dentro do ticket */}
-            <Step n={4} title="A mensagem dentro do ticket" desc="O painel que abre no canal assim que alguém cria um ticket. Personaliza o título, o texto, a cor e o banner — igual para todo o servidor.">
+            <Step n={4} optional title="A mensagem dentro do ticket" desc="O texto que aparece dentro do ticket quando abre. Já tem uma mensagem simpática por defeito — muda o título, o texto, a cor ou o banner só se quiseres.">
               <div className="tk-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
                   <div><label style={lbl}>Título</label><input style={input} value={config.openingTitle ?? ''} onChange={e => setC({ openingTitle: e.target.value })} placeholder="🎫 Ticket #{number} — {category}" /></div>
