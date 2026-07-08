@@ -69,9 +69,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
       return NextResponse.json({ error: 'Falha ao gerar o cartão.' }, { status: 500 });
     }
 
-    const content = `🧪 **[TESTE]**${message?.trim() ? ' ' + parseMessage(message, userId, guildName, memberCount) : ''}`;
+    // Só o cartão — sem texto por cima.
     const form = new FormData();
-    form.append('payload_json', JSON.stringify({ content, allowed_mentions: { parse: [] } }));
+    form.append('payload_json', JSON.stringify({ allowed_mentions: { parse: [] } }));
     form.append('files[0]', new Blob([new Uint8Array(png)], { type: 'image/png' }), 'welcome.png');
     const cardRes = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
       method: 'POST', headers: { Authorization: `Bot ${token}` }, body: form,
