@@ -2,8 +2,8 @@
 // SEM dependências de Konva/browser — pode ser importado em qualquer lado
 // (o editor com Konva é carregado à parte via next/dynamic ssr:false).
 
-export interface WCText   { id: string; type: 'text'; x: number; y: number; width: number; text: string; size: number; color: string; font: string; align: 'left' | 'center' | 'right' }
-export interface WCAvatar { id: string; type: 'avatar'; x: number; y: number; size: number; shape: 'circle' | 'square'; borderColor?: string; borderWidth?: number }
+export interface WCText   { id: string; type: 'text'; x: number; y: number; width: number; text: string; size: number; color: string; font: string; align: 'left' | 'center' | 'right'; opacity?: number; shadow?: boolean; shadowColor?: string; shadowBlur?: number }
+export interface WCAvatar { id: string; type: 'avatar'; x: number; y: number; size: number; shape: 'circle' | 'square'; borderColor?: string; borderWidth?: number; opacity?: number }
 export interface WCShape  { id: string; type: 'shape'; kind: 'rect' | 'circle'; x: number; y: number; width: number; height: number; fill: string; opacity: number; radius?: number; strokeColor?: string; strokeWidth?: number }
 export type WCLayer = WCText | WCAvatar | WCShape;
 export interface WelcomeCardTemplate {

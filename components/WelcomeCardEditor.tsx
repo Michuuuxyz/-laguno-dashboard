@@ -90,6 +90,34 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
 
   const sel = card.layers.find(l => l.id === selId) ?? null;
 
+  const boundsOf = (l: WCLayer) => l.type === 'text' ? { w: l.width, h: l.size } : l.type === 'avatar' ? { w: l.size, h: l.size } : { w: l.width, h: l.height };
+  const align = (dir: 'h' | 'v' | 'left' | 'right' | 'top' | 'bottom') => {
+    if (!sel) return;
+    const { w, h } = boundsOf(sel);
+    const v: Partial<WCLayer> = {};
+    if (dir === 'h') v.x = Math.round((CANVAS_W - w) / 2);
+    else if (dir === 'left') v.x = 0;
+    else if (dir === 'right') v.x = CANVAS_W - w;
+    else if (dir === 'v') v.y = Math.round((CANVAS_H - h) / 2);
+    else if (dir === 'top') v.y = 0;
+    else if (dir === 'bottom') v.y = CANVAS_H - h;
+    patch(sel.id, v);
+  };
+  const duplicate = () => {
+    if (!sel) return;
+    const id = sid();
+    const copy = { ...sel, id, x: sel.x + 24, y: sel.y + 24 } as WCLayer;
+    const idx = card.layers.findIndex(l => l.id === sel.id);
+    const next = [...card.layers]; next.splice(idx + 1, 0, copy);
+    onChange({ ...card, layers: next }); setSelId(id);
+  };
+  const order = (to: 'front' | 'back') => {
+    if (!sel) return;
+    const rest = card.layers.filter(l => l.id !== sel.id);
+    onChange({ ...card, layers: to === 'front' ? [...rest, sel] : [sel, ...rest] });
+  };
+  const tbBtn: React.CSSProperties = { flex: 1, padding: '5px 4px', borderRadius: 6, fontSize: 11, cursor: 'pointer', border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--text-2)' };
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 280px', gap: 16, alignItems: 'start' }} className="wc-grid">
       {/* ── Palco ── */}
@@ -130,7 +158,7 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
                 }
                 if (l.type === 'avatar') {
                   const common = {
-                    id: l.id, draggable: true,
+                    id: l.id, draggable: true, opacity: l.opacity ?? 1,
                     onClick: () => setSelId(l.id), onTap: () => setSelId(l.id),
                     onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => patch(l.id, { x: Math.round(e.target.x()), y: Math.round(e.target.y()) }),
                     stroke: l.borderColor, strokeWidth: l.borderWidth || 0,
@@ -153,6 +181,8 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
                 }
                 return <Text key={l.id} id={l.id} draggable x={l.x} y={l.y} width={l.width} text={sample(l.text)}
                   fontSize={l.size} fill={l.color} align={l.align} fontFamily="Poppins" fontStyle={fontWeight(l.font)}
+                  opacity={l.opacity ?? 1}
+                  shadowEnabled={!!l.shadow} shadowColor={l.shadowColor || 'rgba(0,0,0,0.55)'} shadowBlur={l.shadowBlur ?? 6} shadowOffsetY={Math.round((l.shadowBlur ?? 6) / 3)}
                   onClick={() => setSelId(l.id)} onTap={() => setSelId(l.id)}
                   onDragEnd={(e) => patch(l.id, { x: Math.round(e.target.x()), y: Math.round(e.target.y()) })}
                   onTransformEnd={(e) => { const n = e.target as Konva.Text; const s = n.scaleX(); n.scaleX(1); n.scaleY(1); patch(l.id, { x: Math.round(n.x()), y: Math.round(n.y()), width: Math.round(l.width * s), size: Math.round(l.size * s) }); }} />;
@@ -194,6 +224,26 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
               <p style={{ fontSize: 12.5, fontWeight: 700 }}>{sel.type === 'text' ? 'Texto' : sel.type === 'avatar' ? 'Avatar' : 'Forma'}</p>
               <button onClick={() => remove(sel.id)} style={{ fontSize: 11.5, color: '#f87171', background: 'none', border: 'none', cursor: 'pointer' }}>Remover</button>
             </div>
+
+            {/* Alinhar / camadas */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, paddingBottom: 10, borderBottom: '1px solid var(--line)' }}>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <button onClick={() => align('h')} style={{ ...tbBtn, fontWeight: 600, color: 'var(--green)', borderColor: 'rgba(109,184,62,.3)' }}>Centrar na horizontal</button>
+                <button onClick={() => align('v')} style={{ ...tbBtn, fontWeight: 600, color: 'var(--green)', borderColor: 'rgba(109,184,62,.3)' }}>Centrar na vertical</button>
+              </div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <button onClick={() => align('left')} style={tbBtn}>Esq</button>
+                <button onClick={() => align('right')} style={tbBtn}>Dir</button>
+                <button onClick={() => align('top')} style={tbBtn}>Topo</button>
+                <button onClick={() => align('bottom')} style={tbBtn}>Baixo</button>
+              </div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <button onClick={duplicate} style={tbBtn}>Duplicar</button>
+                <button onClick={() => order('front')} style={tbBtn}>Trazer à frente</button>
+                <button onClick={() => order('back')} style={tbBtn}>Enviar p/ trás</button>
+              </div>
+            </div>
+
             {sel.type === 'text' && <>
               <div><label style={lbl}>Conteúdo</label><input style={inp} value={sel.text} onChange={e => patch(sel.id, { text: e.target.value })} /></div>
               <div><label style={lbl}>Fonte</label><select style={inp} value={sel.font} onChange={e => patch(sel.id, { font: e.target.value })}>{FONTS.map(f => <option key={f.v} value={f.v}>{f.l}</option>)}</select></div>
@@ -201,7 +251,15 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
                 <div><label style={lbl}>Tamanho ({sel.size})</label><input type="range" min={12} max={140} value={sel.size} onChange={e => patch(sel.id, { size: parseInt(e.target.value) })} style={{ width: '100%' }} /></div>
                 <div><label style={lbl}>Cor</label><input type="color" value={sel.color} onChange={e => patch(sel.id, { color: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /></div>
               </div>
-              <div><label style={lbl}>Alinhamento</label><div style={{ display: 'flex', gap: 4 }}>{(['left', 'center', 'right'] as const).map(a => <button key={a} onClick={() => patch(sel.id, { align: a })} style={{ flex: 1, padding: '6px', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${sel.align === a ? 'var(--green)' : 'var(--line)'}`, background: sel.align === a ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: sel.align === a ? 'var(--green)' : 'var(--text-2)' }}>{a === 'left' ? 'Esq' : a === 'center' ? 'Centro' : 'Dir'}</button>)}</div></div>
+              <div><label style={lbl}>Alinhamento do texto</label><div style={{ display: 'flex', gap: 4 }}>{(['left', 'center', 'right'] as const).map(a => <button key={a} onClick={() => patch(sel.id, { align: a })} style={{ flex: 1, padding: '6px', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${sel.align === a ? 'var(--green)' : 'var(--line)'}`, background: sel.align === a ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: sel.align === a ? 'var(--green)' : 'var(--text-2)' }}>{a === 'left' ? 'Esq' : a === 'center' ? 'Centro' : 'Dir'}</button>)}</div></div>
+              <div><label style={lbl}>Transparência ({Math.round((sel.opacity ?? 1) * 100)}%)</label><input type="range" min={0} max={100} value={Math.round((sel.opacity ?? 1) * 100)} onChange={e => patch(sel.id, { opacity: parseInt(e.target.value) / 100 })} style={{ width: '100%' }} /></div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-2)', cursor: 'pointer' }}>
+                <input type="checkbox" checked={!!sel.shadow} onChange={e => patch(sel.id, { shadow: e.target.checked })} /> Sombra (ajuda a ler sobre imagens)
+              </label>
+              {sel.shadow && <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'end' }}>
+                <div><label style={lbl}>Desfoque ({sel.shadowBlur ?? 6})</label><input type="range" min={0} max={30} value={sel.shadowBlur ?? 6} onChange={e => patch(sel.id, { shadowBlur: parseInt(e.target.value) })} style={{ width: '100%' }} /></div>
+                <div><label style={lbl}>Cor</label><input type="color" value={sel.shadowColor?.startsWith('#') ? sel.shadowColor : '#000000'} onChange={e => patch(sel.id, { shadowColor: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /></div>
+              </div>}
             </>}
             {sel.type === 'avatar' && <>
               <div><label style={lbl}>Forma</label><div style={{ display: 'flex', gap: 4 }}>{(['circle', 'square'] as const).map(s => <button key={s} onClick={() => patch(sel.id, { shape: s })} style={{ flex: 1, padding: '6px', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${sel.shape === s ? 'var(--green)' : 'var(--line)'}`, background: sel.shape === s ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: sel.shape === s ? 'var(--green)' : 'var(--text-2)' }}>{s === 'circle' ? 'Círculo' : 'Quadrado'}</button>)}</div></div>
@@ -210,6 +268,7 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
                 <div><label style={lbl}>Borda ({sel.borderWidth || 0})</label><input type="range" min={0} max={20} value={sel.borderWidth || 0} onChange={e => patch(sel.id, { borderWidth: parseInt(e.target.value) })} style={{ width: '100%' }} /></div>
                 <div><label style={lbl}>Cor</label><input type="color" value={sel.borderColor || '#6db83e'} onChange={e => patch(sel.id, { borderColor: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /></div>
               </div>
+              <div><label style={lbl}>Transparência ({Math.round((sel.opacity ?? 1) * 100)}%)</label><input type="range" min={0} max={100} value={Math.round((sel.opacity ?? 1) * 100)} onChange={e => patch(sel.id, { opacity: parseInt(e.target.value) / 100 })} style={{ width: '100%' }} /></div>
             </>}
             {sel.type === 'shape' && <>
               <div><label style={lbl}>Tipo</label><div style={{ display: 'flex', gap: 4 }}>{(['rect', 'circle'] as const).map(k => <button key={k} onClick={() => patch(sel.id, { kind: k })} style={{ flex: 1, padding: '6px', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${sel.kind === k ? 'var(--green)' : 'var(--line)'}`, background: sel.kind === k ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: sel.kind === k ? 'var(--green)' : 'var(--text-2)' }}>{k === 'rect' ? 'Retângulo' : 'Círculo'}</button>)}</div></div>
