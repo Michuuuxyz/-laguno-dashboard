@@ -6,7 +6,8 @@ interface Channel { id: string; name: string }
 interface Role { id: string; name: string; color?: number }
 
 interface Question { id: string; label: string; placeholder?: string; style?: 'short' | 'paragraph'; required?: boolean }
-interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; form?: Question[] }
+interface TButton { id: string; label: string; emoji?: string; style?: number; content?: string; ephemeral?: boolean }
+interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; form?: Question[]; buttons?: TButton[] }
 interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; categories?: Category[]; channelId?: string | null }
 interface Config {
   enabled?: boolean; supportRoles?: string[]; categoryChannelId?: string | null;
@@ -374,6 +375,28 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                                   <input style={{ ...input, flex: 2 }} value={q.label} onChange={e => patchCat(panel.panelId, cat.id, { form: (cat.form ?? []).map(x => x.id === q.id ? { ...x, label: e.target.value } : x) })} placeholder="Pergunta" />
                                   <select style={{ ...input, width: 120, flex: '0 0 auto' }} value={q.style ?? 'short'} onChange={e => patchCat(panel.panelId, cat.id, { form: (cat.form ?? []).map(x => x.id === q.id ? { ...x, style: e.target.value as 'short' | 'paragraph' } : x) })}><option value="short">Curta</option><option value="paragraph">Longa</option></select>
                                   <button onClick={() => patchCat(panel.panelId, cat.id, { form: (cat.form ?? []).filter(x => x.id !== q.id) })} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: 14, flex: '0 0 auto' }}>✕</button>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Botões dentro do ticket (respondem com texto ao clicar) */}
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                                <label style={{ ...lbl, marginBottom: 0 }}>Botões dentro do ticket <span style={{ opacity: .6, textTransform: 'none' }}>(respondem com texto ao clicar)</span></label>
+                                {(cat.buttons ?? []).length < 10 && <button onClick={() => patchCat(panel.panelId, cat.id, { buttons: [...(cat.buttons ?? []), { id: sid(), label: 'Botão', style: 2, content: '', ephemeral: true }] })} style={{ background: 'none', border: '1px solid var(--line)', borderRadius: 6, padding: '2px 8px', fontSize: 11.5, color: 'var(--green)', cursor: 'pointer' }}>+ Botão</button>}
+                              </div>
+                              {(cat.buttons ?? []).map(b => (
+                                <div key={b.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 6, display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--card)' }}>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 60px 1fr auto', gap: 6, alignItems: 'center' }}>
+                                    <input style={input} value={b.label} onChange={e => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, label: e.target.value } : x) })} placeholder="Texto do botão" />
+                                    <input style={input} value={b.emoji ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, emoji: e.target.value } : x) })} placeholder="😀" />
+                                    <select style={input} value={b.style ?? 2} onChange={e => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, style: parseInt(e.target.value) } : x) })}>{STYLE_OPTS.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}</select>
+                                    <button onClick={() => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).filter(x => x.id !== b.id) })} style={{ ...miniBtn, color: '#f87171', borderColor: 'rgba(248,113,113,.3)' }}>✕</button>
+                                  </div>
+                                  <textarea rows={2} style={{ ...input, resize: 'vertical' }} value={b.content ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, content: e.target.value } : x) })} placeholder="Texto mostrado ao clicar (ex: as regras, um FAQ, instruções…)" />
+                                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-2)', cursor: 'pointer' }}>
+                                    <input type="checkbox" checked={b.ephemeral !== false} onChange={e => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, ephemeral: e.target.checked } : x) })} /> Só quem clica vê a resposta
+                                  </label>
                                 </div>
                               ))}
                             </div>

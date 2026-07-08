@@ -3,7 +3,8 @@ import { assertGuildAccess } from '@/lib/guildAuth';
 import clientPromise from '@/lib/mongodb';
 
 interface Question { id: string; label: string; placeholder?: string; style?: string; required?: boolean }
-interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; form?: Question[] }
+interface TButton { id: string; label: string; emoji?: string; style?: number; content?: string; ephemeral?: boolean }
+interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; form?: Question[]; buttons?: TButton[] }
 interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; categories?: Category[] }
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
@@ -32,6 +33,14 @@ function sanitizePanel(p: Panel): Record<string, unknown> {
       placeholder: String(q.placeholder || '').slice(0, 100),
       style:       q.style === 'paragraph' ? 'paragraph' : 'short',
       required:    q.required !== false,
+    })),
+    buttons: (c.buttons ?? []).slice(0, 10).map((b) => ({
+      id:        String(b.id || Math.random().toString(36).slice(2, 8)),
+      label:     String(b.label || 'Botão').slice(0, 80),
+      emoji:     String(b.emoji || '').slice(0, 40),
+      style:     [1, 2, 3, 4].includes(Number(b.style)) ? Number(b.style) : 2,
+      content:   String(b.content || '').slice(0, 2000),
+      ephemeral: b.ephemeral !== false,
     })),
   }));
   return {
