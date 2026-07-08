@@ -7,7 +7,7 @@ interface Role { id: string; name: string; color?: number }
 
 interface Question { id: string; label: string; placeholder?: string; style?: 'short' | 'paragraph'; required?: boolean }
 interface TButton { id: string; label: string; emoji?: string; style?: number; content?: string; ephemeral?: boolean }
-interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; form?: Question[]; buttons?: TButton[] }
+interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; categoryChannelId?: string | null; supportChannelId?: string | null; supportRoles?: string[]; form?: Question[]; buttons?: TButton[] }
 interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; categories?: Category[]; channelId?: string | null }
 interface Config {
   enabled?: boolean; supportRoles?: string[]; categoryChannelId?: string | null;
@@ -423,6 +423,49 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                               <div><label style={lbl}>Cor do botão</label><select style={input} value={cat.style ?? 2} onChange={e => patchCat(panel.panelId, cat.id, { style: parseInt(e.target.value) })}>{STYLE_OPTS.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}</select></div>
                               <div><label style={lbl}>Formato</label><select style={input} value={cat.format ?? 'default'} onChange={e => patchCat(panel.panelId, cat.id, { format: e.target.value })}><option value="default">Por defeito</option><option value="channel">Canal</option><option value="thread">Thread</option></select></div>
                             </div>
+                            {/* Destino próprio desta categoria (senão usa o do servidor) */}
+                            {(() => {
+                              const fmt = (cat.format && cat.format !== 'default') ? cat.format : (config.defaultFormat ?? 'channel');
+                              return (
+                                <div>
+                                  {fmt === 'thread' ? (
+                                    <><label style={lbl}>Canal de destino <span style={{ opacity: .6, textTransform: 'none' }}>(só esta categoria)</span></label>
+                                      <select style={input} value={cat.supportChannelId ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { supportChannelId: e.target.value || null })}>
+                                        <option value="">— usar o canal do servidor —</option>
+                                        {channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
+                                      </select></>
+                                  ) : (
+                                    <><label style={lbl}>Categoria de destino <span style={{ opacity: .6, textTransform: 'none' }}>(só esta categoria)</span></label>
+                                      <select style={input} value={cat.categoryChannelId ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { categoryChannelId: e.target.value || null })}>
+                                        <option value="">— usar a categoria do servidor —</option>
+                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                      </select></>
+                                  )}
+                                  <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5, lineHeight: 1.45 }}>Ex: os tickets de &quot;Parcerias&quot; vão para um sítio, os de &quot;Suporte&quot; para outro.</p>
+                                </div>
+                              );
+                            })()}
+
+                            {/* Cargos extra que veem SÓ esta categoria */}
+                            <div>
+                              <label style={lbl}>Cargos extra desta categoria <span style={{ opacity: .6, textTransform: 'none' }}>(além dos do servidor)</span></label>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+                                {(cat.supportRoles ?? []).map(rid => {
+                                  const r = roles.find(x => x.id === rid);
+                                  return (
+                                    <span key={rid} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 6, padding: '3px 8px', fontSize: 12 }}>
+                                      {r?.name ?? rid}
+                                      <button onClick={() => patchCat(panel.panelId, cat.id, { supportRoles: (cat.supportRoles ?? []).filter(x => x !== rid) })} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 12 }}>✕</button>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                              <select style={input} value="" onChange={e => { const v = e.target.value; if (v && !(cat.supportRoles ?? []).includes(v)) patchCat(panel.panelId, cat.id, { supportRoles: [...(cat.supportRoles ?? []), v] }); }}>
+                                <option value="">+ adicionar cargo…</option>
+                                {roles.filter(r => !(cat.supportRoles ?? []).includes(r.id)).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                              </select>
+                            </div>
+
                             <div><label style={lbl}>Mensagem de abertura do ticket</label><textarea rows={2} style={{ ...input, resize: 'vertical' }} value={cat.openingMessage ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { openingMessage: e.target.value })} /></div>
 
                             {/* Formulário */}

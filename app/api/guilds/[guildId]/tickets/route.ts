@@ -4,7 +4,7 @@ import clientPromise from '@/lib/mongodb';
 
 interface Question { id: string; label: string; placeholder?: string; style?: string; required?: boolean }
 interface TButton { id: string; label: string; emoji?: string; style?: number; content?: string; ephemeral?: boolean }
-interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; form?: Question[]; buttons?: TButton[] }
+interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; categoryChannelId?: string | null; supportChannelId?: string | null; supportRoles?: string[]; form?: Question[]; buttons?: TButton[] }
 interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; categories?: Category[] }
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
@@ -25,8 +25,11 @@ function sanitizePanel(p: Panel): Record<string, unknown> {
     emoji:          String(c.emoji || '').slice(0, 40),
     style:          [1, 2, 3, 4].includes(Number(c.style)) ? Number(c.style) : 2,
     color:          String(c.color || '#6db83e').slice(0, 9),
-    openingMessage: String(c.openingMessage || '').slice(0, 1500),
-    format:         ['channel', 'thread', 'default'].includes(String(c.format)) ? String(c.format) : 'default',
+    openingMessage:    String(c.openingMessage || '').slice(0, 1500),
+    format:            ['channel', 'thread', 'default'].includes(String(c.format)) ? String(c.format) : 'default',
+    categoryChannelId: c.categoryChannelId || null,
+    supportChannelId:  c.supportChannelId || null,
+    supportRoles:      Array.isArray(c.supportRoles) ? c.supportRoles.slice(0, 15) : [],
     form: (c.form ?? []).slice(0, 5).map((q) => ({
       id:          String(q.id || Math.random().toString(36).slice(2, 8)),
       label:       String(q.label || 'Pergunta').slice(0, 45),
