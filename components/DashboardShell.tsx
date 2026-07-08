@@ -10,21 +10,23 @@ interface Guild { id: string; name: string; icon: string | null; }
 interface User  { name?: string | null; image?: string | null; }
 interface Props { user: User; activeGuilds: Guild[]; guildMap: Record<string, Guild>; children: React.ReactNode; }
 
+// Ícones duotone — preenchidos, duas tonalidades da MESMA cor (currentColor),
+// por isso ficam verdes quando o módulo está ativo e cinza quando não está.
 const di = (p: React.ReactNode) => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>{p}</svg>
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>{p}</svg>
 );
 const NAV_ICONS: Record<string, React.ReactNode> = {
-  overview:   di(<><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>),
-  settings:   di(<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 6 9.4l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 11 4.6V4.5a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 2.82 1.17l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 11h.1a2 2 0 1 1 0 4h-.1z"/></>),
-  welcome:    di(<><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="9" cy="7" r="3.2"/><path d="M17 11l2 2 4-4"/></>),
-  roles:      di(<><path d="M20.6 13.4L13 21a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 2.6 12l.4-6a2 2 0 0 1 2-2l6-.4a2 2 0 0 1 1.6.6l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="8.5" r="1.3"/></>),
-  giveaways:  di(<><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v8h14v-8M12 8v13"/><path d="M12 8S10.5 3 7.8 3.6C6 4 6 6.5 8 7.4 9.4 8 12 8 12 8zM12 8s1.5-5 4.2-4.4C18 4 18 6.5 16 7.4 14.6 8 12 8 12 8z"/></>),
-  builder:    di(<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>),
-  tickets:    di(<><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z"/><path d="M9 7v10"/></>),
-  moderation: di(<><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></>),
-  automod:    di(<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/>),
-  warns:      di(<><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>),
-  logs:       di(<><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5h7"/></>),
+  overview:   di(<><rect x="3" y="3" width="8" height="8" rx="2.2" opacity=".35"/><rect x="13" y="3" width="8" height="8" rx="2.2" opacity=".35"/><rect x="3" y="13" width="8" height="8" rx="2.2" opacity=".35"/><rect x="13" y="13" width="8" height="8" rx="2.2"/></>),
+  settings:   di(<><rect x="3" y="5.1" width="18" height="2.8" rx="1.4" opacity=".35"/><rect x="3" y="16.1" width="18" height="2.8" rx="1.4" opacity=".35"/><circle cx="9" cy="6.5" r="3.1"/><circle cx="15" cy="17.5" r="3.1"/></>),
+  welcome:    di(<><path d="M4 20.5a8 8 0 0 1 16 0 .9.9 0 0 1-.9.9H4.9a.9.9 0 0 1-.9-.9z" opacity=".35"/><circle cx="12" cy="7.5" r="4.3"/></>),
+  roles:      di(<><path d="M11.7 3.4A2 2 0 0 0 10.3 3H5.4a2 2 0 0 0-2 2v4.9a2 2 0 0 0 .6 1.4l8 8a2 2 0 0 0 2.8 0l4.9-4.9a2 2 0 0 0 0-2.8z" opacity=".35"/><circle cx="7.7" cy="7.7" r="1.9"/></>),
+  giveaways:  di(<><rect x="4" y="11" width="16" height="10" rx="2" opacity=".35"/><rect x="2.5" y="7" width="19" height="4.6" rx="1.4"/><rect x="10.4" y="7" width="3.2" height="14" opacity=".6"/></>),
+  builder:    di(<><path d="M4 4h16a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 20 16H9.5L4.8 20a.8.8 0 0 1-1.3-.6V5.5A1.5 1.5 0 0 1 4 4z" opacity=".35"/><rect x="7" y="8" width="10" height="2" rx="1"/><rect x="7" y="11.5" width="6.5" height="2" rx="1"/></>),
+  tickets:    di(<><path d="M3 8.5A2 2 0 0 1 5 6.5h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z" opacity=".35"/><rect x="8.6" y="6.5" width="2" height="12" rx="1"/></>),
+  moderation: di(<><path d="M12 2.2l7.5 2.9a1 1 0 0 1 .6 1v5.4c0 4.9-3.3 8.4-7.8 9.9a1 1 0 0 1-.6 0C7.2 19.9 3.9 16.4 3.9 11.5V6.1a1 1 0 0 1 .6-1z" opacity=".35"/><path d="M10.6 13.2l-1.7-1.7-1.5 1.5 3.2 3.2 5.3-5.3-1.5-1.5z"/></>),
+  automod:    di(<><path d="M13.5 2.2 3.6 14a.7.7 0 0 0 .5 1.1H9l-1 6.3a.6.6 0 0 0 1.1.4L20.4 10a.7.7 0 0 0-.5-1.1H15z" opacity=".35"/><path d="M13.5 2.2 3.6 14a.7.7 0 0 0 .5 1.1H9z"/></>),
+  warns:      di(<><path d="M10.3 3.6 1.9 18a1.6 1.6 0 0 0 1.4 2.4h17.4a1.6 1.6 0 0 0 1.4-2.4L13.7 3.6a1.6 1.6 0 0 0-2.8 0z" opacity=".35"/><rect x="11" y="8.5" width="2" height="5.5" rx="1"/><circle cx="12" cy="17" r="1.3"/></>),
+  logs:       di(<><path d="M6 3h7.2L19 8.8V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" opacity=".35"/><path d="M13 3v5a1 1 0 0 0 1 1h5" opacity=".55"/><rect x="8" y="12" width="8" height="1.9" rx=".95"/><rect x="8" y="15.6" width="8" height="1.9" rx=".95"/></>),
 };
 const NAV_MODULES = [
   { id: 'overview',   label: 'Overview',        section: 'GERAL' },
