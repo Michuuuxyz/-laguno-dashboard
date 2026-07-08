@@ -203,6 +203,7 @@ export function Navbar() {
   const { data: session } = useSession();
   const [userOpen, setUserOpen]     = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled]     = useState(false);
   const userRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -213,24 +214,54 @@ export function Navbar() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // A cápsula "assenta" quando fazes scroll: fica mais opaca e ganha um halo verde.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
-    <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(13,13,15,.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--line)' }}>
+    <header style={{ position: 'sticky', top: 0, zIndex: 100, pointerEvents: 'none' }}>
       <style>{`
         @keyframes dropdown-in { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }
-        /* (animações do mega-menu agora via framer-motion, como o ScrollReveal) */
+        @keyframes nav-live { 0%,100% { box-shadow: 0 0 0 0 rgba(109,184,62,.55) } 50% { box-shadow: 0 0 0 5px rgba(109,184,62,0) } }
         .nav-desktop { display: flex; }
         .nav-burger  { display: none; }
+        .nav-capsule { transition: background .3s ease, border-color .3s ease, box-shadow .3s ease; }
+        .nav-capsule::before {
+          content:''; position:absolute; inset:0; border-radius:inherit; padding:1px;
+          background: linear-gradient(120deg, rgba(109,184,62,.35), transparent 30%, transparent 70%, rgba(109,184,62,.22));
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none; opacity:.8;
+        }
         @media (max-width: 780px) {
           .nav-desktop { display: none !important; }
           .nav-burger  { display: flex !important; }
         }
       `}</style>
-      <div style={{ height: 58, display: 'flex', alignItems: 'center', padding: '0 clamp(16px,4vw,48px)', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: 'clamp(10px,1.5vw,15px) clamp(12px,4vw,28px) 0' }}>
+        <div className="nav-capsule" style={{
+          pointerEvents: 'auto', position: 'relative',
+          height: 56, width: '100%', maxWidth: 1040,
+          display: 'flex', alignItems: 'center',
+          padding: '0 10px 0 clamp(14px,2vw,20px)',
+          borderRadius: 18,
+          background: scrolled ? 'rgba(14,15,14,.85)' : 'rgba(18,20,18,.55)',
+          border: `1px solid ${scrolled ? 'rgba(109,184,62,.14)' : 'rgba(255,255,255,.06)'}`,
+          backdropFilter: 'blur(22px) saturate(150%)',
+          WebkitBackdropFilter: 'blur(22px) saturate(150%)',
+          boxShadow: scrolled
+            ? '0 14px 44px rgba(0,0,0,.5), 0 0 34px rgba(109,184,62,.07)'
+            : '0 8px 30px rgba(0,0,0,.32)',
+        }}>
 
-        {/* Logo */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', flexShrink: 0, marginRight: 32 }}>
-          <Image src="/laguno.png" alt="Laguno" width={52} height={52} style={{ objectFit: 'contain', flexShrink: 0 }} />
+        {/* Logo — com um ponto "vivo" a pulsar, como o guardião acordado */}
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', flexShrink: 0, marginRight: 28 }}>
+          <Image src="/laguno.png" alt="Laguno" width={40} height={40} style={{ objectFit: 'contain', flexShrink: 0 }} />
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-.02em' }}>Laguno</span>
+          <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', animation: 'nav-live 2.6s ease-in-out infinite', marginLeft: 1, marginTop: 2 }} />
         </Link>
 
         {/* Center nav (desktop) — painel partilhado com slide entre categorias */}
@@ -314,13 +345,20 @@ export function Navbar() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
           )}
         </button>
+        </div>
       </div>
 
       {/* Painel mobile */}
       {mobileOpen && (
         <div className="nav-burger" style={{
-          flexDirection: 'column', padding: '8px 16px 18px', gap: 2,
-          borderTop: '1px solid var(--line)', background: 'rgba(13,13,15,.98)',
+          pointerEvents: 'auto',
+          flexDirection: 'column', gap: 2,
+          margin: '10px clamp(12px,4vw,28px) 0',
+          padding: '10px 12px 14px',
+          border: '1px solid rgba(255,255,255,.07)', borderRadius: 16,
+          background: 'rgba(14,15,14,.94)', backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: '0 16px 44px rgba(0,0,0,.5)',
           animation: 'dropdown-in .15s ease both',
         }}>
           {[
