@@ -34,15 +34,14 @@ const miniBtn: React.CSSProperties = { width: 26, height: 26, borderRadius: 6, b
 
 const ACTION_OPTS = [
   { v: 'message', l: 'Enviar uma mensagem' },
-  { v: 'role', l: 'Dar / tirar um cargo' },
   { v: 'link', l: 'Abrir um link' },
   { v: 'close', l: 'Fechar o ticket' },
 ];
 
 /* Editor de um botão dentro do ticket — texto/emoji/cor + a AÇÃO que executa.
    Partilhado pelos botões da categoria e pelos botões extra do servidor. */
-function ButtonEditor({ b, roles, onChange, onRemove }: {
-  b: TButton; roles: Role[]; onChange: (patch: Partial<TButton>) => void; onRemove: () => void;
+function ButtonEditor({ b, onChange, onRemove }: {
+  b: TButton; onChange: (patch: Partial<TButton>) => void; onRemove: () => void;
 }) {
   const action = b.action || 'message';
   return (
@@ -63,12 +62,6 @@ function ButtonEditor({ b, roles, onChange, onRemove }: {
           <input type="checkbox" checked={b.ephemeral !== false} onChange={e => onChange({ ephemeral: e.target.checked })} /> Só quem clica vê a resposta
         </label>
       </>}
-      {action === 'role' && (
-        <select style={input} value={b.roleId ?? ''} onChange={e => onChange({ roleId: e.target.value })}>
-          <option value="">— escolhe o cargo a dar/tirar —</option>
-          {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-        </select>
-      )}
       {action === 'link' && (
         <input style={input} value={b.url ?? ''} onChange={e => onChange({ url: e.target.value })} placeholder="https://… — o botão abre este endereço" />
       )}
@@ -466,7 +459,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                   {(config.extraButtons ?? []).length < 5 && <button onClick={() => setC({ extraButtons: [...(config.extraButtons ?? []), { id: sid(), label: 'Botão', style: 2, action: 'message', content: '', ephemeral: true }] })} style={{ background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 6, padding: '4px 10px', fontSize: 12, color: 'var(--green)', cursor: 'pointer', flexShrink: 0 }}>+ Botão</button>}
                 </div>
                 {(config.extraButtons ?? []).map(b => (
-                  <ButtonEditor key={b.id} b={b} roles={roles}
+                  <ButtonEditor key={b.id} b={b}
                     onChange={patch => setC({ extraButtons: (config.extraButtons ?? []).map(x => x.id === b.id ? { ...x, ...patch } : x) })}
                     onRemove={() => setC({ extraButtons: (config.extraButtons ?? []).filter(x => x.id !== b.id) })} />
                 ))}
@@ -670,7 +663,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                                 {(cat.buttons ?? []).length < 10 && <button onClick={() => patchCat(panel.panelId, cat.id, { buttons: [...(cat.buttons ?? []), { id: sid(), label: 'Botão', style: 2, action: 'message', content: '', ephemeral: true }] })} style={{ background: 'none', border: '1px solid var(--line)', borderRadius: 6, padding: '2px 8px', fontSize: 11.5, color: 'var(--green)', cursor: 'pointer' }}>+ Botão</button>}
                               </div>
                               {(cat.buttons ?? []).map(b => (
-                                <ButtonEditor key={b.id} b={b} roles={roles}
+                                <ButtonEditor key={b.id} b={b}
                                   onChange={patch => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).map(x => x.id === b.id ? { ...x, ...patch } : x) })}
                                   onRemove={() => patchCat(panel.panelId, cat.id, { buttons: (cat.buttons ?? []).filter(x => x.id !== b.id) })} />
                               ))}

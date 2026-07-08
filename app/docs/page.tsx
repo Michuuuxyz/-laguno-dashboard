@@ -817,7 +817,6 @@ function Content({ page }: { page: PageId }) {
         <div style={{ marginBottom: 16 }}>
           {[
             ['Enviar mensagem', 'Responde com um texto — privado (só quem clica) ou público. Ideal para regras, FAQ ou instruções.'],
-            ['Dar / tirar cargo', 'Dá um cargo ao membro que clica — ou retira-o, se já o tiver. Ex: marcar como verificado, dar acesso.'],
             ['Abrir um link',   'Um botão que abre um URL (site, formulário, servidor de apoio).'],
             ['Fechar o ticket', 'Atalho para fechar ali mesmo, pedindo o motivo. Só a staff e o dono do ticket o conseguem fechar.'],
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}

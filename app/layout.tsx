@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
+import { Inter, Bricolage_Grotesque } from 'next/font/google';
 import { SessionProvider } from '@/components/SessionProvider';
 import { PageTransition } from '@/components/PageTransition';
 import './globals.css';
+
+// Self-hosted via next/font — sem @import render-blocking, sem layout shift.
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+const bricolage = Bricolage_Grotesque({ subsets: ['latin'], variable: '--font-display', display: 'swap' });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.lagunoapp.xyz'),
@@ -101,7 +106,7 @@ const JSON_LD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt">
+    <html lang="pt" className={`${inter.variable} ${bricolage.variable}`}>
       <body>
         <script
           type="application/ld+json"

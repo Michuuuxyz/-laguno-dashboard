@@ -2,14 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { WelcomeTab } from './WelcomeTab';
-import { RolesTab } from './RolesTab';
-import { GiveawayModule } from './modules/GiveawayModule';
-import { MessageBuilderTab } from './MessageBuilderTab';
-import { TicketsTab } from './TicketsTab';
-import { BotProfileTab } from './BotProfileTab';
+import dynamic from 'next/dynamic';
 import { WORD_TEMPLATE_WORDS } from '@/lib/wordTemplates';
 import { useStats } from '@/lib/hooks/useStats';
+
+// Cada módulo carrega o seu JS só quando o separador é aberto (code-splitting).
+// Reduz muito o JS inicial da dashboard. São interativos → ssr:false.
+const tabSkel = () => <div className="skel" style={{ height: 220, borderRadius: 12 }} />;
+const WelcomeTab       = dynamic(() => import('./WelcomeTab').then(m => m.WelcomeTab),             { ssr: false, loading: tabSkel });
+const ReactionRolesTab = dynamic(() => import('./ReactionRolesTab').then(m => m.ReactionRolesTab), { ssr: false, loading: tabSkel });
+const AutoRoleTab      = dynamic(() => import('./AutoRoleTab').then(m => m.AutoRoleTab),           { ssr: false, loading: tabSkel });
+const GiveawayModule   = dynamic(() => import('./modules/GiveawayModule').then(m => m.GiveawayModule), { ssr: false, loading: tabSkel });
+const MessageBuilderTab= dynamic(() => import('./MessageBuilderTab').then(m => m.MessageBuilderTab), { ssr: false, loading: tabSkel });
+const TicketsTab       = dynamic(() => import('./TicketsTab').then(m => m.TicketsTab),             { ssr: false, loading: tabSkel });
+const BotProfileTab    = dynamic(() => import('./BotProfileTab').then(m => m.BotProfileTab),       { ssr: false, loading: tabSkel });
 
 interface Channel { id: string; name: string; }
 interface Warn { _id: string; userId: string; reason: string; moderatorId: string; createdAt: string; }
@@ -218,8 +224,9 @@ const NAV = [
   {
     section: 'MÓDULOS',
     items: [
-      { id: 'welcome',    label: 'Boas-Vindas',       icon: <IconUsers /> },
-      { id: 'roles',      label: 'Roles & Painéis',   icon: <IconTag /> },
+      { id: 'welcome',       label: 'Boas-Vindas',    icon: <IconUsers /> },
+      { id: 'reactionroles', label: 'Reaction Roles', icon: <IconTag /> },
+      { id: 'autorole',      label: 'Auto-Role',      icon: <IconUsers /> },
     ],
   },
   {
@@ -684,13 +691,13 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
             || config.autoMod.keywordPreset?.enabled || config.autoMod.memberProfile?.enabled
             || config.autoMod.capsFilter?.enabled);
           const logsOn  = Object.values(config.logs).some(c => (c as LogCategory)?.channelId);
-          const rolesOn = config.autoroles.length > 0 || config.rolePanels.length > 0;
           const modules = [
             { id: 'moderation', label: 'Moderação',   icon: <IconShield />,  on: true,  desc: 'Comandos /ban, /kick, /warn e mais.', always: true },
             { id: 'automod',    label: 'Auto-Mod',    icon: <IconBolt />,    on: amOn,  desc: amOn ? 'Regras ativas a proteger o servidor.' : 'Nenhuma regra ativa. Ativa em 1 clique.' },
             { id: 'welcome',    label: 'Boas-Vindas', icon: <IconUsers />,   on: !!(config.welcome?.enabled || config.goodbye?.enabled), desc: 'Mensagens de entrada e saída.' },
             { id: 'logs',       label: 'Logs',        icon: <IconFile />,    on: logsOn, desc: logsOn ? 'Eventos a serem registados.' : 'Sem canal de logs configurado.' },
-            { id: 'roles',      label: 'Self-Roles',  icon: <IconTag />,     on: rolesOn, desc: `${config.autoroles.length} auto-role${config.autoroles.length !== 1 ? 's' : ''} · ${config.rolePanels.length} painel${config.rolePanels.length !== 1 ? 'éis' : ''}` },
+            { id: 'reactionroles', label: 'Reaction Roles', icon: <IconTag />,   on: config.rolePanels.length > 0, desc: `${config.rolePanels.length} painel${config.rolePanels.length !== 1 ? 'éis' : ''} de cargos.` },
+            { id: 'autorole',      label: 'Auto-Role',      icon: <IconUsers />, on: config.autoroles.length > 0,  desc: config.autoroles.length > 0 ? `${config.autoroles.length} cargo${config.autoroles.length !== 1 ? 's' : ''} na entrada.` : 'Sem cargos automáticos.' },
             { id: 'tickets',    label: 'Tickets',     icon: <IconTicket />,  on: !!config.tickets?.enabled, desc: config.tickets?.enabled ? 'Sistema de tickets ativo.' : 'Desativado. Ativa para os membros abrirem tickets.' },
             { id: 'warns',      label: 'Auto-ação de Avisos', icon: <IconWarn />, on: !!config.warns.autoAction?.enabled, desc: config.warns.autoAction?.enabled ? `${config.warns.autoAction.action} ao fim de ${config.warns.autoAction.threshold} avisos.` : 'Sem ação automática configurada.' },
           ];
@@ -1080,13 +1087,23 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         )}
 
         {/* ROLES */}
-        {active === 'roles' && (
+        {active === 'reactionroles' && (
           <div>
-            <ModuleHeader icon={<IconTag />} accent="#a78bfa" title="Roles & Painéis"
-              desc="Auto-roles na entrada e painéis de cargos com botões."
-              chip={`${config.rolePanels.length} painel${config.rolePanels.length !== 1 ? 'éis' : ''} · ${config.autoroles.length} auto-role${config.autoroles.length !== 1 ? 's' : ''}`} />
-            <RolesTab autoroles={config.autoroles} rolePanels={config.rolePanels} roles={roles}
+            <ModuleHeader icon={<IconTag />} accent="#a78bfa" title="Reaction Roles"
+              desc="Painéis com botões ou menu para os membros escolherem os seus próprios cargos."
+              chip={`${config.rolePanels.length} painel${config.rolePanels.length !== 1 ? 'éis' : ''}`} />
+            <ReactionRolesTab rolePanels={config.rolePanels} roles={roles}
               channels={channels} guildId={guildId}
+              onChange={(key, val) => setConfig(c => ({ ...c, [key]: val }))} />
+          </div>
+        )}
+
+        {active === 'autorole' && (
+          <div>
+            <ModuleHeader icon={<IconUsers />} accent="#34d399" title="Auto-Role"
+              desc="Cargos dados automaticamente quando um membro entra no servidor."
+              chip={`${config.autoroles.length} cargo${config.autoroles.length !== 1 ? 's' : ''}`} />
+            <AutoRoleTab autoroles={config.autoroles} roles={roles} guildId={guildId}
               onChange={(key, val) => setConfig(c => ({ ...c, [key]: val }))} />
           </div>
         )}
