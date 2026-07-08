@@ -1,6 +1,13 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import dynamic from 'next/dynamic';
+import { defaultCard, type WelcomeCardTemplate } from '@/lib/welcomeCard';
+
+// Editor com Konva — só no browser (ssr:false), carregado ao abrir o modo cartão.
+const WelcomeCardEditor = dynamic(() => import('./WelcomeCardEditor').then(m => m.WelcomeCardEditor), {
+  ssr: false, loading: () => <div className="skel" style={{ height: 320, borderRadius: 12 }} />,
+});
 
 interface Channel { id: string; name: string; }
 
@@ -15,6 +22,8 @@ export interface WelcomeConfig {
   bannerUrl?:  string;
   showAvatar?: boolean;
   footer?:     string;
+  cardEnabled?: boolean;
+  card?:       WelcomeCardTemplate | null;
 }
 
 export interface GoodbyeConfig {
@@ -460,12 +469,42 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
                   onChange={e => setW({ deleteAfter: Math.max(0, parseInt(e.target.value) || 0) })} />
               </div>
 
-              <MessagePreview
-                message={welcome.message}
-                accentColor={welcome.accentColor}
-                guildName={guildName}
-                onEdit={() => setEditingModal('welcome')}
-              />
+              {/* Estilo: mensagem rica (Components V2) ou cartão de imagem (editor) */}
+              <div>
+                <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 6 }}>Estilo da mensagem de entrada</p>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {[{ v: false, l: 'Mensagem rica', d: 'Container com texto e variáveis' }, { v: true, l: 'Cartão de imagem', d: 'Imagem desenhada, estilo MEE6' }].map(o => {
+                    const on = !!welcome.cardEnabled === o.v;
+                    return (
+                      <button key={String(o.v)} onClick={() => setW({ cardEnabled: o.v, ...(o.v && !welcome.card ? { card: defaultCard() } : {}) })} style={{
+                        flex: 1, textAlign: 'left', padding: '9px 12px', borderRadius: 8, cursor: 'pointer',
+                        border: on ? '1px solid var(--green)' : '1px solid var(--line)',
+                        background: on ? 'rgba(109,184,62,.08)' : 'var(--surface)',
+                      }}>
+                        <p style={{ fontSize: 12.5, fontWeight: 600, color: on ? 'var(--green)' : 'var(--text-1)' }}>{o.l}</p>
+                        <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{o.d}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {welcome.cardEnabled ? (
+                <>
+                  <WelcomeCardEditor card={welcome.card ?? defaultCard()} onChange={c => setW({ card: c })} />
+                  <div>
+                    <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 6 }}>Texto enviado junto com a imagem <span style={{ opacity: .6 }}>(opcional — útil para mencionar o membro)</span></p>
+                    <MessagePreview message={welcome.message} accentColor={welcome.accentColor} guildName={guildName} onEdit={() => setEditingModal('welcome')} />
+                  </div>
+                </>
+              ) : (
+                <MessagePreview
+                  message={welcome.message}
+                  accentColor={welcome.accentColor}
+                  guildName={guildName}
+                  onEdit={() => setEditingModal('welcome')}
+                />
+              )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button onClick={() => sendTest('welcome')} disabled={!welcome.channelId || testStatusWelcome === 'loading'} style={{

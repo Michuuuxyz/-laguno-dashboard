@@ -1,0 +1,205 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { Stage, Layer, Rect, Text, Circle, Image as KImage, Transformer } from 'react-konva';
+import type Konva from 'konva';
+import { CARD_W, CARD_H, type WCLayer, type WelcomeCardTemplate } from '@/lib/welcomeCard';
+
+const CANVAS_W = CARD_W;
+const CANVAS_H = CARD_H;
+const SAMPLE_AVATAR = '/laguno.png';
+
+const FONTS = [
+  { v: 'Poppins Bold', l: 'Poppins Bold', w: '700' },
+  { v: 'Poppins SemiBold', l: 'Poppins SemiBold', w: '600' },
+  { v: 'Poppins', l: 'Poppins Regular', w: '400' },
+];
+const fontWeight = (f: string) => FONTS.find(x => x.v === f)?.w ?? '700';
+
+const sid = () => Math.random().toString(36).slice(2, 8);
+
+/* Substitui as variáveis por um exemplo, para o preview */
+function sample(s: string) {
+  return (s || '').replace(/{user}/g, 'Michu').replace(/{username}/g, 'michu').replace(/{count}/g, '1234').replace(/{server}/g, 'Laguno');
+}
+
+function useHtmlImage(src?: string) {
+  const [img, setImg] = useState<HTMLImageElement | null>(null);
+  useEffect(() => {
+    if (!src) { setImg(null); return; }
+    const i = new window.Image();
+    i.crossOrigin = 'anonymous';
+    i.onload = () => setImg(i);
+    i.onerror = () => setImg(null);
+    i.src = src;
+    return () => { i.onload = null; i.onerror = null; };
+  }, [src]);
+  return img;
+}
+
+const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 5, display: 'block' };
+const inp: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 7, padding: '7px 10px', color: 'var(--text-1)', fontSize: 13, width: '100%', outline: 'none' };
+
+export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplate; onChange: (c: WelcomeCardTemplate) => void }) {
+  const [selId, setSelId] = useState<string | null>(null);
+  const [display, setDisplay] = useState(680);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const trRef = useRef<Konva.Transformer>(null);
+  const stageRef = useRef<Konva.Stage>(null);
+
+  const scale = display / CANVAS_W;
+  const bgImg = useHtmlImage(card.bgType === 'image' ? card.bgUrl : undefined);
+  const avatarImg = useHtmlImage(SAMPLE_AVATAR);
+
+  // Carrega a Poppins no browser (fidelidade do preview com o render do bot)
+  useEffect(() => {
+    const id = 'poppins-font-editor';
+    if (document.getElementById(id)) return;
+    const l = document.createElement('link');
+    l.id = id; l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap';
+    document.head.appendChild(l);
+  }, []);
+
+  // Largura responsiva do palco
+  useEffect(() => {
+    const upd = () => { if (wrapRef.current) setDisplay(Math.min(wrapRef.current.clientWidth, 820)); };
+    upd();
+    window.addEventListener('resize', upd);
+    return () => window.removeEventListener('resize', upd);
+  }, []);
+
+  // Liga o transformer ao nó selecionado
+  useEffect(() => {
+    const tr = trRef.current; const stage = stageRef.current;
+    if (!tr || !stage) return;
+    if (!selId) { tr.nodes([]); tr.getLayer()?.batchDraw(); return; }
+    const node = stage.findOne('#' + selId);
+    if (node) { tr.nodes([node]); tr.getLayer()?.batchDraw(); }
+    else tr.nodes([]);
+  }, [selId, card.layers]);
+
+  const patch = (id: string, v: Partial<WCLayer>) =>
+    onChange({ ...card, layers: card.layers.map(l => l.id === id ? { ...l, ...v } as WCLayer : l) });
+  const setBg = (v: Partial<WelcomeCardTemplate>) => onChange({ ...card, ...v });
+  const remove = (id: string) => { onChange({ ...card, layers: card.layers.filter(l => l.id !== id) }); setSelId(null); };
+  const addText = () => { const id = sid(); onChange({ ...card, layers: [...card.layers, { id, type: 'text', x: 262, y: 170, width: 500, text: 'Novo texto', size: 40, color: '#ffffff', font: 'Poppins Bold', align: 'center' }] }); setSelId(id); };
+  const addAvatar = () => { const id = sid(); onChange({ ...card, layers: [...card.layers, { id, type: 'avatar', x: 100, y: 100, size: 160, shape: 'circle', borderColor: '#6db83e', borderWidth: 6 }] }); setSelId(id); };
+
+  const sel = card.layers.find(l => l.id === selId) ?? null;
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 280px', gap: 16, alignItems: 'start' }} className="wc-grid">
+      {/* ── Palco ── */}
+      <div ref={wrapRef} style={{ minWidth: 0 }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+          <button onClick={addText} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Texto</button>
+          <button onClick={addAvatar} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Avatar</button>
+          <span style={{ fontSize: 11.5, color: 'var(--text-3)', alignSelf: 'center' }}>Arrasta os elementos. Clica num para editar à direita.</span>
+        </div>
+        <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)', width: display, maxWidth: '100%' }}>
+          <Stage ref={stageRef} width={display} height={CANVAS_H * scale} scaleX={scale} scaleY={scale}
+            onMouseDown={e => { if (e.target === e.target.getStage()) setSelId(null); }}>
+            <Layer>
+              <Rect x={0} y={0} width={CANVAS_W} height={CANVAS_H} fill={card.bgColor || '#0d0d0f'} />
+              {card.bgType === 'image' && bgImg && (() => {
+                const r = Math.max(CANVAS_W / bgImg.width, CANVAS_H / bgImg.height);
+                const w = bgImg.width * r, h = bgImg.height * r;
+                return <KImage image={bgImg} x={(CANVAS_W - w) / 2} y={(CANVAS_H - h) / 2} width={w} height={h} listening={false} />;
+              })()}
+
+              {card.layers.map(l => {
+                if (l.type === 'avatar') {
+                  const common = {
+                    id: l.id, draggable: true,
+                    onClick: () => setSelId(l.id), onTap: () => setSelId(l.id),
+                    onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => patch(l.id, { x: Math.round(e.target.x()), y: Math.round(e.target.y()) }),
+                    stroke: l.borderColor, strokeWidth: l.borderWidth || 0,
+                  };
+                  if (l.shape === 'square') {
+                    return <Rect key={l.id} {...common} x={l.x} y={l.y} width={l.size} height={l.size}
+                      fillPatternImage={avatarImg ?? undefined}
+                      fillPatternScaleX={avatarImg ? l.size / avatarImg.width : 1}
+                      fillPatternScaleY={avatarImg ? l.size / avatarImg.height : 1}
+                      onTransformEnd={(e) => { const n = e.target; const s = n.scaleX(); n.scaleX(1); n.scaleY(1); patch(l.id, { x: Math.round(n.x()), y: Math.round(n.y()), size: Math.round(l.size * s) }); }} />;
+                  }
+                  return <Circle key={l.id} {...common} x={l.x + l.size / 2} y={l.y + l.size / 2} radius={l.size / 2}
+                    fillPatternImage={avatarImg ?? undefined}
+                    fillPatternScaleX={avatarImg ? l.size / avatarImg.width : 1}
+                    fillPatternScaleY={avatarImg ? l.size / avatarImg.height : 1}
+                    fillPatternOffsetX={avatarImg ? avatarImg.width / 2 : 0}
+                    fillPatternOffsetY={avatarImg ? avatarImg.height / 2 : 0}
+                    onDragEnd={(e) => patch(l.id, { x: Math.round(e.target.x() - l.size / 2), y: Math.round(e.target.y() - l.size / 2) })}
+                    onTransformEnd={(e) => { const n = e.target; const s = n.scaleX(); n.scaleX(1); n.scaleY(1); const ns = Math.round(l.size * s); patch(l.id, { size: ns, x: Math.round(n.x() - ns / 2), y: Math.round(n.y() - ns / 2) }); }} />;
+                }
+                return <Text key={l.id} id={l.id} draggable x={l.x} y={l.y} width={l.width} text={sample(l.text)}
+                  fontSize={l.size} fill={l.color} align={l.align} fontFamily="Poppins" fontStyle={fontWeight(l.font)}
+                  onClick={() => setSelId(l.id)} onTap={() => setSelId(l.id)}
+                  onDragEnd={(e) => patch(l.id, { x: Math.round(e.target.x()), y: Math.round(e.target.y()) })}
+                  onTransformEnd={(e) => { const n = e.target as Konva.Text; const s = n.scaleX(); n.scaleX(1); n.scaleY(1); patch(l.id, { x: Math.round(n.x()), y: Math.round(n.y()), width: Math.round(l.width * s), size: Math.round(l.size * s) }); }} />;
+              })}
+
+              <Transformer ref={trRef} rotateEnabled={false} borderStroke="#6db83e" anchorStroke="#6db83e" anchorFill="#0d0d0f"
+                enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+                boundBoxFunc={(oldB, newB) => newB.width < 20 ? oldB : newB} />
+            </Layer>
+          </Stage>
+        </div>
+        {/* Variáveis */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+          {['{user}', '{username}', '{count}', '{server}'].map(v => (
+            <code key={v} style={{ fontSize: 11, background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 5, padding: '2px 6px', color: 'var(--text-2)' }}>{v}</code>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Painel de propriedades ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Fundo */}
+        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: 12 }}>
+          <p style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>Fundo</p>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+            {(['color', 'image'] as const).map(t => (
+              <button key={t} onClick={() => setBg({ bgType: t })} style={{ flex: 1, padding: '6px', borderRadius: 7, fontSize: 12, cursor: 'pointer', border: `1px solid ${card.bgType === t ? 'var(--green)' : 'var(--line)'}`, background: card.bgType === t ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: card.bgType === t ? 'var(--green)' : 'var(--text-2)' }}>{t === 'color' ? 'Cor' : 'Imagem'}</button>
+            ))}
+          </div>
+          {card.bgType === 'color'
+            ? <div style={{ display: 'flex', gap: 6 }}><input type="color" value={card.bgColor || '#0d0d0f'} onChange={e => setBg({ bgColor: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /><input style={inp} value={card.bgColor || ''} onChange={e => setBg({ bgColor: e.target.value })} /></div>
+            : <input style={inp} value={card.bgUrl || ''} onChange={e => setBg({ bgUrl: e.target.value })} placeholder="https://…/fundo.png" />}
+        </div>
+
+        {/* Elemento selecionado */}
+        {sel ? (
+          <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <p style={{ fontSize: 12.5, fontWeight: 700 }}>{sel.type === 'text' ? 'Texto' : 'Avatar'}</p>
+              <button onClick={() => remove(sel.id)} style={{ fontSize: 11.5, color: '#f87171', background: 'none', border: 'none', cursor: 'pointer' }}>Remover</button>
+            </div>
+            {sel.type === 'text' ? <>
+              <div><label style={lbl}>Conteúdo</label><input style={inp} value={sel.text} onChange={e => patch(sel.id, { text: e.target.value })} /></div>
+              <div><label style={lbl}>Fonte</label><select style={inp} value={sel.font} onChange={e => patch(sel.id, { font: e.target.value })}>{FONTS.map(f => <option key={f.v} value={f.v}>{f.l}</option>)}</select></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'end' }}>
+                <div><label style={lbl}>Tamanho ({sel.size})</label><input type="range" min={12} max={140} value={sel.size} onChange={e => patch(sel.id, { size: parseInt(e.target.value) })} style={{ width: '100%' }} /></div>
+                <div><label style={lbl}>Cor</label><input type="color" value={sel.color} onChange={e => patch(sel.id, { color: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /></div>
+              </div>
+              <div><label style={lbl}>Alinhamento</label><div style={{ display: 'flex', gap: 4 }}>{(['left', 'center', 'right'] as const).map(a => <button key={a} onClick={() => patch(sel.id, { align: a })} style={{ flex: 1, padding: '6px', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${sel.align === a ? 'var(--green)' : 'var(--line)'}`, background: sel.align === a ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: sel.align === a ? 'var(--green)' : 'var(--text-2)' }}>{a === 'left' ? 'Esq' : a === 'center' ? 'Centro' : 'Dir'}</button>)}</div></div>
+            </> : <>
+              <div><label style={lbl}>Forma</label><div style={{ display: 'flex', gap: 4 }}>{(['circle', 'square'] as const).map(s => <button key={s} onClick={() => patch(sel.id, { shape: s })} style={{ flex: 1, padding: '6px', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${sel.shape === s ? 'var(--green)' : 'var(--line)'}`, background: sel.shape === s ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: sel.shape === s ? 'var(--green)' : 'var(--text-2)' }}>{s === 'circle' ? 'Círculo' : 'Quadrado'}</button>)}</div></div>
+              <div><label style={lbl}>Tamanho ({sel.size})</label><input type="range" min={40} max={340} value={sel.size} onChange={e => patch(sel.id, { size: parseInt(e.target.value) })} style={{ width: '100%' }} /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'end' }}>
+                <div><label style={lbl}>Borda ({sel.borderWidth || 0})</label><input type="range" min={0} max={20} value={sel.borderWidth || 0} onChange={e => patch(sel.id, { borderWidth: parseInt(e.target.value) })} style={{ width: '100%' }} /></div>
+                <div><label style={lbl}>Cor</label><input type="color" value={sel.borderColor || '#6db83e'} onChange={e => patch(sel.id, { borderColor: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /></div>
+              </div>
+            </>}
+          </div>
+        ) : (
+          <div style={{ background: 'var(--card)', border: '1px dashed var(--line)', borderRadius: 10, padding: '18px 12px', textAlign: 'center', fontSize: 12, color: 'var(--text-3)' }}>
+            Clica num elemento na tela para o editares.
+          </div>
+        )}
+      </div>
+
+      <style>{`@media (max-width: 760px){ .wc-grid { grid-template-columns: 1fr !important; } }`}</style>
+    </div>
+  );
+}
