@@ -298,6 +298,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 function ModuleHeader({ icon, accent, title, desc, chip }: {
   icon: React.ReactNode; accent: string; title: string; desc: string; chip?: string;
 }) {
+  accent = '#6db83e'; // paleta unificada — o verde da marca em todos os módulos
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
       <span style={{

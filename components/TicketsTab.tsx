@@ -92,7 +92,7 @@ function Step({ n, title, desc, optional, children }: { n: number; title: string
   return (
     <div style={{ borderTop: '1px solid var(--line)', paddingTop: 16, marginTop: 16 }}>
       <div style={{ display: 'flex', gap: 11, marginBottom: 12 }}>
-        <span style={{ width: 22, height: 22, borderRadius: '50%', background: optional ? 'var(--elevated)' : 'rgba(56,189,248,.14)', color: optional ? 'var(--text-3)' : '#38bdf8', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</span>
+        <span style={{ width: 22, height: 22, borderRadius: '50%', background: optional ? 'var(--elevated)' : 'rgba(109,184,62,.14)', color: optional ? 'var(--text-3)' : 'var(--green)', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</span>
         <div>
           <p style={{ fontSize: 13.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             {title}
@@ -353,7 +353,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
           <div>
 
             {/* Explicação simples para quem nunca montou tickets */}
-            <div style={{ background: 'rgba(56,189,248,.06)', border: '1px solid rgba(56,189,248,.2)', borderRadius: 10, padding: '12px 14px' }}>
+            <div style={{ background: 'rgba(109,184,62,.06)', border: '1px solid rgba(109,184,62,.2)', borderRadius: 10, padding: '12px 14px' }}>
               <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Como funciona</p>
               <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
                 Um <strong>painel</strong> é uma mensagem com botões. Quando um membro clica num botão, abre-se um <strong>canal privado</strong> só entre ele e a tua equipa — é o &quot;ticket&quot;.
@@ -523,7 +523,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ display: 'flex', gap: 11 }}>
-              <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(56,189,248,.14)', color: '#38bdf8', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>5</span>
+              <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(109,184,62,.14)', color: 'var(--green)', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>5</span>
               <div>
                 <p style={{ fontSize: 13.5, fontWeight: 700 }}>Painéis — o que os membros veem</p>
                 <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.55, maxWidth: 460 }}>A mensagem com botões que envias para um canal. Cada botão abre um tipo de ticket.</p>
