@@ -773,6 +773,7 @@ function Content({ page }: { page: PageId }) {
             ['{server}',   'O nome do servidor.'],
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
         </div>
+        <Note type="tip">Cada botão/categoria pode ter o seu próprio título, texto, cor e banner. O que deixares em branco na categoria herda esta base do servidor — por isso podes ter tickets de &quot;Suporte&quot; e &quot;Parcerias&quot; com aspetos totalmente diferentes.</Note>
 
         <H2>Painéis</H2>
         <P>Cada <strong style={{ color: 'var(--text-1)' }}>painel</strong> é a mensagem com botões que os membros veem. Personaliza:</P>
@@ -793,7 +794,7 @@ function Content({ page }: { page: PageId }) {
             ['Formato',          'Canal privado ou thread — pode diferir do formato por defeito.'],
             ['Destino próprio',  'A categoria escolhe para onde vão os seus tickets. Ex: "Parcerias" vai para uma categoria/canal, "Suporte" para outro. Em branco = usa o destino do servidor.'],
             ['Cargos extra',     'Cargos que veem SÓ esta categoria, além dos cargos de suporte globais.'],
-            ['Mensagem de abertura', 'O texto dentro do ticket, só para esta categoria. Se ficar em branco, usa a mensagem base do servidor (Passo 4).'],
+            ['Mensagem própria', 'Título, texto, cor e banner só para os tickets deste botão. O que ficar em branco herda a base do servidor (Passo 4).'],
             ['Formulário',       'Até 5 perguntas (curtas ou longas) que o membro responde antes de abrir. A staff recebe logo o contexto.'],
             ['Botões próprios',  'Botões que aparecem só nos tickets desta categoria (ver abaixo).'],
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}

@@ -7,7 +7,7 @@ interface Role { id: string; name: string; color?: number }
 
 interface Question { id: string; label: string; placeholder?: string; style?: 'short' | 'paragraph'; required?: boolean }
 interface TButton { id: string; label: string; emoji?: string; style?: number; action?: string; content?: string; ephemeral?: boolean; roleId?: string; url?: string }
-interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingMessage?: string; format?: string; categoryChannelId?: string | null; supportChannelId?: string | null; supportRoles?: string[]; form?: Question[]; buttons?: TButton[] }
+interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingTitle?: string; openingMessage?: string; openingBanner?: string; format?: string; categoryChannelId?: string | null; supportChannelId?: string | null; supportRoles?: string[]; form?: Question[]; buttons?: TButton[] }
 interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; categories?: Category[]; channelId?: string | null }
 interface Config {
   enabled?: boolean; supportRoles?: string[]; categoryChannelId?: string | null;
@@ -122,14 +122,25 @@ function btnChip(style: number): React.CSSProperties {
 
 /* Pré-visualização do TICKET (mensagem de abertura + botões) para uma categoria */
 function TicketPreview({ cat, cfg }: { cat: Category; cfg: Config }) {
-  const accent = cat.color || '#6db83e';
+  const accent = cat.color || cfg.openingColor || '#6db83e';
   const custom = (cat.buttons ?? []).filter(b => b.label?.trim());
+  const fill = (s: string) => (s || '')
+    .replace(/{number}/g, '1').replace(/{user}/g, '@membro').replace(/{username}/g, 'membro')
+    .replace(/{category}/g, cat.label || 'Suporte').replace(/{server}/g, 'o teu servidor');
+  const title = fill(cat.openingTitle?.trim() || cfg.openingTitle || '🎫 Ticket #{number} — {category}');
+  const body = fill(cat.openingMessage?.trim() || cfg.openingMessage || 'A equipa já foi notificada.');
+  const banner = cat.openingBanner?.trim() || cfg.openingBanner?.trim();
   return (
     <div style={{ marginTop: 2 }}>
       <p style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Pré-visualização do ticket</p>
       <div style={{ background: '#313338', borderRadius: 8, padding: 12, fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
-        <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, padding: '10px 12px' }}>
-          <p style={{ fontSize: 13, color: '#dbdee1', lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pmd(`## 🎫 Ticket #1 — ${cat.label || 'Suporte'}\n${cat.openingMessage || 'A equipa já foi notificada.'}`) }} />
+        <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
+          {banner && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={banner} alt="" style={{ width: '100%', maxHeight: 110, objectFit: 'cover', display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+          )}
+          <div style={{ padding: '10px 12px' }}>
+          <p style={{ fontSize: 13, color: '#dbdee1', lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pmd(`## ${title}\n${body}`) }} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
             {cfg.claimEnabled !== false && <span style={btnChip(3)}>{cfg.claimEmoji ? `${cfg.claimEmoji} ` : ''}{cfg.claimLabel || 'Reivindicar'}</span>}
             <span style={btnChip(4)}>{cfg.closeEmoji ? `${cfg.closeEmoji} ` : ''}{cfg.closeLabel || 'Fechar'}</span>
@@ -144,6 +155,7 @@ function TicketPreview({ cat, cfg }: { cat: Category; cfg: Config }) {
               {(cfg.extraButtons ?? []).filter(b => b.label?.trim()).map(b => <span key={b.id} style={btnChip(b.style ?? 2)}>{b.emoji ? `${b.emoji} ` : ''}{b.label}</span>)}
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>
@@ -547,7 +559,8 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                               <div><label style={lbl}>Emoji</label><input style={input} value={cat.emoji ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { emoji: e.target.value })} placeholder="🎫" /></div>
                               <div><label style={lbl}>Cor do botão</label><select style={input} value={cat.style ?? 2} onChange={e => patchCat(panel.panelId, cat.id, { style: parseInt(e.target.value) })}>{STYLE_OPTS.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}</select></div>
                             </div>
-                            <div><label style={lbl}>Mensagem de abertura do ticket</label><textarea rows={2} style={{ ...input, resize: 'vertical' }} value={cat.openingMessage ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { openingMessage: e.target.value })} /></div>
+                            <div><label style={lbl}>Título do ticket <span style={{ opacity: .6, textTransform: 'none' }}>(em branco = base do servidor)</span></label><input style={input} value={cat.openingTitle ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { openingTitle: e.target.value })} placeholder={config.openingTitle || '🎫 Ticket #{number} — {category}'} /></div>
+                            <div><label style={lbl}>Mensagem de abertura <span style={{ opacity: .6, textTransform: 'none' }}>(em branco = base do servidor)</span></label><textarea rows={2} style={{ ...input, resize: 'vertical' }} value={cat.openingMessage ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { openingMessage: e.target.value })} placeholder={config.openingMessage || 'A equipa já foi notificada.'} /></div>
 
                             {/* ── Avançado (destino, cargos, formato, formulário, botões) ── */}
                             <button onClick={() => setAdvCat(s => ({ ...s, [cat.id]: !s[cat.id] }))} style={{ background: 'none', border: 'none', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0', alignSelf: 'flex-start' }}>
@@ -555,6 +568,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                             </button>
                             {advCat[cat.id] && (<>
                             <div><label style={lbl}>Formato</label><select style={input} value={cat.format ?? 'default'} onChange={e => patchCat(panel.panelId, cat.id, { format: e.target.value })}><option value="default">Por defeito (do servidor)</option><option value="channel">Canal privado</option><option value="thread">Thread privada</option></select></div>
+                            <div><label style={lbl}>Banner do ticket <span style={{ opacity: .6, textTransform: 'none' }}>(em branco = base do servidor)</span></label><input style={input} value={cat.openingBanner ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { openingBanner: e.target.value })} placeholder="https://…" /></div>
                             {/* Destino próprio desta categoria (senão usa o do servidor) */}
                             {(() => {
                               const fmt = (cat.format && cat.format !== 'default') ? cat.format : (config.defaultFormat ?? 'channel');
