@@ -38,6 +38,22 @@ function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
 const STYLE_OPTS = [{ v: 1, l: 'Azul' }, { v: 2, l: 'Cinza' }, { v: 3, l: 'Verde' }, { v: 4, l: 'Vermelho' }];
 const BTN_BG: Record<number, string> = { 1: '#5865f2', 2: '#4e5058', 3: '#3ba55d', 4: '#ed4245' };
 
+/* Passo guiado — número + título + explicação, conteúdo indentado */
+function Step({ n, title, desc, children }: { n: number; title: string; desc: string; children: React.ReactNode }) {
+  return (
+    <div style={{ borderTop: '1px solid var(--line)', paddingTop: 16, marginTop: 16 }}>
+      <div style={{ display: 'flex', gap: 11, marginBottom: 12 }}>
+        <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(56,189,248,.14)', color: '#38bdf8', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</span>
+        <div>
+          <p style={{ fontSize: 13.5, fontWeight: 700 }}>{title}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.55 }}>{desc}</p>
+        </div>
+      </div>
+      <div style={{ paddingLeft: 33 }}>{children}</div>
+    </div>
+  );
+}
+
 function pmd(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/^## (.*)$/gm, '<strong style="font-size:16px">$1</strong>')
@@ -95,6 +111,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
   const [toast, setToast] = useState<string | null>(null);
   const [openPanel, setOpenPanel] = useState<string | null>(null);
   const [sendTarget, setSendTarget] = useState<Record<string, string>>({});
+  const [showAdv, setShowAdv] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -153,45 +170,10 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
         </div>
 
         {config.enabled && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 14, borderTop: '1px solid var(--line)', paddingTop: 16 }}>
-            <div>
-              <label style={lbl}>Formato por defeito</label>
-              <select style={input} value={config.defaultFormat} onChange={e => setC({ defaultFormat: e.target.value })}>
-                <option value="channel">Canal privado</option>
-                <option value="thread">Thread privada</option>
-              </select>
-            </div>
-            <div>
-              <label style={lbl}>Categoria dos tickets (canais)</label>
-              <select style={input} value={config.categoryChannelId ?? ''} onChange={e => setC({ categoryChannelId: e.target.value || null })}>
-                <option value="">— nenhuma —</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={lbl}>Canal base (threads)</label>
-              <select style={input} value={config.supportChannelId ?? ''} onChange={e => setC({ supportChannelId: e.target.value || null })}>
-                <option value="">— nenhum —</option>
-                {channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={lbl}>Canal de transcripts</label>
-              <select style={input} value={config.transcriptChannelId ?? ''} onChange={e => setC({ transcriptChannelId: e.target.value || null })}>
-                <option value="">— nenhum —</option>
-                {channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={lbl}>Limite por membro</label>
-              <input type="number" min={1} max={10} style={input} value={config.perUserLimit ?? 1} onChange={e => setC({ perUserLimit: Math.max(1, Math.min(10, parseInt(e.target.value) || 1)) })} />
-            </div>
-            <div>
-              <label style={lbl}>Nome do canal <span style={{ opacity: .6, textTransform: 'none' }}>{'{number}'} {'{username}'}</span></label>
-              <input style={input} value={config.namingScheme ?? ''} onChange={e => setC({ namingScheme: e.target.value })} placeholder="ticket-{number}" />
-            </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>Cargos de suporte (veem e gerem os tickets)</label>
+          <div>
+
+            {/* Passo 1 — Equipa */}
+            <Step n={1} title="A tua equipa de suporte" desc="Os cargos que veem, reivindicam e fecham os tickets. Sem isto, só quem tiver a permissão 'Gerir Canais' os consegue ver.">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                 {(config.supportRoles ?? []).map(rid => {
                   const r = roles.find(x => x.id === rid);
@@ -202,19 +184,61 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                     </span>
                   );
                 })}
+                {(config.supportRoles ?? []).length === 0 && <span style={{ fontSize: 12, color: 'var(--text-3)', fontStyle: 'italic' }}>Nenhum cargo escolhido ainda.</span>}
               </div>
-              <select style={input} value="" onChange={e => { const v = e.target.value; if (v && !(config.supportRoles ?? []).includes(v)) setC({ supportRoles: [...(config.supportRoles ?? []), v] }); }}>
+              <select style={{ ...input, maxWidth: 320 }} value="" onChange={e => { const v = e.target.value; if (v && !(config.supportRoles ?? []).includes(v)) setC({ supportRoles: [...(config.supportRoles ?? []), v] }); }}>
                 <option value="">+ adicionar cargo…</option>
                 {roles.filter(r => !(config.supportRoles ?? []).includes(r.id)).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
-            </div>
+            </Step>
 
-            {/* Botões de controlo dentro do ticket */}
-            <div style={{ gridColumn: '1 / -1', borderTop: '1px solid var(--line)', paddingTop: 14 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            {/* Passo 2 — Onde ficam */}
+            <Step n={2} title="Onde ficam os tickets" desc="Escolhe como cada ticket é criado e onde guardar o histórico ao fechar.">
+              <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+                {[{ v: 'channel', t: 'Canal privado', d: 'Um canal de texto por ticket, numa categoria.' }, { v: 'thread', t: 'Thread privada', d: 'Uma thread por ticket, sem limite de canais.' }].map(o => {
+                  const on = (config.defaultFormat ?? 'channel') === o.v;
+                  return (
+                    <button key={o.v} onClick={() => setC({ defaultFormat: o.v })} style={{ flex: '1 1 200px', textAlign: 'left', padding: '10px 14px', borderRadius: 9, cursor: 'pointer', border: on ? '1px solid var(--green)' : '1px solid var(--line)', background: on ? 'rgba(109,184,62,.08)' : 'var(--surface)', transition: 'all .12s' }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: on ? 'var(--green)' : 'var(--text-1)' }}>{o.t}</p>
+                      <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.45 }}>{o.d}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 12 }}>
+                {(config.defaultFormat ?? 'channel') === 'channel' ? (
+                  <div>
+                    <label style={lbl}>Categoria onde criar os canais</label>
+                    <select style={input} value={config.categoryChannelId ?? ''} onChange={e => setC({ categoryChannelId: e.target.value || null })}>
+                      <option value="">— escolhe uma categoria —</option>
+                      {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label style={lbl}>Canal onde criar as threads</label>
+                    <select style={input} value={config.supportChannelId ?? ''} onChange={e => setC({ supportChannelId: e.target.value || null })}>
+                      <option value="">— escolhe um canal —</option>
+                      {channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                <div>
+                  <label style={lbl}>Canal de transcripts <span style={{ opacity: .6, textTransform: 'none' }}>(opcional)</span></label>
+                  <select style={input} value={config.transcriptChannelId ?? ''} onChange={e => setC({ transcriptChannelId: e.target.value || null })}>
+                    <option value="">— nenhum —</option>
+                    {channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
+                  </select>
+                </div>
+              </div>
+            </Step>
+
+            {/* Passo 3 — Botões */}
+            <Step n={3} title="Botões dentro do ticket" desc="Os botões que a equipa vê dentro de cada ticket. Podes mudar os textos e emojis.">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, maxWidth: 460 }}>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600 }}>Botão &quot;Reivindicar&quot;</p>
-                  <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2 }}>Permite à staff assumir um ticket. Desliga para o esconder.</p>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2 }}>A staff assume o ticket. Desliga para o esconder.</p>
                 </div>
                 <Toggle on={config.claimEnabled !== false} onChange={() => setC({ claimEnabled: !(config.claimEnabled !== false) })} />
               </div>
@@ -226,21 +250,46 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                 <div><label style={lbl}>Texto do &quot;Fechar&quot;</label><input style={input} value={config.closeLabel ?? ''} onChange={e => setC({ closeLabel: e.target.value })} placeholder="Fechar" /></div>
                 <div><label style={lbl}>Emoji</label><input style={input} value={config.closeEmoji ?? ''} onChange={e => setC({ closeEmoji: e.target.value })} placeholder="🔒" /></div>
               </div>
+            </Step>
+
+            {/* Opções avançadas */}
+            <div style={{ borderTop: '1px solid var(--line)', paddingTop: 12, marginTop: 16 }}>
+              <button onClick={() => setShowAdv(v => !v)} style={{ background: 'none', border: 'none', color: 'var(--text-2)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: 0 }}>
+                Opções avançadas <span style={{ fontSize: 10 }}>{showAdv ? '▲' : '▼'}</span>
+              </button>
+              {showAdv && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 12, marginTop: 12, paddingLeft: 2 }}>
+                  <div>
+                    <label style={lbl}>Limite de tickets por membro</label>
+                    <input type="number" min={1} max={10} style={input} value={config.perUserLimit ?? 1} onChange={e => setC({ perUserLimit: Math.max(1, Math.min(10, parseInt(e.target.value) || 1)) })} />
+                  </div>
+                  <div>
+                    <label style={lbl}>Nome do canal <span style={{ opacity: .6, textTransform: 'none' }}>{'{number}'} · {'{username}'}</span></label>
+                    <input style={input} value={config.namingScheme ?? ''} onChange={e => setC({ namingScheme: e.target.value })} placeholder="ticket-{number}" />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* ── Painéis ── */}
+      {/* ── Passo 4 — Painéis ── */}
       {config.enabled && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <p style={{ fontSize: 13.5, fontWeight: 700 }}>Painéis de tickets</p>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 11 }}>
+              <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(56,189,248,.14)', color: '#38bdf8', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>4</span>
+              <div>
+                <p style={{ fontSize: 13.5, fontWeight: 700 }}>Painéis — o que os membros veem</p>
+                <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.55, maxWidth: 460 }}>A mensagem com botões que envias para um canal. Cada botão abre um tipo de ticket.</p>
+              </div>
+            </div>
             <button onClick={() => { const id = sid(); setPanels(p => [...p, { panelId: id, title: 'Central de Suporte', description: 'Precisas de ajuda? Escolhe uma opção abaixo.', color: '#6db83e', categories: [{ id: sid(), label: 'Suporte', style: 2, color: '#6db83e', openingMessage: 'A equipa já foi notificada e vai atender-te.', format: 'default', form: [] }] }]); setOpenPanel(id); }}
-              style={{ background: 'var(--green)', color: '#fff', border: 'none', borderRadius: 7, padding: '6px 14px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>+ Novo painel</button>
+              style={{ background: 'var(--green)', color: '#fff', border: 'none', borderRadius: 7, padding: '6px 14px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>+ Novo painel</button>
           </div>
 
-          {panels.length === 0 && <div style={{ ...card, textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>Ainda não há painéis. Cria um para os membros abrirem tickets.</div>}
+          {panels.length === 0 && <div style={{ ...card, textAlign: 'center', color: 'var(--text-3)', fontSize: 13, padding: '24px 18px' }}>Ainda não há painéis. Clica em <strong style={{ color: 'var(--green)' }}>+ Novo painel</strong> para criar o primeiro.</div>}
 
           {panels.map(panel => {
             const open = openPanel === panel.panelId;
