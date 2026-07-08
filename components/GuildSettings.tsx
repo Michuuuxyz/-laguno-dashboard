@@ -381,77 +381,53 @@ function AMCard({ title, desc, badge, enabled, onToggle, onSave, saving, saved, 
 }
 
 /* ── AutoMod Rule Row (module-level, stable reference) ── */
-function AMRuleRow({ ruleKey, title, desc, badge, enabled, onToggle, actionLabels, expanded, onExpand, onSave, saving, saved, saveMsg, children }: {
-  ruleKey: string; title: string; desc: string; badge: 'discord' | 'bot';
+function AMRuleRow({ title, desc, enabled, onToggle, expanded, onExpand, onSave, saving, saved, saveMsg, configurable = true, children }: {
+  ruleKey?: string; title: string; desc: string; badge?: 'discord' | 'bot';
   enabled: boolean; onToggle: () => void;
-  actionLabels: string[];
+  actionLabels?: string[];
   expanded: boolean; onExpand: () => void;
   onSave?: () => void; saving?: boolean; saved?: boolean; saveMsg?: string | null;
+  configurable?: boolean;
   children?: React.ReactNode;
 }) {
+  const showConfig = configurable && !!children && enabled;
   return (
     <div style={{
+      gridColumn: expanded ? '1 / -1' : undefined,
       background: 'var(--card)',
-      border: enabled ? '1px solid rgba(109,184,62,.25)' : '1px solid var(--line)',
+      border: enabled ? '1px solid rgba(109,184,62,.35)' : '1px solid var(--line)',
       borderRadius: 12, overflow: 'hidden', transition: 'border-color .2s',
+      display: 'flex', flexDirection: 'column',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px' }}>
-        {/* Color bar */}
-        <div style={{
-          width: 4, height: 40, borderRadius: 2, flexShrink: 0,
-          background: enabled ? 'var(--green)' : 'var(--line)',
-          transition: 'background .2s',
-        }} />
-
-        {/* Info */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-            <p style={{ fontSize: 13.5, fontWeight: 700 }}>{title}</p>
-            <span style={{
-              fontSize: 10, fontWeight: 700, letterSpacing: '.05em', padding: '1px 6px', borderRadius: 4,
-              background: badge === 'discord' ? 'rgba(88,101,242,.12)' : 'rgba(109,184,62,.1)',
-              color: badge === 'discord' ? '#818cf8' : 'var(--green)',
-            }}>{badge === 'discord' ? 'DISCORD NATIVO' : 'BOT'}</span>
-          </div>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: enabled && actionLabels.length ? 8 : 0 }}>{desc}</p>
-          {enabled && actionLabels.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-              {actionLabels.map(l => (
-                <span key={l} style={{
-                  background: 'var(--surface)', border: '1px solid var(--line)',
-                  borderRadius: 20, padding: '2px 10px', fontSize: 11.5, color: 'var(--text-2)',
-                }}>{l}</span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {children && enabled && (
-            <button onClick={onExpand} style={{
-              background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 7,
-              padding: '5px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: 'var(--text-2)',
-            }}>{expanded ? 'Fechar' : 'Configurar'}</button>
-          )}
-          {onSave && (
-            <button onClick={onSave} disabled={saving} style={{
-              background: saved ? 'rgba(109,184,62,.15)' : 'var(--green)',
-              color: saved ? 'var(--green)' : '#fff',
-              border: 'none', borderRadius: 7,
-              padding: '5px 14px', fontSize: 12, fontWeight: 600, cursor: saving ? 'wait' : 'pointer',
-              transition: 'all .2s', minWidth: 80,
-            }}>
-              {saving ? 'A guardar...' : saved ? 'Guardado!' : 'Guardar'}
-            </button>
-          )}
+      <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+          <p style={{ fontSize: 13.5, fontWeight: 700, lineHeight: 1.3 }}>{title}</p>
           <Toggle on={enabled} onChange={onToggle} />
         </div>
+        <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5, flex: 1 }}>{desc}</p>
+        {(showConfig || onSave) && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            {showConfig && (
+              <button onClick={onExpand} style={{
+                flex: 1, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8,
+                padding: '7px', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: 'var(--text-2)',
+              }}>{expanded ? 'Fechar' : 'Configurar'}</button>
+            )}
+            {onSave && (
+              <button onClick={onSave} disabled={saving} style={{
+                flex: showConfig ? '0 0 auto' : 1,
+                background: saved ? 'rgba(109,184,62,.15)' : 'var(--green)',
+                color: saved ? 'var(--green)' : '#fff', border: 'none', borderRadius: 8,
+                padding: '7px 16px', fontSize: 12, fontWeight: 600, cursor: saving ? 'wait' : 'pointer', transition: 'all .2s',
+              }}>{saving ? '...' : saved ? 'Guardado' : 'Guardar'}</button>
+            )}
+          </div>
+        )}
       </div>
 
       {expanded && children && (
-        <div style={{ padding: '0 18px 18px', borderTop: '1px solid var(--line)' }}>
-          <div style={{ paddingTop: 16 }}>{children}</div>
+        <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--line)' }}>
+          <div style={{ paddingTop: 14 }}>{children}</div>
           {saveMsg && (
             <p style={{ fontSize: 12, color: '#f87171', marginTop: 10, lineHeight: 1.4, background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.2)', borderRadius: 7, padding: '8px 10px' }}>{saveMsg}</p>
           )}
@@ -995,6 +971,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                 )}
               </div>
               <AMSectionHeader title="Discord Nativo" desc="Aplicadas instantaneamente pelo Discord, sem intervencao do bot." />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 10, alignItems: 'start' }}>
               <AMRuleRow ruleKey="wordFilter" title={`Filtro de Palavras${config.autoMod.wordFilter.words.length > 0 ? ` (${config.autoMod.wordFilter.words.length})` : ''}`} desc="Bloqueia mensagens com palavras proibidas. Usa a API AutoMod do Discord (trigger KEYWORD, max 1000 palavras, 60 chars cada)." badge="discord" enabled={config.autoMod.wordFilter.enabled} onToggle={() => { const en = !config.autoMod.wordFilter.enabled; setAMSub('wordFilter', { enabled: en, ...(en && config.autoMod.wordFilter.words.length === 0 ? { words: [...DEFAULT_BAD_WORDS] } : {}) }); }} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={exp('wordFilter')} onExpand={() => tog('wordFilter')} onSave={() => saveRule('wordFilter')} saving={savingRule === 'wordFilter'} saved={savedRule === 'wordFilter'} saveMsg={savedRule === 'wordFilter' || savingRule === 'wordFilter' ? ruleSaveMsg : null}>
                 <div style={{ marginBottom: 14 }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Templates rapidos</p>
@@ -1009,9 +986,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                 </div>
                 <AMTags items={config.autoMod.wordFilter.words} color="red" empty="Nenhuma palavra adicionada." onRemove={w => setAMSub('wordFilter', { words: config.autoMod.wordFilter.words.filter(x => x !== w) })} />
               </AMRuleRow>
-              <AMRuleRow ruleKey="antiSpam" title="Detecao de Spam" desc="Usa o algoritmo de spam interno do Discord (trigger SPAM). Deteta e bloqueia conteudo repetitivo ou suspeito automaticamente." badge="discord" enabled={config.autoMod.antiSpam.enabled} onToggle={() => setAMSub('antiSpam', { enabled: !config.autoMod.antiSpam.enabled })} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={exp('antiSpam')} onExpand={() => tog('antiSpam')} onSave={() => saveRule('antiSpam')} saving={savingRule === 'antiSpam'} saved={savedRule === 'antiSpam'} saveMsg={savedRule === 'antiSpam' || savingRule === 'antiSpam' ? ruleSaveMsg : null}>
-                <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.6 }}>Esta regra nao tem parametros configuraveis — o Discord gere a detecao internamente. So precisas de a ativar. (O trigger SPAM nao suporta timeout, apenas bloquear e alertar.)</p>
-              </AMRuleRow>
+              <AMRuleRow ruleKey="antiSpam" configurable={false} title="Detecao de Spam" desc="Usa o algoritmo de spam interno do Discord (trigger SPAM). Deteta e bloqueia conteudo repetitivo ou suspeito automaticamente." badge="discord" enabled={config.autoMod.antiSpam.enabled} onToggle={() => setAMSub('antiSpam', { enabled: !config.autoMod.antiSpam.enabled })} expanded={exp('antiSpam')} onExpand={() => tog('antiSpam')} onSave={() => saveRule('antiSpam')} saving={savingRule === 'antiSpam'} saved={savedRule === 'antiSpam'} />
               <AMRuleRow ruleKey="mentionSpam" title="Anti-Mencoes" desc="Bloqueia mensagens com demasiadas mencoes (trigger MENTION_SPAM). Limite maximo: 50 mencoes (limite da API Discord)." badge="discord" enabled={config.autoMod.mentionSpam.enabled} onToggle={() => setAMSub('mentionSpam', { enabled: !config.autoMod.mentionSpam.enabled })} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={exp('mentionSpam')} onExpand={() => tog('mentionSpam')} onSave={() => saveRule('mentionSpam')} saving={savingRule === 'mentionSpam'} saved={savedRule === 'mentionSpam'} saveMsg={savedRule === 'mentionSpam' || savingRule === 'mentionSpam' ? ruleSaveMsg : null}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 10 }}>
                   <Field label="Max. mencoes por mensagem"><input type="number" min={2} max={50} style={inputStyle} value={config.autoMod.mentionSpam.maxMentions} onChange={e => setAMSub('mentionSpam', { maxMentions: parseInt(e.target.value) || 5 })} /></Field>
@@ -1027,9 +1002,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                   <AMTags items={config.autoMod.antiLink.whitelist} color="green" empty="Todos os links sao bloqueados." onRemove={d => setAMSub('antiLink', { whitelist: config.autoMod.antiLink.whitelist.filter(x => x !== d) })} />
                 </Field>
               </AMRuleRow>
-              <AMRuleRow ruleKey="keywordPreset" title="Palavras Sinalizadas pelo Discord" desc="Usa as listas internas do Discord para bloquear profanidade, conteúdo sexual e slurs. Sempre atualizadas pelo Discord automaticamente." badge="discord" enabled={config.autoMod.keywordPreset?.enabled ?? false} onToggle={() => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, keywordPreset: { enabled: !(c.autoMod.keywordPreset?.enabled ?? false) } } }))} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={false} onExpand={() => {}} onSave={() => saveRule('keywordPreset')} saving={savingRule === 'keywordPreset'} saved={savedRule === 'keywordPreset'} saveMsg={null}>
-                <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.6 }}>Sem configuração adicional — o Discord gere as listas de profanidade, conteúdo sexual e slurs internamente.</p>
-              </AMRuleRow>
+              <AMRuleRow ruleKey="keywordPreset" configurable={false} title="Palavras Sinalizadas pelo Discord" desc="Usa as listas internas do Discord para bloquear profanidade, conteúdo sexual e slurs. Sempre atualizadas pelo Discord automaticamente." badge="discord" enabled={config.autoMod.keywordPreset?.enabled ?? false} onToggle={() => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, keywordPreset: { enabled: !(c.autoMod.keywordPreset?.enabled ?? false) } } }))} expanded={false} onExpand={() => {}} onSave={() => saveRule('keywordPreset')} saving={savingRule === 'keywordPreset'} saved={savedRule === 'keywordPreset'} />
               <AMRuleRow ruleKey="memberProfile" title={`Filtro em Perfis de Membros${(config.autoMod.memberProfile?.words?.length ?? 0) > 0 ? ` (${config.autoMod.memberProfile.words.length})` : ''}`} desc="Bloqueia nomes de utilizador e nicknames com palavras proibidas (trigger MEMBER_PROFILE). Lista independente do Filtro de Palavras." badge="discord" enabled={config.autoMod.memberProfile?.enabled ?? false} onToggle={() => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, memberProfile: { ...c.autoMod.memberProfile, enabled: !(c.autoMod.memberProfile?.enabled ?? false), ...(!(c.autoMod.memberProfile?.enabled ?? false) && (c.autoMod.memberProfile?.words?.length ?? 0) === 0 ? { words: [...DEFAULT_BAD_WORDS] } : {}) } } }))} actionLabels={['bloquear interações de membros']} expanded={exp('memberProfile')} onExpand={() => tog('memberProfile')} onSave={() => saveRule('memberProfile')} saving={savingRule === 'memberProfile'} saved={savedRule === 'memberProfile'} saveMsg={savedRule === 'memberProfile' || savingRule === 'memberProfile' ? ruleSaveMsg : null}>
                 <div style={{ marginBottom: 14 }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Templates rápidos</p>
@@ -1044,7 +1017,9 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                 </div>
                 <AMTags items={config.autoMod.memberProfile?.words ?? []} color="red" empty="Nenhuma palavra adicionada." onRemove={w => setConfig(c => ({ ...c, autoMod: { ...c.autoMod, memberProfile: { ...c.autoMod.memberProfile, words: (c.autoMod.memberProfile?.words ?? []).filter(x => x !== w) } } }))} />
               </AMRuleRow>
+              </div>
               <AMSectionHeader title="Laguno Bot" desc="Regras processadas pelo bot diretamente no servidor." />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 10, alignItems: 'start' }}>
               <AMRuleRow ruleKey="capsFilter" title="Filtro de CAPS" desc="Remove mensagens com excesso de letras maiusculas. Configuravel por percentagem e comprimento minimo." badge="bot" enabled={config.autoMod.capsFilter.enabled} onToggle={() => setAMSub('capsFilter', { enabled: !config.autoMod.capsFilter.enabled })} actionLabels={['apagar mensagem', 'aviso no canal']} expanded={exp('capsFilter')} onExpand={() => tog('capsFilter')} onSave={() => saveRule('capsFilter')} saving={savingRule === 'capsFilter'} saved={savedRule === 'capsFilter'} saveMsg={savedRule === 'capsFilter' || savingRule === 'capsFilter' ? ruleSaveMsg : null}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 10 }}>
                   <Field label="% maxima de maiusculas"><input type="number" min={30} max={100} style={inputStyle} value={config.autoMod.capsFilter.maxPercent} onChange={e => setAMSub('capsFilter', { maxPercent: parseInt(e.target.value) || 70 })} /></Field>
@@ -1059,6 +1034,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                   <Field label="Duracao (seg)"><input type="number" min={10} max={3600} style={inputStyle} value={fc.duration ?? 60} onChange={e => setFc({ duration: parseInt(e.target.value) || 60 })} /></Field>
                 </div>
               </AMRuleRow>
+              </div>
               <AMSectionHeader title="Excecoes" desc="Canais e cargos isentos de todas as regras acima." />
               <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '18px 20px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 16 }}>
