@@ -208,8 +208,8 @@ function DiscordPreview({ message, accentColor, guildName, extras }: {
   );
 }
 
-/* ─── Message Editor Modal ─── */
-function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, title, extras: initialExtras, showExtras }: {
+/* ─── Message Editor Modal — janela grande e organizada (estilo editor de mensagens) ─── */
+function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, title, extras: initialExtras, showExtras, onTest }: {
   message: string;
   accentColor: string;
   guildName: string;
@@ -218,10 +218,13 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
   title: string;
   extras?: ContainerExtras;
   showExtras?: boolean;
+  onTest?: (draft: { msg: string; accent: string; extras: ContainerExtras }) => Promise<boolean>;
 }) {
   const [msg, setMsg] = useState(message);
   const [accent, setAccent] = useState(accentColor || '#6db83e');
   const [extras, setExtras] = useState<ContainerExtras>(initialExtras ?? { bannerUrl: '', showAvatar: false, footer: '' });
+  const [varsOpen, setVarsOpen] = useState(false);
+  const [testState, setTestState] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   function insertVar(tag: string) {
@@ -234,62 +237,96 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
     setTimeout(() => { el.focus(); el.setSelectionRange(start + tag.length, start + tag.length); }, 0);
   }
 
+  async function runTest() {
+    if (!onTest || testState === 'loading') return;
+    setTestState('loading');
+    const ok = await onTest({ msg, accent, extras }).catch(() => false);
+    setTestState(ok ? 'ok' : 'err');
+    setTimeout(() => setTestState('idle'), 3000);
+  }
+
+  const actionBtn: React.CSSProperties = {
+    flex: '1 1 160px', padding: '10px 14px', borderRadius: 9, border: 'none',
+    background: 'var(--green)', color: '#fff', fontSize: 13, fontWeight: 700,
+    cursor: 'pointer', textAlign: 'center', transition: 'filter .12s',
+  };
+
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(0,0,0,.75)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 20,
+      background: 'rgba(0,0,0,.8)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 'clamp(8px,2vw,24px)',
     }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{
-        background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
-        width: '100%', maxWidth: 860, maxHeight: '90vh', overflow: 'hidden',
+        background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16,
+        width: 'min(1180px, 100%)', height: 'min(92vh, 900px)', overflow: 'hidden',
         display: 'flex', flexDirection: 'column',
       }}>
-        {/* Header */}
-        <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-.02em' }}>{title}</p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 4 }}>✕</button>
+        {/* Título centrado */}
+        <div style={{ position: 'relative', padding: '20px 56px 6px', textAlign: 'center', flexShrink: 0 }}>
+          <p className="display" style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-.02em', color: 'var(--green)' }}>{title}</p>
+          <button onClick={onClose} aria-label="Fechar" style={{ position: 'absolute', top: 16, right: 18, background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 19, lineHeight: 1, padding: 6 }}>✕</button>
         </div>
 
-        {/* Body */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 0, flex: 1, overflowY: 'auto' }}>
+        {/* Barra de ações */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', padding: '10px 22px 14px', flexShrink: 0 }}>
+          {onTest && (
+            <button onClick={runTest} style={{
+              ...actionBtn,
+              background: testState === 'ok' ? 'rgba(109,184,62,.18)' : testState === 'err' ? 'rgba(248,113,113,.18)' : 'var(--green)',
+              color: testState === 'ok' ? 'var(--green)' : testState === 'err' ? '#f87171' : '#fff',
+            }}>
+              {testState === 'loading' ? 'A enviar…' : testState === 'ok' ? '✓ Enviada para o canal!' : testState === 'err' ? '✕ Falhou (canal escolhido?)' : 'Testar Mensagem'}
+            </button>
+          )}
+          <button onClick={() => setVarsOpen(v => !v)} style={{ ...actionBtn, background: 'var(--elevated)', color: 'var(--text-1)', border: '1px solid var(--line)' }}>
+            Variáveis / placeholders {varsOpen ? '▲' : '▼'}
+          </button>
+          <button onClick={() => { setMsg(message); setAccent(accentColor || '#6db83e'); setExtras(initialExtras ?? { bannerUrl: '', showAvatar: false, footer: '' }); }} style={{ ...actionBtn, background: 'var(--elevated)', color: 'var(--text-2)', border: '1px solid var(--line)', flex: '0 1 auto' }}>
+            Repor
+          </button>
+        </div>
 
-          {/* Left: editor */}
+        {/* Acordeão de variáveis */}
+        {varsOpen && (
+          <div style={{ margin: '0 22px 12px', padding: '12px 14px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, flexShrink: 0, maxHeight: 180, overflowY: 'auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 6 }}>
+              {VARIABLES.map(v => (
+                <button key={v.tag} onClick={() => insertVar(v.tag)} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                  background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 7,
+                  padding: '6px 10px', fontSize: 12, cursor: 'pointer', textAlign: 'left',
+                }}>
+                  <code style={{ color: 'var(--green)', fontFamily: 'monospace' }}>{v.tag}</code>
+                  <span style={{ color: 'var(--text-3)', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.desc}</span>
+                </button>
+              ))}
+            </div>
+            <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 10, lineHeight: 1.6 }}>
+              Clica numa variável para a inserir. Markdown: <code style={{ background: 'var(--card)', padding: '1px 5px', borderRadius: 4 }}>**negrito**</code> · <code style={{ background: 'var(--card)', padding: '1px 5px', borderRadius: 4 }}>## título</code> · <code style={{ background: 'var(--card)', padding: '1px 5px', borderRadius: 4 }}>-# subtexto</code>
+            </p>
+          </div>
+        )}
+
+        {/* Corpo: editor à esquerda, preview à direita */}
+        <div className="me-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 1fr)', gap: 0, flex: 1, minHeight: 0, borderTop: '1px solid var(--line)' }}>
+
+          {/* Esquerda */}
           <div style={{ padding: '18px 20px', borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto' }}>
             <div>
-              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Conteúdo da Mensagem</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Conteúdo da Mensagem</p>
               <textarea
                 ref={textareaRef}
-                rows={8}
-                style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.65, fontFamily: 'monospace', fontSize: 13 }}
+                rows={10}
+                style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.65, fontFamily: 'monospace', fontSize: 13, minHeight: 170 }}
                 placeholder={'## Bem-vindo ao {server}! 👋\nOlá {user}, estamos felizes por teres chegado!\n-# Membro nº {count}'}
                 value={msg}
                 onChange={e => setMsg(e.target.value)}
               />
             </div>
 
-            {/* Variables */}
             <div>
-              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>
-                Quais variáveis/placeholders posso usar?
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {VARIABLES.map(v => (
-                  <button key={v.tag} onClick={() => insertVar(v.tag)} title={v.desc} style={{
-                    background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 6,
-                    padding: '4px 10px', fontSize: 12, color: 'var(--green)', cursor: 'pointer',
-                    fontFamily: 'monospace', transition: 'all .1s',
-                  }}>{v.tag}</button>
-                ))}
-              </div>
-              <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 10, lineHeight: 1.6 }}>
-                Podes usar markdown: <code style={{ background: 'var(--elevated)', padding: '1px 5px', borderRadius: 4 }}>**negrito**</code>, <code style={{ background: 'var(--elevated)', padding: '1px 5px', borderRadius: 4 }}>## título</code>, <code style={{ background: 'var(--elevated)', padding: '1px 5px', borderRadius: 4 }}>-# subtexto</code>
-              </p>
-            </div>
-
-            {/* Accent color */}
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Cor do container</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Cor do container</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input type="color" value={accent} onChange={e => setAccent(e.target.value)}
                   style={{ width: 36, height: 36, borderRadius: 8, border: '1px solid var(--line)', background: 'none', cursor: 'pointer', padding: 2 }} />
@@ -298,11 +335,10 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
               </div>
             </div>
 
-            {/* Personalização do container (banner, avatar, rodapé) */}
             {showExtras && (
               <>
                 <div>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Banner (URL de imagem)</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Banner (URL de imagem)</p>
                   <input style={{ ...inputStyle, fontSize: 13 }} placeholder="https://exemplo.com/banner.png"
                     value={extras.bannerUrl} onChange={e => setExtras(x => ({ ...x, bannerUrl: e.target.value }))} />
                   <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5, lineHeight: 1.5 }}>Imagem no topo do container (png, jpg ou gif). Deixa vazio para não usar.</p>
@@ -315,7 +351,7 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
                   <Toggle on={extras.showAvatar} onChange={() => setExtras(x => ({ ...x, showAvatar: !x.showAvatar }))} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Rodapé</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Rodapé</p>
                   <input style={{ ...inputStyle, fontSize: 13 }} placeholder="Membro nº {count} · diverte-te!"
                     value={extras.footer} onChange={e => setExtras(x => ({ ...x, footer: e.target.value }))} />
                   <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5, lineHeight: 1.5 }}>Linha pequena no fundo, separada por divisória. Aceita as mesmas variáveis.</p>
@@ -324,25 +360,26 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
             )}
           </div>
 
-          {/* Right: preview */}
+          {/* Direita: preview */}
           <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', background: 'var(--bg)' }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pré-visualização da Mensagem</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pré-visualização da Mensagem</p>
             <DiscordPreview message={msg} accentColor={accent} guildName={guildName} extras={showExtras ? extras : undefined} />
           </div>
         </div>
 
-        {/* Footer */}
-        <div style={{ padding: '14px 22px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+        {/* Rodapé */}
+        <div style={{ padding: '14px 22px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: 10, flexShrink: 0 }}>
           <button onClick={onClose} style={{
-            padding: '8px 18px', borderRadius: 8, border: '1px solid var(--line)',
-            background: 'var(--elevated)', color: 'var(--text-2)', fontSize: 13, cursor: 'pointer',
-          }}>Cancelar</button>
+            padding: '9px 20px', borderRadius: 9, border: '1px solid var(--line)',
+            background: 'var(--elevated)', color: 'var(--text-2)', fontSize: 13.5, cursor: 'pointer',
+          }}>Fechar</button>
           <button onClick={() => { onSubmit(msg, accent, extras); onClose(); }} style={{
-            padding: '8px 22px', borderRadius: 8, border: 'none',
-            background: 'var(--green)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            padding: '9px 26px', borderRadius: 9, border: 'none',
+            background: 'var(--green)', color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
           }}>Guardar e aplicar</button>
         </div>
       </div>
+      <style>{`@media (max-width: 780px){ .me-grid { grid-template-columns: 1fr !important; } .me-grid > div { border-right: none !important; } }`}</style>
     </div>
   );
 }
@@ -626,6 +663,13 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
           extras={{ bannerUrl: welcome.bannerUrl ?? '', showAvatar: welcome.showAvatar ?? false, footer: welcome.footer ?? '' }}
           onSubmit={(msg, accent, ex) => applyAndSave('welcome', { ...welcome, message: msg, accentColor: accent, bannerUrl: ex.bannerUrl, showAvatar: ex.showAvatar, footer: ex.footer })}
           onClose={() => setEditingModal(null)}
+          onTest={welcome.channelId ? async d => {
+            const res = await fetch(`/api/guilds/${guildId}/welcome/test`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ channelId: welcome.channelId, message: d.msg, accentColor: d.accent, bannerUrl: d.extras.bannerUrl, showAvatar: d.extras.showAvatar, footer: d.extras.footer }),
+            }).catch(() => null);
+            return !!res?.ok;
+          } : undefined}
         />
       )}
       {editingModal === 'dm' && (
@@ -648,6 +692,13 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
           extras={{ bannerUrl: goodbye.bannerUrl ?? '', showAvatar: goodbye.showAvatar ?? false, footer: goodbye.footer ?? '' }}
           onSubmit={(msg, accent, ex) => applyAndSave('goodbye', { ...goodbye, message: msg, accentColor: accent, bannerUrl: ex.bannerUrl, showAvatar: ex.showAvatar, footer: ex.footer })}
           onClose={() => setEditingModal(null)}
+          onTest={goodbye.channelId ? async d => {
+            const res = await fetch(`/api/guilds/${guildId}/welcome/test`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ channelId: goodbye.channelId, message: d.msg, accentColor: d.accent, bannerUrl: d.extras.bannerUrl, showAvatar: d.extras.showAvatar, footer: d.extras.footer, type: 'goodbye' }),
+            }).catch(() => null);
+            return !!res?.ok;
+          } : undefined}
         />
       )}
       {editingModal === 'ban' && (
