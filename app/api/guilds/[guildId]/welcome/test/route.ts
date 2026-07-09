@@ -74,7 +74,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     let png: Buffer;
     try {
       const { renderWelcomeCard } = await import('@/lib/cardRenderer');
-      png = await renderWelcomeCard(card, { avatarUrl, displayName, username, memberCount, serverName: guildName, id: userId, tag: username }, new URL(req.url).origin);
+      const serverIconUrl = guild?.icon ? `https://cdn.discordapp.com/icons/${guildId}/${guild.icon}.png?size=128` : null;
+      png = await renderWelcomeCard(card, { avatarUrl, displayName, username, memberCount, serverName: guildName, id: userId, tag: username, serverIconUrl }, new URL(req.url).origin);
     } catch (err) {
       console.error('[welcome/test card]', err);
       return NextResponse.json({ error: 'Falha ao gerar o cartão.' }, { status: 500 });

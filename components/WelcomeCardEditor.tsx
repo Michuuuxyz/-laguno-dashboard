@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Stage, Layer, Rect, Text, Circle, Ellipse, Image as KImage, Transformer } from 'react-konva';
 import type Konva from 'konva';
-import { CARD_W, CARD_H, type WCLayer, type WelcomeCardTemplate } from '@/lib/welcomeCard';
+import { CARD_W, CARD_H, CARD_TEMPLATES, type WCLayer, type WelcomeCardTemplate } from '@/lib/welcomeCard';
 
 const CANVAS_W = CARD_W;
 const CANVAS_H = CARD_H;
@@ -138,6 +138,25 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 280px', gap: 16, alignItems: 'start' }} className="wc-grid">
       {/* ── Palco ── */}
       <div ref={wrapRef} style={{ minWidth: 0 }}>
+        {/* Modelos prontos — o caminho fácil: um clique e o cartão está montado */}
+        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Modelos prontos — clica num e está feito</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 6 }}>
+            {CARD_TEMPLATES.map(t => (
+              <button key={t.id} onClick={() => { onChange(t.make()); setSelId(null); }} title={t.desc} style={{
+                textAlign: 'left', padding: '8px 10px', borderRadius: 8, cursor: 'pointer',
+                border: '1px solid var(--line)', background: 'var(--surface)', transition: 'border-color .12s',
+              }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--green)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--line)')}>
+                <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--green)' }}>{t.name}</span>
+                <span style={{ display: 'block', fontSize: 10.5, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.4 }}>{t.desc}</span>
+              </button>
+            ))}
+          </div>
+          <p style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 8 }}>Escolher um modelo substitui o desenho atual. Depois personaliza o que quiseres em baixo.</p>
+        </div>
+
         <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
           <button onClick={addText} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Texto</button>
           <button onClick={addAvatar} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Avatar</button>
@@ -311,6 +330,7 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
               </div>}
             </>}
             {sel.type === 'avatar' && <>
+              <div><label style={lbl}>Imagem</label><div style={{ display: 'flex', gap: 4 }}>{([['member', 'Avatar do membro'], ['server', 'Ícone do servidor']] as const).map(([v, l]) => <button key={v} onClick={() => patch(sel.id, { source: v })} style={{ flex: 1, padding: '6px', borderRadius: 6, fontSize: 11, cursor: 'pointer', border: `1px solid ${(sel.source ?? 'member') === v ? 'var(--green)' : 'var(--line)'}`, background: (sel.source ?? 'member') === v ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: (sel.source ?? 'member') === v ? 'var(--green)' : 'var(--text-2)' }}>{l}</button>)}</div></div>
               <div><label style={lbl}>Forma</label><div style={{ display: 'flex', gap: 4 }}>{(['circle', 'square'] as const).map(s => <button key={s} onClick={() => patch(sel.id, { shape: s })} style={{ flex: 1, padding: '6px', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${sel.shape === s ? 'var(--green)' : 'var(--line)'}`, background: sel.shape === s ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: sel.shape === s ? 'var(--green)' : 'var(--text-2)' }}>{s === 'circle' ? 'Círculo' : 'Quadrado'}</button>)}</div></div>
               <div><label style={lbl}>Tamanho ({sel.size})</label><input type="range" min={40} max={340} value={sel.size} onChange={e => patch(sel.id, { size: parseInt(e.target.value) })} style={{ width: '100%' }} /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'end' }}>

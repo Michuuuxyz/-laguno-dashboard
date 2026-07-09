@@ -1,7 +1,7 @@
 import { createCanvas, loadImage, GlobalFonts, type Image, type SKRSContext2D } from '@napi-rs/canvas';
 import type { WelcomeCardTemplate } from './welcomeCard';
 
-export interface WCContext { avatarUrl: string; displayName: string; username: string; memberCount: number; serverName: string; id?: string; tag?: string }
+export interface WCContext { avatarUrl: string; displayName: string; username: string; memberCount: number; serverName: string; id?: string; tag?: string; serverIconUrl?: string | null }
 
 let fontsReady = false;
 async function ensureFonts(base: string): Promise<void> {
@@ -82,7 +82,9 @@ export async function renderWelcomeCard(t: WelcomeCardTemplate, c: WCContext, fo
       continue;
     }
     if (layer.type === 'avatar') {
-      const img = await fetchImage(c.avatarUrl);
+      const src = layer.source === 'server' ? c.serverIconUrl : c.avatarUrl;
+      if (!src) continue;
+      const img = await fetchImage(src);
       if (!img) continue;
       const { x, y, size } = layer;
       g.save();
