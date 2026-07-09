@@ -198,7 +198,7 @@ function Shell({ rail, sidebar, children }: { rail: React.ReactNode; sidebar: Re
   const [navOpen, setNavOpen] = useState(false);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
+    <div className="dash-theme" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
       {/* Topbar desktop — logo centrado, volta à página principal */}
       <div className="dash-desktop-topbar">
         <Link href="/" title="Início" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', transition: 'opacity .15s' }}
@@ -353,7 +353,7 @@ export function DashboardShell({ user, activeGuilds, guildMap, children }: Props
               : guildInitial(currentGuild.name)
             }
           </div>
-          <p style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-.02em', textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p className="display" style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-.03em', textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {currentGuild.name}
           </p>
         </div>
@@ -372,10 +372,12 @@ export function DashboardShell({ user, activeGuilds, guildMap, children }: Props
                   return (
                     <button key={item.id} onClick={() => navTo(item.id)} style={{
                       display: 'flex', alignItems: 'center', gap: 8,
-                      width: '100%', padding: '7px 10px', borderRadius: 7, marginBottom: 1,
+                      width: '100%', padding: '7px 10px 7px 8px', borderRadius: '0 7px 7px 0', marginBottom: 1,
                       border: 'none', cursor: 'pointer', textAlign: 'left',
-                      background: isActive ? 'rgba(109,184,62,.1)' : 'transparent',
-                      color: isActive ? 'var(--green)' : 'var(--text-2)',
+                      // Estilo Discord: item ativo com fundo elevado + barra verde à esquerda
+                      borderLeft: isActive ? '3px solid var(--green)' : '3px solid transparent',
+                      background: isActive ? 'var(--hover)' : 'transparent',
+                      color: isActive ? 'var(--text-1)' : 'var(--text-2)',
                       fontSize: 13.5, fontWeight: isActive ? 600 : 400, transition: 'background .12s, color .12s',
                     }}
                       onMouseEnter={e => { if (!isActive) { (e.currentTarget as HTMLButtonElement).style.background = 'var(--hover)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-1)'; } }}

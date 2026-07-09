@@ -300,33 +300,41 @@ function ModuleHeader({ icon, accent, title, desc, chip, mascot }: {
   icon: React.ReactNode; accent: string; title: string; desc: string; chip?: string; mascot?: string;
 }) {
   accent = '#6db83e'; // paleta unificada — o verde da marca em todos os módulos
+  // Tipografia forte: título display grande, com a última palavra em verde
+  const words = title.trim().split(' ');
+  const last  = words.pop() ?? '';
+  const head  = words.join(' ');
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 16, position: 'relative' }}>
-      {/* Mascote do módulo — o crocodilo numa pose própria, estilo cabeçalho Loritta */}
+    <div style={{ position: 'relative', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 18 }}>
+      {/* Mascote do módulo — pousado em cima da linha divisória */}
       {mascot && (
         <>
-          <div className="mh-mascot" style={{ position: 'absolute', right: 6, bottom: -10, pointerEvents: 'none', filter: 'drop-shadow(0 6px 16px rgba(0,0,0,.45))' }}>
+          <div className="mh-mascot" style={{ position: 'absolute', right: 6, bottom: -6, pointerEvents: 'none', filter: 'drop-shadow(0 6px 16px rgba(0,0,0,.45))', zIndex: 1 }}>
             <Image src={`/mascote/${mascot}.png`} alt="" width={132} height={96} style={{ objectFit: 'contain', height: 96, width: 'auto' }} />
           </div>
           <style>{`@media (max-width: 720px) { .mh-mascot { display: none; } }`}</style>
         </>
       )}
-      <span style={{
-        width: 40, height: 40, borderRadius: 11, flexShrink: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: accent + '16', border: `1px solid ${accent}30`, color: accent,
-      }}>{icon}</span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <h2 style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-.02em' }}>{title}</h2>
-          {chip && (
-            <span style={{
-              fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', padding: '2px 9px', borderRadius: 20,
-              background: accent + '14', color: accent, border: `1px solid ${accent}30`, whiteSpace: 'nowrap',
-            }}>{chip}</span>
-          )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
+        <span style={{
+          width: 42, height: 42, borderRadius: 11, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: accent + '16', border: `1px solid ${accent}30`, color: accent,
+        }}>{icon}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <h2 className="display" style={{ fontSize: 'clamp(22px,3vw,28px)', fontWeight: 800, letterSpacing: '-.04em', lineHeight: 1.05 }}>
+              {head ? `${head} ` : ''}<span style={{ color: accent }}>{last}</span>
+            </h2>
+            {chip && (
+              <span style={{
+                fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', padding: '2px 9px', borderRadius: 20,
+                background: accent + '14', color: accent, border: `1px solid ${accent}30`, whiteSpace: 'nowrap',
+              }}>{chip}</span>
+            )}
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 4 }}>{desc}</p>
         </div>
-        <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>{desc}</p>
       </div>
     </div>
   );

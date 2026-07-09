@@ -185,6 +185,22 @@ h1, h2, h3 { text-wrap: balance; }
   .reveal { opacity: 1 !important; transform: none !important; }
 }
 
+/* ── Tema do dashboard — nativo Discord, verde Laguno ──
+   Aplica-se só dentro de .dash-theme (a landing mantém o tema próprio).
+   Cores do Discord: conteúdo #313338, chrome #2b2d31/#1e1f22, cartões #2b2d31. */
+.dash-theme {
+  --bg:       #313338;
+  --surface:  #2b2d31;
+  --card:     #2b2d31;
+  --elevated: #383a40;
+  --hover:    #3f4248;
+  --line:      rgba(255,255,255,0.07);
+  --line-hover:rgba(255,255,255,0.14);
+  --text-1: #f2f3f5;
+  --text-2: #b5bac1;
+  --text-3: #80848e;
+}
+
 /* ── Card ────────────────────────────────────── */
 .card {
   background: var(--card);
