@@ -24,6 +24,7 @@ export interface WelcomeConfig {
   footer?:     string;
   cardEnabled?: boolean;
   card?:       WelcomeCardTemplate | null;
+  mode?:       'v2' | 'basic';
 }
 
 export interface GoodbyeConfig {
@@ -37,6 +38,7 @@ export interface GoodbyeConfig {
   bannerUrl?:        string;
   showAvatar?:       boolean;
   footer?:           string;
+  mode?:             'v2' | 'basic';
 }
 
 export interface ContainerExtras {
@@ -151,11 +153,39 @@ function mdToHtml(text: string): string {
 }
 
 /* ─── Discord-like message preview ─── */
-function DiscordPreview({ message, accentColor, guildName, extras }: {
-  message: string; accentColor: string; guildName: string; extras?: ContainerExtras;
+function DiscordPreview({ message, accentColor, guildName, extras, mode }: {
+  message: string; accentColor: string; guildName: string; extras?: ContainerExtras; mode?: 'v2' | 'basic';
 }) {
   const accent = accentColor || '#6db83e';
   const parsed = parsePreview(message, guildName);
+
+  // Modo Básico — texto simples no chat, sem container
+  if (mode === 'basic') {
+    return (
+      <div style={{ background: '#313338', borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,.06)', fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
+        <div style={{ padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ color: '#80848e', fontSize: 13 }}>#</span>
+          <span style={{ fontSize: 12, color: '#80848e' }}>boas-vindas</span>
+        </div>
+        <div style={{ padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/laguno.png" alt="Laguno" style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: '#f2f3f5' }}>Laguno</span>
+              <span style={{ fontSize: 9.5, fontWeight: 600, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>BOT</span>
+              <span style={{ fontSize: 11, color: '#80848e' }}>Hoje às 10:46</span>
+            </div>
+            {message ? (
+              <p style={{ fontSize: 13.5, color: '#dbdee1', lineHeight: 1.65, margin: 0 }} dangerouslySetInnerHTML={{ __html: mdToHtml(parsed) }} />
+            ) : (
+              <p style={{ fontSize: 13, color: '#80848e', fontStyle: 'italic' }}>A tua mensagem aparece aqui...</p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ background: '#313338', borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,.06)', fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
@@ -209,23 +239,27 @@ function DiscordPreview({ message, accentColor, guildName, extras }: {
 }
 
 /* ─── Message Editor Modal — janela grande e organizada (estilo editor de mensagens) ─── */
-function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, title, extras: initialExtras, showExtras, onTest }: {
+function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, title, extras: initialExtras, showExtras, onTest, initialMode, allowMode }: {
   message: string;
   accentColor: string;
   guildName: string;
-  onSubmit: (msg: string, accent: string, extras: ContainerExtras) => void;
+  onSubmit: (msg: string, accent: string, extras: ContainerExtras, mode: 'v2' | 'basic') => void;
   onClose: () => void;
   title: string;
   extras?: ContainerExtras;
   showExtras?: boolean;
-  onTest?: (draft: { msg: string; accent: string; extras: ContainerExtras }) => Promise<boolean>;
+  onTest?: (draft: { msg: string; accent: string; extras: ContainerExtras; mode: 'v2' | 'basic' }) => Promise<boolean>;
+  initialMode?: 'v2' | 'basic';
+  allowMode?: boolean;
 }) {
   const [msg, setMsg] = useState(message);
   const [accent, setAccent] = useState(accentColor || '#6db83e');
   const [extras, setExtras] = useState<ContainerExtras>(initialExtras ?? { bannerUrl: '', showAvatar: false, footer: '' });
+  const [mode, setMode] = useState<'v2' | 'basic'>(initialMode ?? 'v2');
   const [varsOpen, setVarsOpen] = useState(false);
   const [testState, setTestState] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isBasic = allowMode && mode === 'basic';
 
   function insertVar(tag: string) {
     const el = textareaRef.current;
@@ -240,7 +274,7 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
   async function runTest() {
     if (!onTest || testState === 'loading') return;
     setTestState('loading');
-    const ok = await onTest({ msg, accent, extras }).catch(() => false);
+    const ok = await onTest({ msg, accent, extras, mode: allowMode ? mode : 'v2' }).catch(() => false);
     setTestState(ok ? 'ok' : 'err');
     setTimeout(() => setTestState('idle'), 3000);
   }
@@ -282,7 +316,7 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
           <button onClick={() => setVarsOpen(v => !v)} style={{ ...actionBtn, background: 'var(--elevated)', color: 'var(--text-1)', border: '1px solid var(--line)' }}>
             Variáveis / placeholders {varsOpen ? '▲' : '▼'}
           </button>
-          <button onClick={() => { setMsg(message); setAccent(accentColor || '#6db83e'); setExtras(initialExtras ?? { bannerUrl: '', showAvatar: false, footer: '' }); }} style={{ ...actionBtn, background: 'var(--elevated)', color: 'var(--text-2)', border: '1px solid var(--line)', flex: '0 1 auto' }}>
+          <button onClick={() => { setMsg(message); setAccent(accentColor || '#6db83e'); setExtras(initialExtras ?? { bannerUrl: '', showAvatar: false, footer: '' }); setMode(initialMode ?? 'v2'); }} style={{ ...actionBtn, background: 'var(--elevated)', color: 'var(--text-2)', border: '1px solid var(--line)', flex: '0 1 auto' }}>
             Repor
           </button>
         </div>
@@ -313,6 +347,37 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
 
           {/* Esquerda */}
           <div style={{ padding: '18px 20px', borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto' }}>
+            {/* Modo de Mensagem — Básico vs Components V2 */}
+            {allowMode && (
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Modo de Mensagem</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {([
+                    { v: 'basic' as const, t: 'Modo Básico', d: 'Mensagem de texto simples, como escrita por um membro.' },
+                    { v: 'v2' as const, t: 'Modo Components V2 (Avançado)', d: 'Container do Discord com cor, banner, avatar e rodapé.' },
+                  ]).map(o => {
+                    const on = mode === o.v;
+                    return (
+                      <button key={o.v} onClick={() => setMode(o.v)} style={{
+                        display: 'flex', alignItems: 'flex-start', gap: 10, textAlign: 'left',
+                        padding: '10px 12px', borderRadius: 9, cursor: 'pointer',
+                        border: on ? '1px solid var(--green)' : '1px solid var(--line)',
+                        background: on ? 'rgba(109,184,62,.08)' : 'var(--surface)',
+                      }}>
+                        <span style={{ width: 15, height: 15, borderRadius: '50%', flexShrink: 0, marginTop: 2, border: `2px solid ${on ? 'var(--green)' : 'var(--text-3)'}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {on && <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)' }} />}
+                        </span>
+                        <span>
+                          <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: on ? 'var(--green)' : 'var(--text-1)' }}>{o.t}</span>
+                          <span style={{ display: 'block', fontSize: 11.5, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.45 }}>{o.d}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Conteúdo da Mensagem</p>
               <textarea
@@ -325,6 +390,7 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
               />
             </div>
 
+            {!isBasic && (
             <div>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Cor do container</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -334,8 +400,9 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
                   value={accent} onChange={e => setAccent(e.target.value)} placeholder="#6db83e" />
               </div>
             </div>
+            )}
 
-            {showExtras && (
+            {showExtras && !isBasic && (
               <>
                 <div>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Banner (URL de imagem)</p>
@@ -363,7 +430,7 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
           {/* Direita: preview */}
           <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', background: 'var(--bg)' }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pré-visualização da Mensagem</p>
-            <DiscordPreview message={msg} accentColor={accent} guildName={guildName} extras={showExtras ? extras : undefined} />
+            <DiscordPreview message={msg} accentColor={accent} guildName={guildName} extras={showExtras && !isBasic ? extras : undefined} mode={isBasic ? 'basic' : 'v2'} />
           </div>
         </div>
 
@@ -373,7 +440,7 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
             padding: '9px 20px', borderRadius: 9, border: '1px solid var(--line)',
             background: 'var(--elevated)', color: 'var(--text-2)', fontSize: 13.5, cursor: 'pointer',
           }}>Fechar</button>
-          <button onClick={() => { onSubmit(msg, accent, extras); onClose(); }} style={{
+          <button onClick={() => { onSubmit(msg, accent, extras, allowMode ? mode : 'v2'); onClose(); }} style={{
             padding: '9px 26px', borderRadius: 9, border: 'none',
             background: 'var(--green)', color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
           }}>Guardar e aplicar</button>
@@ -490,7 +557,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       {/* ── BOAS-VINDAS ── */}
       <div>
@@ -661,12 +728,14 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
           guildName={guildName}
           showExtras
           extras={{ bannerUrl: welcome.bannerUrl ?? '', showAvatar: welcome.showAvatar ?? false, footer: welcome.footer ?? '' }}
-          onSubmit={(msg, accent, ex) => applyAndSave('welcome', { ...welcome, message: msg, accentColor: accent, bannerUrl: ex.bannerUrl, showAvatar: ex.showAvatar, footer: ex.footer })}
+          allowMode
+          initialMode={welcome.mode ?? 'v2'}
+          onSubmit={(msg, accent, ex, mode) => applyAndSave('welcome', { ...welcome, message: msg, accentColor: accent, bannerUrl: ex.bannerUrl, showAvatar: ex.showAvatar, footer: ex.footer, mode })}
           onClose={() => setEditingModal(null)}
           onTest={welcome.channelId ? async d => {
             const res = await fetch(`/api/guilds/${guildId}/welcome/test`, {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ channelId: welcome.channelId, message: d.msg, accentColor: d.accent, bannerUrl: d.extras.bannerUrl, showAvatar: d.extras.showAvatar, footer: d.extras.footer }),
+              body: JSON.stringify({ channelId: welcome.channelId, message: d.msg, accentColor: d.accent, bannerUrl: d.extras.bannerUrl, showAvatar: d.extras.showAvatar, footer: d.extras.footer, mode: d.mode }),
             }).catch(() => null);
             return !!res?.ok;
           } : undefined}
@@ -690,12 +759,14 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
           guildName={guildName}
           showExtras
           extras={{ bannerUrl: goodbye.bannerUrl ?? '', showAvatar: goodbye.showAvatar ?? false, footer: goodbye.footer ?? '' }}
-          onSubmit={(msg, accent, ex) => applyAndSave('goodbye', { ...goodbye, message: msg, accentColor: accent, bannerUrl: ex.bannerUrl, showAvatar: ex.showAvatar, footer: ex.footer })}
+          allowMode
+          initialMode={goodbye.mode ?? 'v2'}
+          onSubmit={(msg, accent, ex, mode) => applyAndSave('goodbye', { ...goodbye, message: msg, accentColor: accent, bannerUrl: ex.bannerUrl, showAvatar: ex.showAvatar, footer: ex.footer, mode })}
           onClose={() => setEditingModal(null)}
           onTest={goodbye.channelId ? async d => {
             const res = await fetch(`/api/guilds/${guildId}/welcome/test`, {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ channelId: goodbye.channelId, message: d.msg, accentColor: d.accent, bannerUrl: d.extras.bannerUrl, showAvatar: d.extras.showAvatar, footer: d.extras.footer, type: 'goodbye' }),
+              body: JSON.stringify({ channelId: goodbye.channelId, message: d.msg, accentColor: d.accent, bannerUrl: d.extras.bannerUrl, showAvatar: d.extras.showAvatar, footer: d.extras.footer, type: 'goodbye', mode: d.mode }),
             }).catch(() => null);
             return !!res?.ok;
           } : undefined}

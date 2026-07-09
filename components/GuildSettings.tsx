@@ -300,7 +300,7 @@ function ModuleHeader({ icon, accent, title, desc, chip }: {
 }) {
   accent = '#6db83e'; // paleta unificada — o verde da marca em todos os módulos
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 16 }}>
       <span style={{
         width: 40, height: 40, borderRadius: 11, flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',

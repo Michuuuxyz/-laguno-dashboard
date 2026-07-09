@@ -31,9 +31,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
   if (!access) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json();
-  const { channelId, message, accentColor, bannerUrl, showAvatar, footer, card } = body as {
+  const { channelId, message, accentColor, bannerUrl, showAvatar, footer, card, mode } = body as {
     channelId?: string; message?: string; accentColor?: string;
     bannerUrl?: string; showAvatar?: boolean; footer?: string; card?: WelcomeCardTemplate;
+    mode?: 'v2' | 'basic';
   };
 
   if (!channelId) {
@@ -94,6 +95,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
 
   if (!message) return NextResponse.json({ error: 'message é obrigatório' }, { status: 400 });
   const parsedMessage = `🧪 **[TESTE]** ${parseMessage(message, userId, guildName, memberCount)}`;
+
+  // ── Modo Básico — texto simples, sem container ──
+  if (mode === 'basic') {
+    const basicRes = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
+      method: 'POST',
+      headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: parsedMessage, allowed_mentions: { parse: ['users'] } }),
+    });
+    if (!basicRes.ok) {
+      const err = await basicRes.json().catch(() => ({}));
+      return NextResponse.json({ error: 'Discord recusou a mensagem', detail: err }, { status: 502 });
+    }
+    return NextResponse.json({ ok: true });
+  }
 
   // Build accent color as integer
   const accentInt = accentColor ? parseInt(accentColor.replace('#', ''), 16) : 0x6db83e;
