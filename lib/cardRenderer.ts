@@ -1,7 +1,7 @@
 import { createCanvas, loadImage, GlobalFonts, type Image, type SKRSContext2D } from '@napi-rs/canvas';
 import type { WelcomeCardTemplate } from './welcomeCard';
 
-export interface WCContext { avatarUrl: string; displayName: string; username: string; memberCount: number; serverName: string }
+export interface WCContext { avatarUrl: string; displayName: string; username: string; memberCount: number; serverName: string; id?: string; tag?: string }
 
 let fontsReady = false;
 async function ensureFonts(base: string): Promise<void> {
@@ -31,7 +31,15 @@ async function fetchImage(url: string): Promise<Image | null> {
 function subst(s: string, c: WCContext): string {
   return (s || '')
     .replace(/{user}/g, c.displayName).replace(/{username}/g, c.username)
-    .replace(/{count}/g, String(c.memberCount)).replace(/{server}/g, c.serverName);
+    .replace(/{count}/g, String(c.memberCount)).replace(/{server}/g, c.serverName)
+    .replace(/{@user}/g, `@${c.displayName}`)
+    .replace(/{user\.name}/g, c.username)
+    .replace(/{user\.id}/g, c.id ?? '')
+    .replace(/{user\.tag}/g, c.tag ?? c.username)
+    .replace(/{user\.discriminator}/g, '0')
+    .replace(/{guild\.name}/g, c.serverName)
+    .replace(/{guild\.size}/g, String(c.memberCount))
+    .replace(/{guild}/g, c.serverName);
 }
 
 function drawCover(g: SKRSContext2D, img: Image, W: number, H: number): void {

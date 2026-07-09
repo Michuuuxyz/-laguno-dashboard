@@ -20,8 +20,21 @@ const sid = () => Math.random().toString(36).slice(2, 8);
 
 /* Substitui as variáveis por um exemplo, para o preview */
 function sample(s: string) {
-  return (s || '').replace(/{user}/g, 'Michu').replace(/{username}/g, 'michu').replace(/{count}/g, '1234').replace(/{server}/g, 'Laguno');
+  return (s || '')
+    .replace(/{user}/g, 'Michu').replace(/{username}/g, 'michu')
+    .replace(/{count}/g, '1234').replace(/{server}/g, 'Laguno')
+    .replace(/{@user}/g, '@Michu')
+    .replace(/{user\.name}/g, 'michu').replace(/{user\.id}/g, '349527593634234370')
+    .replace(/{user\.tag}/g, 'michu').replace(/{user\.discriminator}/g, '0')
+    .replace(/{guild\.name}/g, 'Laguno').replace(/{guild\.size}/g, '1234').replace(/{guild}/g, 'Laguno');
 }
+
+/* Formatos do cartão — várias formas de banner */
+const CARD_FORMATS = [
+  { l: 'Banner largo', w: 1024, h: 400 },
+  { l: 'Banner fino',  w: 1024, h: 260 },
+  { l: 'Quadrado',     w: 600,  h: 600 },
+];
 
 function useHtmlImage(src?: string) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
@@ -47,7 +60,10 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
   const trRef = useRef<Konva.Transformer>(null);
   const stageRef = useRef<Konva.Stage>(null);
 
-  const scale = display / CANVAS_W;
+  // Dimensões do cartão — o formato é configurável (banner largo/fino/quadrado)
+  const W = card.width || CANVAS_W;
+  const H = card.height || CANVAS_H;
+  const scale = display / W;
   const bgImg = useHtmlImage(card.bgType === 'image' ? card.bgUrl : undefined);
   const avatarImg = useHtmlImage(SAMPLE_AVATAR);
 
@@ -95,12 +111,12 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
     if (!sel) return;
     const { w, h } = boundsOf(sel);
     const v: Partial<WCLayer> = {};
-    if (dir === 'h') v.x = Math.round((CANVAS_W - w) / 2);
+    if (dir === 'h') v.x = Math.round((W - w) / 2);
     else if (dir === 'left') v.x = 0;
-    else if (dir === 'right') v.x = CANVAS_W - w;
-    else if (dir === 'v') v.y = Math.round((CANVAS_H - h) / 2);
+    else if (dir === 'right') v.x = W - w;
+    else if (dir === 'v') v.y = Math.round((H - h) / 2);
     else if (dir === 'top') v.y = 0;
-    else if (dir === 'bottom') v.y = CANVAS_H - h;
+    else if (dir === 'bottom') v.y = H - h;
     patch(sel.id, v);
   };
   const duplicate = () => {
@@ -129,22 +145,22 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
           <span style={{ fontSize: 11.5, color: 'var(--text-3)', alignSelf: 'center' }}>Arrasta os elementos. Clica num para editar à direita.</span>
         </div>
         <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)', width: display, maxWidth: '100%' }}>
-          <Stage ref={stageRef} width={display} height={CANVAS_H * scale} scaleX={scale} scaleY={scale}
+          <Stage ref={stageRef} width={display} height={H * scale} scaleX={scale} scaleY={scale}
             onMouseDown={e => { if (e.target === e.target.getStage()) setSelId(null); }}>
             <Layer>
               {card.bgType === 'gradient' ? (
-                <Rect x={0} y={0} width={CANVAS_W} height={CANVAS_H} listening={false}
-                  fillLinearGradientStartPoint={{ x: 0, y: 0 }} fillLinearGradientEndPoint={{ x: CANVAS_W, y: CANVAS_H }}
+                <Rect x={0} y={0} width={W} height={H} listening={false}
+                  fillLinearGradientStartPoint={{ x: 0, y: 0 }} fillLinearGradientEndPoint={{ x: W, y: H }}
                   fillLinearGradientColorStops={[0, card.bgColor || '#0d0d0f', 1, card.bgColor2 || card.bgColor || '#1a1a1e']} />
               ) : (
-                <Rect x={0} y={0} width={CANVAS_W} height={CANVAS_H} fill={card.bgColor || '#0d0d0f'} listening={false} />
+                <Rect x={0} y={0} width={W} height={H} fill={card.bgColor || '#0d0d0f'} listening={false} />
               )}
               {card.bgType === 'image' && bgImg && (() => {
-                const r = Math.max(CANVAS_W / bgImg.width, CANVAS_H / bgImg.height);
+                const r = Math.max(W / bgImg.width, H / bgImg.height);
                 const w = bgImg.width * r, h = bgImg.height * r;
-                return <KImage image={bgImg} x={(CANVAS_W - w) / 2} y={(CANVAS_H - h) / 2} width={w} height={h} listening={false} />;
+                return <KImage image={bgImg} x={(W - w) / 2} y={(H - h) / 2} width={w} height={h} listening={false} />;
               })()}
-              {(card.bgOverlay ?? 0) > 0 && <Rect x={0} y={0} width={CANVAS_W} height={CANVAS_H} fill="#000000" opacity={card.bgOverlay} listening={false} />}
+              {(card.bgOverlay ?? 0) > 0 && <Rect x={0} y={0} width={W} height={H} fill="#000000" opacity={card.bgOverlay} listening={false} />}
 
               {card.layers.map(l => {
                 if (l.type === 'shape') {
@@ -203,7 +219,7 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
         </div>
         {/* Variáveis */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-          {['{user}', '{username}', '{count}', '{server}'].map(v => (
+          {['{user}', '{@user}', '{user.name}', '{user.tag}', '{user.id}', '{count}', '{guild.size}', '{server}', '{guild.name}'].map(v => (
             <code key={v} style={{ fontSize: 11, background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 5, padding: '2px 6px', color: 'var(--text-2)' }}>{v}</code>
           ))}
         </div>
@@ -211,6 +227,28 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
 
       {/* ── Painel de propriedades ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Formato do cartão */}
+        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: 12 }}>
+          <p style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>Formato do cartão</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {CARD_FORMATS.map(f => {
+              const on = W === f.w && H === f.h;
+              return (
+                <button key={f.l} onClick={() => setBg({ width: f.w, height: f.h })} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '7px 10px', borderRadius: 7, fontSize: 12, cursor: 'pointer',
+                  border: `1px solid ${on ? 'var(--green)' : 'var(--line)'}`,
+                  background: on ? 'rgba(109,184,62,.1)' : 'var(--surface)',
+                  color: on ? 'var(--green)' : 'var(--text-2)',
+                }}>
+                  <span style={{ fontWeight: 600 }}>{f.l}</span>
+                  <span style={{ fontSize: 10.5, opacity: .7 }}>{f.w}×{f.h}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Fundo */}
         <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: 12 }}>
           <p style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>Fundo</p>

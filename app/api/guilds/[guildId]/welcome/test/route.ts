@@ -13,7 +13,16 @@ function parseMessage(text: string, userId: string, guildName: string, memberCou
     .replace(/{server}/g,       guildName)
     .replace(/{count}/g,        String(memberCount))
     .replace(/{id}/g,           userId)
-    .replace(/{created}/g,      'há 2 anos');
+    .replace(/{created}/g,      'há 2 anos')
+    // aliases estilo MEE6
+    .replace(/{@user}/g,             `<@${userId}>`)
+    .replace(/{user\.name}/g,        'Michu')
+    .replace(/{user\.id}/g,          userId)
+    .replace(/{user\.tag}/g,         'michu')
+    .replace(/{user\.discriminator}/g, '0')
+    .replace(/{guild\.name}/g,       guildName)
+    .replace(/{guild\.size}/g,       String(memberCount))
+    .replace(/{guild}/g,             guildName);
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
@@ -63,7 +72,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     let png: Buffer;
     try {
       const { renderWelcomeCard } = await import('@/lib/cardRenderer');
-      png = await renderWelcomeCard(card, { avatarUrl, displayName, username, memberCount, serverName: guildName }, new URL(req.url).origin);
+      png = await renderWelcomeCard(card, { avatarUrl, displayName, username, memberCount, serverName: guildName, id: userId, tag: username }, new URL(req.url).origin);
     } catch (err) {
       console.error('[welcome/test card]', err);
       return NextResponse.json({ error: 'Falha ao gerar o cartão.' }, { status: 500 });

@@ -74,11 +74,17 @@ function SaveBtn({ id, saving, saved, error, onSave }: { id: string; saving: str
 
 const VARIABLES = [
   { tag: '{user}',        desc: 'Menção do utilizador' },
+  { tag: '{@user}',       desc: 'Menção (alias)' },
   { tag: '{username}',    desc: 'Nome de utilizador' },
+  { tag: '{user.name}',   desc: 'Nome de utilizador (alias)' },
+  { tag: '{user.tag}',    desc: 'Tag do utilizador' },
+  { tag: '{user.id}',     desc: 'ID do utilizador' },
+  { tag: '{user.avatar}', desc: 'URL do avatar' },
   { tag: '{displayname}', desc: 'Nome no servidor' },
   { tag: '{server}',      desc: 'Nome do servidor' },
+  { tag: '{guild.name}',  desc: 'Nome do servidor (alias)' },
   { tag: '{count}',       desc: 'Total de membros' },
-  { tag: '{id}',          desc: 'ID do utilizador' },
+  { tag: '{guild.size}',  desc: 'Total de membros (alias)' },
   { tag: '{created}',     desc: 'Conta criada há...' },
 ];
 
@@ -112,7 +118,17 @@ function parsePreview(text: string, guildName: string): string {
     .replace(/{server}/g,       guildName)
     .replace(/{count}/g,        '42')
     .replace(/{id}/g,           '349527593634234370')
-    .replace(/{created}/g,      'há 2 anos');
+    .replace(/{created}/g,      'há 2 anos')
+    .replace(/{@user}/g,             '@Michu')
+    .replace(/{user\.name}/g,        'Michu')
+    .replace(/{user\.tag}/g,         'michu')
+    .replace(/{user\.id}/g,          '349527593634234370')
+    .replace(/{user\.avatar}/g,      '(avatar)')
+    .replace(/{user\.discriminator}/g, '0')
+    .replace(/{guild\.name}/g,       guildName)
+    .replace(/{guild\.size}/g,       '42')
+    .replace(/{guild\.icon}/g,       '(ícone)')
+    .replace(/{guild}/g,             guildName);
 }
 
 function escapeHtml(text: string): string {
