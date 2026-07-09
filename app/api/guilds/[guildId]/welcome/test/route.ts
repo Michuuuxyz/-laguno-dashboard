@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
 import { channelBelongsToGuild } from '@/lib/channelGuard';
 import type { WelcomeCardTemplate } from '@/lib/welcomeCard';
+import { blocksToApi, type V2Block } from '@/lib/v2blocks';
 
 const DISCORD_API = 'https://discord.com/api/v10';
 
@@ -31,10 +32,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
   if (!access) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json();
-  const { channelId, message, accentColor, bannerUrl, showAvatar, footer, card, mode } = body as {
+  const { channelId, message, accentColor, bannerUrl, showAvatar, footer, card, mode, blocks } = body as {
     channelId?: string; message?: string; accentColor?: string;
     bannerUrl?: string; showAvatar?: boolean; footer?: string; card?: WelcomeCardTemplate;
-    mode?: 'v2' | 'basic';
+    mode?: 'v2' | 'basic'; blocks?: V2Block[];
   };
 
   if (!channelId) {
@@ -89,6 +90,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     if (!cardRes.ok) {
       const err = await cardRes.json().catch(() => ({}));
       return NextResponse.json({ error: 'Discord recusou o cartão', detail: err }, { status: 502 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  // ── Editor por blocos (Components V2) — envia os blocos tal como o bot fará ──
+  if (mode !== 'basic' && blocks?.length) {
+    const comps = [
+      { type: 10, content: '-# 🧪 mensagem de teste' },
+      ...blocksToApi(blocks, s => parseMessage(s, userId, guildName, memberCount)),
+    ];
+    const blocksRes = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
+      method: 'POST',
+      headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ flags: 1 << 15, components: comps, allowed_mentions: { parse: ['users'] } }),
+    });
+    if (!blocksRes.ok) {
+      const err = await blocksRes.json().catch(() => ({}));
+      return NextResponse.json({ error: 'Discord recusou a mensagem', detail: err }, { status: 502 });
     }
     return NextResponse.json({ ok: true });
   }
