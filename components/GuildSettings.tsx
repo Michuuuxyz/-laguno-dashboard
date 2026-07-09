@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { WORD_TEMPLATE_WORDS } from '@/lib/wordTemplates';
 import { useStats } from '@/lib/hooks/useStats';
 
@@ -295,12 +296,21 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 }
 
 /* ── Cabeçalho unificado de módulo ── */
-function ModuleHeader({ icon, accent, title, desc, chip }: {
-  icon: React.ReactNode; accent: string; title: string; desc: string; chip?: string;
+function ModuleHeader({ icon, accent, title, desc, chip, mascot }: {
+  icon: React.ReactNode; accent: string; title: string; desc: string; chip?: string; mascot?: string;
 }) {
   accent = '#6db83e'; // paleta unificada — o verde da marca em todos os módulos
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 16 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 16, position: 'relative' }}>
+      {/* Mascote do módulo — o crocodilo numa pose própria, estilo cabeçalho Loritta */}
+      {mascot && (
+        <>
+          <div className="mh-mascot" style={{ position: 'absolute', right: 6, bottom: -10, pointerEvents: 'none', filter: 'drop-shadow(0 6px 16px rgba(0,0,0,.45))' }}>
+            <Image src={`/mascote/${mascot}.png`} alt="" width={132} height={96} style={{ objectFit: 'contain', height: 96, width: 'auto' }} />
+          </div>
+          <style>{`@media (max-width: 720px) { .mh-mascot { display: none; } }`}</style>
+        </>
+      )}
       <span style={{
         width: 40, height: 40, borderRadius: 11, flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -802,7 +812,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* SETTINGS */}
         {active === 'settings' && (
           <div>
-            <ModuleHeader icon={<IconSettings />} accent="#94a3b8" title="Configurações"
+            <ModuleHeader icon={<IconSettings />} accent="#94a3b8" title="Configurações" mascot="firme"
               desc="Definições gerais do Laguno neste servidor." />
 
             {/* Módulos de comandos — é para aqui que o bot manda quando diz "ativa no dashboard" */}
@@ -851,7 +861,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* MODERATION */}
         {active === 'moderation' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <ModuleHeader icon={<IconShield />} accent="#f87171" title="Moderação"
+            <ModuleHeader icon={<IconShield />} accent="#f87171" title="Moderação" mascot="firme"
               desc="Comportamento dos comandos /ban, /kick, /warn, /timeout e restantes." />
 
             {/* Comportamento */}
@@ -940,7 +950,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
           ].filter(Boolean).length;
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <ModuleHeader icon={<IconBolt />} accent="#6db83e" title="Auto-Moderação"
+              <ModuleHeader icon={<IconBolt />} accent="#6db83e" title="Auto-Moderação" mascot="firme"
                 desc="Regras nativas do Discord e filtros do bot, sem sobreposição."
                 chip={activeRules > 0 ? `${activeRules} regra${activeRules !== 1 ? 's' : ''} ativa${activeRules !== 1 ? 's' : ''}` : 'inativo'} />
               <div style={{ background: 'rgba(109,184,62,.06)', border: '1px solid rgba(109,184,62,.2)', borderRadius: 12, padding: '16px 20px' }}>
@@ -1075,7 +1085,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* BOAS-VINDAS */}
         {active === 'welcome' && (
           <div>
-            <ModuleHeader icon={<IconUsers />} accent="#60a5fa" title="Boas-Vindas & Despedidas"
+            <ModuleHeader icon={<IconUsers />} accent="#60a5fa" title="Boas-Vindas & Despedidas" mascot="coracoes"
               desc="Mensagens de entrada e saída com variáveis dinâmicas e pré-visualização."
               chip={config.welcome?.enabled || config.goodbye?.enabled ? 'ativo' : 'inativo'} />
             <WelcomeTab welcome={config.welcome} goodbye={config.goodbye} channels={channels} guildName={guildName} guildId={guildId}
@@ -1090,7 +1100,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* ROLES */}
         {active === 'reactionroles' && (
           <div>
-            <ModuleHeader icon={<IconTag />} accent="#a78bfa" title="Reaction Roles"
+            <ModuleHeader icon={<IconTag />} accent="#a78bfa" title="Reaction Roles" mascot="estrela"
               desc="Painéis com botões ou menu para os membros escolherem os seus próprios cargos."
               chip={`${config.rolePanels.length} painel${config.rolePanels.length !== 1 ? 'éis' : ''}`} />
             <ReactionRolesTab rolePanels={config.rolePanels} roles={roles}
@@ -1101,7 +1111,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
 
         {active === 'autorole' && (
           <div>
-            <ModuleHeader icon={<IconUsers />} accent="#34d399" title="Auto-Role"
+            <ModuleHeader icon={<IconUsers />} accent="#34d399" title="Auto-Role" mascot="estrela"
               desc="Cargos dados automaticamente quando um membro entra no servidor."
               chip={`${config.autoroles.length} cargo${config.autoroles.length !== 1 ? 's' : ''}`} />
             <AutoRoleTab autoroles={config.autoroles} roles={roles} guildId={guildId}
@@ -1112,7 +1122,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* SORTEIOS */}
         {active === 'giveaways' && (
           <div>
-            <ModuleHeader icon={<IconGift />} accent="#f59e0b" title="Sorteios"
+            <ModuleHeader icon={<IconGift />} accent="#f59e0b" title="Sorteios" mascot="estrela"
               desc="Cria sorteios com prémios, banners, cargos obrigatórios e rerolls." />
             <GiveawayModule guildId={guildId} />
           </div>
@@ -1126,7 +1136,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* TICKETS */}
         {active === 'tickets' && (
           <div>
-            <ModuleHeader icon={<IconTicket />} accent="#38bdf8" title="Tickets"
+            <ModuleHeader icon={<IconTicket />} accent="#38bdf8" title="Tickets" mascot="pensar"
               desc="Painéis com botões para os membros abrirem tickets privados, com formulário e transcript." />
             <TicketsTab guildId={guildId} channels={channels} roles={roles} />
           </div>
@@ -1135,7 +1145,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* PERSONALIZAR O BOT */}
         {active === 'botprofile' && (
           <div>
-            <ModuleHeader icon={<IconUsers />} accent="#8b5cf6" title="Personalizar o Bot"
+            <ModuleHeader icon={<IconUsers />} accent="#8b5cf6" title="Personalizar o Bot" mascot="coracoes"
               desc="Muda o nome, a foto, o banner e a bio do Laguno só neste servidor." />
             <BotProfileTab guildId={guildId} />
           </div>
@@ -1146,7 +1156,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
           const linkedCats = Object.values(config.logs).filter(c => (c as LogCategory)?.channelId).length;
           return (
           <div>
-            <ModuleHeader icon={<IconFile />} accent="#fbbf24" title="Logs"
+            <ModuleHeader icon={<IconFile />} accent="#fbbf24" title="Logs" mascot="espreitar"
               desc="Configura um canal por categoria e ativa os eventos que queres registar."
               chip={linkedCats > 0 ? `${linkedCats} de ${LOG_CATEGORIES.length} categorias` : 'sem canal'} />
 
@@ -1215,7 +1225,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* AVISOS */}
         {active === 'warns' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <ModuleHeader icon={<IconWarn />} accent="#facc15" title="Avisos"
+            <ModuleHeader icon={<IconWarn />} accent="#facc15" title="Avisos" mascot="pensar"
               desc="Ações automáticas, expiração e histórico de warns do servidor."
               chip={warns.length > 0 ? `${warns.length} aviso${warns.length !== 1 ? 's' : ''}` : 'sem avisos'} />
 
