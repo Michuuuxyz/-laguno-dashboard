@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Channel { id: string; name: string; }
 interface Role    { id: string; name: string; color: number; }
@@ -51,8 +51,15 @@ function md(text: string): string {
 export function MessageBuilderTab({ guildId, channels, roles }: Props) {
   const [channelId, setChannelId] = useState('');
   const [accent, setAccent]       = useState('#6db83e');
-  const [senderName, setSenderName]     = useState('');
-  const [senderAvatar, setSenderAvatar] = useState('');
+  // Identidade do bot NESTE servidor (definida em "Personalizar Bot") — a
+  // mensagem é enviada pelo próprio bot, por isso a preview mostra essa cara.
+  const [bot, setBot] = useState<{ name: string; avatar: string } | null>(null);
+  useEffect(() => {
+    fetch(`/api/guilds/${guildId}/bot-profile`).then(r => r.ok ? r.json() : null).catch(() => null)
+      .then((d: { nick?: string; globalName?: string; guildAvatar?: string | null; globalAvatar?: string } | null) => {
+        if (d) setBot({ name: (d.nick?.trim() || d.globalName) ?? 'Laguno', avatar: (d.guildAvatar || d.globalAvatar) ?? '/laguno.png' });
+      });
+  }, [guildId]);
   const [blocks, setBlocks]       = useState<Block[]>([
     { id: uid(), type: 'text', content: '## Anúncio\nEscreve aqui a tua mensagem. Aceita **markdown**.' },
   ]);
@@ -98,8 +105,6 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
     setStatus('loading'); setMsg(null);
     const payload = {
       channelId, accentColor: accent,
-      senderName: senderName.trim() || undefined,
-      senderAvatar: senderAvatar.trim() || undefined,
       blocks: blocks.map(b => {
         if (b.type === 'buttons') return { type: 'buttons', buttons: b.buttons.map(mapBtn) };
         if (b.type === 'text') {
@@ -152,21 +157,9 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
                 </select>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <label style={lbl}>Nome do remetente</label>
-                <input style={input} value={senderName} onChange={e => setSenderName(e.target.value)} maxLength={80} placeholder="Laguno (por defeito)" />
-              </div>
-              <div>
-                <label style={lbl}>Avatar do remetente (URL)</label>
-                <input style={input} value={senderAvatar} onChange={e => setSenderAvatar(e.target.value)} placeholder="https://... (por defeito, o do Laguno)" />
-              </div>
-            </div>
-            {(senderName.trim() || senderAvatar.trim()) && (
-              <p style={{ fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.5 }}>
-                Com remetente personalizado, a mensagem é enviada por webhook — o Laguno precisa da permissão &quot;Gerir Webhooks&quot; no canal. Nomes com &quot;discord&quot; ou &quot;clyde&quot; não são permitidos pelo Discord.
-              </p>
-            )}
+            <p style={{ fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.5 }}>
+              A mensagem é enviada pelo bot com o nome e avatar deste servidor — muda-os em <strong style={{ color: 'var(--green)' }}>Personalizar Bot</strong>.
+            </p>
           </div>
 
           {/* Blocos */}
@@ -326,11 +319,11 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
           <div style={{ background: '#313338', borderRadius: 10, padding: 14, fontFamily: '"gg sans","Noto Sans",sans-serif', position: 'sticky', top: 90 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={senderAvatar.trim() || '/laguno.png'} alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }}
+              <img src={bot?.avatar || '/laguno.png'} alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }}
                 onError={e => { (e.currentTarget as HTMLImageElement).src = '/laguno.png'; }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>{senderName.trim() || 'Laguno'}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>{bot?.name || 'Laguno'}</span>
                   <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
                 </div>
                 <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>

@@ -708,7 +708,7 @@ function Content({ page }: { page: PageId }) {
         <H2>Como funciona</H2>
         <Steps items={[
           <span key={1}>No dashboard, vai a <strong style={{ color: 'var(--text-1)' }}>Construtor</strong>.</span>,
-          <span key={2}>Escolhe a cor de destaque e o canal de destino. Opcionalmente, define o <strong style={{ color: 'var(--text-1)' }}>nome e avatar do remetente</strong> — a mensagem sai com essa identidade em vez do Laguno.</span>,
+          <span key={2}>Escolhe a cor de destaque e o canal de destino. A mensagem sai com o <strong style={{ color: 'var(--text-1)' }}>nome e avatar do bot neste servidor</strong> — muda-os em Personalizar Bot.</span>,
           <span key={3}>Adiciona blocos na ordem que quiseres: <strong style={{ color: 'var(--text-1)' }}>Texto, Imagem, Separador</strong> ou <strong style={{ color: 'var(--text-1)' }}>Botões</strong>.</span>,
           <span key={4}>Reordena os blocos com as setas e vê a pré-visualização em tempo real.</span>,
           <span key={5}>Clica em <strong style={{ color: 'var(--text-1)' }}>Enviar</strong>. A mensagem é publicada no canal escolhido.</span>,
@@ -724,8 +724,8 @@ function Content({ page }: { page: PageId }) {
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
         </div>
 
-        <H2>Remetente personalizado</H2>
-        <P>Preenche o nome e/ou o avatar do remetente e a mensagem é enviada com essa identidade — perfeito para anúncios com marca própria. O Laguno usa um webhook criado por ele no canal, por isso os botões continuam a funcionar normalmente. Requer que o bot tenha a permissão <strong style={{ color: 'var(--text-1)' }}>Gerir Webhooks</strong> no canal. O Discord não permite nomes com «discord» ou «clyde».</P>
+        <H2>Identidade do remetente</H2>
+        <P>As mensagens do Construtor são enviadas pelo próprio bot, com o <strong style={{ color: 'var(--text-1)' }}>nome, avatar e banner que definiste em Personalizar Bot</strong> — a identidade é a mesma em todo o servidor, sem configuração extra aqui.</P>
 
         <H2>Ações dos botões</H2>
         <P>Cada botão que adicionas pode fazer uma de três coisas ao ser clicado:</P>
