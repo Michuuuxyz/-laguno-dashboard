@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { AppBadge } from './AppBadge';
 
 /* ── Primitivas de mock do Discord — partilhadas entre landing e /features ── */
 
@@ -29,7 +30,7 @@ export function MockMsg({ avatar, avatarColor, name, bot, time = '14:32', childr
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
           <span style={{ fontSize: 15, fontWeight: 500, color: DC.strong, lineHeight: 1 }}>{name}</span>
-          {bot && <span style={{ fontSize: 9.5, fontWeight: 700, background: DC.blurple, color: '#fff', padding: '1px 4px', borderRadius: 3, letterSpacing: '.04em', lineHeight: '14px' }}>APP</span>}
+          {bot && <AppBadge />}
           <span style={{ fontSize: 12, color: DC.muted, lineHeight: 1 }}>Hoje às {time}</span>
         </div>
         {children}

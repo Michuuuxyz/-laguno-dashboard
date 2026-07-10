@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { defaultCard, type WelcomeCardTemplate } from '@/lib/welcomeCard';
 import { legacyToBlocks, type V2Block } from '@/lib/v2blocks';
 import { V2BlockEditor, V2Preview } from './V2BlockEditor';
+import { AppBadge } from './AppBadge';
 
 // Editor com Konva — só no browser (ssr:false), carregado ao abrir o modo cartão.
 const WelcomeCardEditor = dynamic(() => import('./WelcomeCardEditor').then(m => m.WelcomeCardEditor), {
@@ -177,7 +178,7 @@ function DiscordPreview({ message, accentColor, guildName, extras, mode }: {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
               <span style={{ fontSize: 13.5, fontWeight: 600, color: '#f2f3f5' }}>Laguno</span>
-              <span style={{ fontSize: 9.5, fontWeight: 600, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>BOT</span>
+              <AppBadge />
               <span style={{ fontSize: 11, color: '#80848e' }}>Hoje às 10:46</span>
             </div>
             {message ? (
@@ -203,7 +204,7 @@ function DiscordPreview({ message, accentColor, guildName, extras, mode }: {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
             <span style={{ fontSize: 13.5, fontWeight: 600, color: '#f2f3f5' }}>Laguno</span>
-            <span style={{ fontSize: 9.5, fontWeight: 600, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>BOT</span>
+            <AppBadge />
             <span style={{ fontSize: 11, color: '#80848e' }}>Hoje às 10:46</span>
           </div>
           <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `3px solid ${accent}`, overflow: 'hidden', maxWidth: 400 }}>

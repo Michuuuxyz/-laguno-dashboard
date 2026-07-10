@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { AppBadge } from './AppBadge';
 
 interface Loaded {
   globalName: string; globalAvatar: string;
@@ -133,7 +134,7 @@ export function BotProfileTab({ guildId }: { guildId: string }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={previewAvatar} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
             <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>{previewName}</span>
-            <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
+            <AppBadge />
           </div>
         </div>
 
@@ -146,7 +147,7 @@ export function BotProfileTab({ guildId }: { guildId: string }) {
               <img src={previewAvatar} alt="" style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', border: '5px solid #232428' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: '#f2f3f5' }}>{previewName}</span>
-                <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
+                <AppBadge />
               </div>
               {bio.trim() && <p style={{ fontSize: 12.5, color: '#dbdee1', lineHeight: 1.5, marginTop: 8, whiteSpace: 'pre-wrap' }}>{bio}</p>}
             </div>

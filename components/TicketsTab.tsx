@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Reveal } from './Reveal';
+import { AppBadge } from './AppBadge';
 
 interface Channel { id: string; name: string }
 interface Role { id: string; name: string; color?: number }
@@ -175,7 +176,7 @@ function PanelPreview({ panel, bot }: { panel: Panel; bot?: BotIdentity | null }
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>{bot?.name || 'Laguno'}</span>
-              <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
+              <AppBadge />
             </div>
             <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
               {panel.bannerUrl?.trim() && (panel.bannerPosition ?? 'top') !== 'bottom' && (
@@ -224,7 +225,7 @@ function InnerTicketPreview({ cfg, bot }: { cfg: Config; bot?: BotIdentity | nul
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>{bot?.name || 'Laguno'}</span>
-              <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
+              <AppBadge />
             </div>
             <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
               {cfg.openingBanner?.trim() && (

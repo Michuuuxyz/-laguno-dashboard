@@ -5,6 +5,7 @@
 // pré-visualização Discord ao vivo. Fase 1: botões só de link.
 
 import { bid, type V2Block, type V2Inner, type V2Container } from '@/lib/v2blocks';
+import { AppBadge } from './AppBadge';
 
 const inp: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 7, padding: '7px 10px', color: 'var(--text-1)', fontSize: 13, width: '100%', outline: 'none' };
 const lbl: React.CSSProperties = { fontSize: 10.5, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4, display: 'block' };
@@ -225,7 +226,7 @@ export function V2Preview({ blocks }: { blocks: V2Block[] }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 6 }}>
             <span style={{ fontSize: 13.5, fontWeight: 600, color: '#f2f3f5' }}>Laguno</span>
-            <span style={{ fontSize: 9.5, fontWeight: 600, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>BOT</span>
+            <AppBadge />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 440 }}>
             {blocks.length === 0 && <p style={{ fontSize: 12.5, color: '#80848e', fontStyle: 'italic' }}>Adiciona blocos para veres a mensagem aqui…</p>}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AppBadge } from './AppBadge';
 
 interface Channel { id: string; name: string; }
 interface Role    { id: string; name: string; color: number; }
@@ -324,7 +325,7 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
                   <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>{bot?.name || 'Laguno'}</span>
-                  <span style={{ fontSize: 9.5, fontWeight: 700, background: '#5865f2', color: '#fff', padding: '1px 4px', borderRadius: 3 }}>APP</span>
+                  <AppBadge />
                 </div>
                 <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
                   <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
