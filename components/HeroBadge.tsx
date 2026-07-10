@@ -7,7 +7,7 @@ const MODULES = [
   'Moderação',
   'Auto-Mod',
   'Boas-Vindas',
-  'Self-Roles',
+  'Reaction Roles',
   'Sorteios',
   'Registos',
   'Construtor',

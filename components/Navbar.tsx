@@ -148,7 +148,7 @@ function NavMenus() {
                     <Rise index={0}><DropItem href="/features#moderacao"  icon={DI.moderacao}  title="Moderação"   desc="Ban, kick e warn — com personalidade" /></Rise>
                     <Rise index={1}><DropItem href="/features#moderacao"  icon={DI.automod}    title="Auto-Mod"    desc="Spam e convites bloqueados sozinhos" /></Rise>
                     <Rise index={2}><DropItem href="/features#boasvindas" icon={DI.boasvindas} title="Boas-Vindas" desc="Recebe cada membro com estilo" /></Rise>
-                    <Rise index={3}><DropItem href="/features#selfroles"  icon={DI.selfroles}  title="Self-Roles"  desc="Clica no botão, recebe o cargo" /></Rise>
+                    <Rise index={3}><DropItem href="/features#selfroles"  icon={DI.selfroles}  title="Reaction Roles" desc="Clica no botão, recebe o cargo" /></Rise>
                     <Rise index={4}><DropItem href="/features#sorteios"   icon={DI.sorteios}   title="Sorteios"    desc="Cria, gere e sorteia do dashboard" /></Rise>
                     <Rise index={5}><DropItem href="/features#builder"    icon={DI.builder}    title="Construtor"  desc="Mensagens com botões, sem código" /></Rise>
                   </div>

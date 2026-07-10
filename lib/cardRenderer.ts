@@ -20,8 +20,24 @@ async function ensureFonts(base: string): Promise<void> {
   ]);
 }
 
+// SSRF: o URL vem da config — nunca buscar a endereços internos/privados.
+function isSafeImageUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return false;
+    const h = u.hostname.toLowerCase();
+    if (h === 'localhost' || h === '::1' || h.startsWith('[') || h.endsWith('.local') || h.endsWith('.internal')) return false;
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(h)) {
+      const [a, b] = h.split('.').map(Number);
+      if (a === 127 || a === 10 || a === 0 || (a === 192 && b === 168) || (a === 172 && b >= 16 && b <= 31) || (a === 169 && b === 254)) return false;
+    }
+    return true;
+  } catch { return false; }
+}
+
 async function fetchImage(url: string): Promise<Image | null> {
   try {
+    if (!isSafeImageUrl(url)) return null;
     const res = await fetch(url);
     if (!res.ok) return null;
     return await loadImage(Buffer.from(await res.arrayBuffer()));

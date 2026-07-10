@@ -37,7 +37,7 @@ const NAV_MODULES = [
   { id: 'welcome',       label: 'Boas-Vindas',    section: 'MÓDULOS' },
   { id: 'reactionroles', label: 'Reaction Roles', section: 'MÓDULOS' },
   { id: 'autorole',      label: 'Auto-Role',      section: 'MÓDULOS' },
-  { id: 'giveaways',  label: 'Giveaway',         section: 'MÓDULOS' },
+  { id: 'giveaways',  label: 'Sorteios',         section: 'MÓDULOS' },
   { id: 'builder',    label: 'Construtor',       section: 'MÓDULOS' },
   { id: 'tickets',    label: 'Tickets',          section: 'MÓDULOS' },
   { id: 'moderation', label: 'Moderação',       section: 'MODERAÇÃO' },

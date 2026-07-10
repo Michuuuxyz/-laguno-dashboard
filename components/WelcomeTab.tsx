@@ -574,6 +574,9 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
           channelId: cfg.channelId, message: cfg.message, accentColor: cfg.accentColor, type,
           bannerUrl: cfg.bannerUrl ?? '', showAvatar: cfg.showAvatar ?? false, footer: cfg.footer ?? '',
           card: (type === 'welcome' && welcome.cardEnabled) ? welcome.card : undefined,
+          // Testar exatamente o que está configurado: o modo e os blocos guardados
+          mode: cfg.mode ?? 'v2',
+          blocks: (!(type === 'welcome' && welcome.cardEnabled) && (cfg.mode ?? 'v2') === 'v2') ? cfg.blocks : undefined,
         }),
       });
       set(res.ok ? 'ok' : 'err');

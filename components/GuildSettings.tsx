@@ -214,44 +214,6 @@ const IconGift    = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="
 const IconTicket  = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 8.5A2 2 0 0 1 5 6.5h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z" opacity=".35"/><rect x="8.6" y="6.5" width="2" height="12" rx="1"/></svg>;
 
 /* ── Sidebar nav structure ── */
-const NAV = [
-  {
-    section: 'GERAL',
-    items: [
-      { id: 'overview',   label: 'Overview',          icon: <IconGrid /> },
-      { id: 'settings',   label: 'Configurações',     icon: <IconSettings /> },
-    ],
-  },
-  {
-    section: 'MÓDULOS',
-    items: [
-      { id: 'welcome',       label: 'Boas-Vindas',    icon: <IconUsers /> },
-      { id: 'reactionroles', label: 'Reaction Roles', icon: <IconTag /> },
-      { id: 'autorole',      label: 'Auto-Role',      icon: <IconUsers /> },
-    ],
-  },
-  {
-    section: 'MODERAÇÃO',
-    items: [
-      { id: 'moderation', label: 'Moderação',         icon: <IconShield /> },
-      { id: 'automod',    label: 'Auto-Mod',          icon: <IconBolt /> },
-      { id: 'warns',      label: 'Avisos',            icon: <IconWarn /> },
-    ],
-  },
-  {
-    section: 'EXTRA',
-    items: [
-      { id: 'giveaways',  label: 'Sorteios',          icon: <IconGift /> },
-      { id: 'tickets',    label: 'Tickets',           icon: <IconTicket /> },
-    ],
-  },
-  {
-    section: 'ADMINISTRAÇÃO',
-    items: [
-      { id: 'logs',       label: 'Logs',              icon: <IconFile /> },
-    ],
-  },
-];
 
 /* ── Helpers ── */
 function mergeDeep(base: Record<string, unknown>, override: Record<string, unknown>): Record<string, unknown> {
@@ -894,8 +856,9 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
             <Section title="Estatísticas do servidor">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
                 {[
-                  { label: 'Auto-roles', value: config.autoroles.length },
-                  { label: 'Role panels', value: config.rolePanels.length },
+                  { label: 'Cargos automáticos', value: config.autoroles.length },
+                  { label: 'Painéis de Reaction Roles', value: config.rolePanels.length },
+                  { label: 'Módulos de comandos ativos', value: config.enabledModules.length },
                 ].map(s => (
                   <div key={s.label} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, padding: '14px 16px' }}>
                     <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--green)', fontVariantNumeric: 'tabular-nums' }}>{s.value}</p>
