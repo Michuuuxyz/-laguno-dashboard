@@ -158,8 +158,8 @@ function mdToHtml(text: string): string {
 }
 
 /* ─── Discord-like message preview ─── */
-function DiscordPreview({ message, accentColor, guildName, extras, mode }: {
-  message: string; accentColor: string; guildName: string; extras?: ContainerExtras; mode?: 'v2' | 'basic';
+function DiscordPreview({ message, accentColor, guildName, extras, mode, channel = 'boas-vindas' }: {
+  message: string; accentColor: string; guildName: string; extras?: ContainerExtras; mode?: 'v2' | 'basic'; channel?: string;
 }) {
   const accent = accentColor || '#6db83e';
   const parsed = parsePreview(message, guildName);
@@ -170,7 +170,7 @@ function DiscordPreview({ message, accentColor, guildName, extras, mode }: {
       <div style={{ background: '#313338', borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,.06)', fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
         <div style={{ padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', gap: 5 }}>
           <span style={{ color: '#80848e', fontSize: 13 }}>#</span>
-          <span style={{ fontSize: 12, color: '#80848e' }}>boas-vindas</span>
+          <span style={{ fontSize: 12, color: '#80848e' }}>{channel}</span>
         </div>
         <div style={{ padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -196,7 +196,7 @@ function DiscordPreview({ message, accentColor, guildName, extras, mode }: {
     <div style={{ background: '#313338', borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,.06)', fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
       <div style={{ padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', gap: 5 }}>
         <span style={{ color: '#80848e', fontSize: 13 }}>#</span>
-        <span style={{ fontSize: 12, color: '#80848e' }}>boas-vindas</span>
+        <span style={{ fontSize: 12, color: '#80848e' }}>{channel}</span>
       </div>
       <div style={{ padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -244,7 +244,7 @@ function DiscordPreview({ message, accentColor, guildName, extras, mode }: {
 }
 
 /* ─── Message Editor Modal — janela grande e organizada (estilo editor de mensagens) ─── */
-function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, title, extras: initialExtras, showExtras, onTest, initialMode, allowMode, initialBlocks }: {
+function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, title, extras: initialExtras, showExtras, onTest, initialMode, allowMode, initialBlocks, previewChannel = 'boas-vindas' }: {
   message: string;
   accentColor: string;
   guildName: string;
@@ -257,6 +257,7 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
   initialMode?: 'v2' | 'basic';
   allowMode?: boolean;
   initialBlocks?: V2Block[];
+  previewChannel?: string;
 }) {
   const [msg, setMsg] = useState(message);
   const [accent, setAccent] = useState(accentColor || '#6db83e');
@@ -455,8 +456,8 @@ function MessageEditor({ message, accentColor, guildName, onSubmit, onClose, tit
           <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', background: 'var(--bg)' }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pré-visualização da Mensagem</p>
             {isBlocks
-              ? <V2Preview blocks={blocks} />
-              : <DiscordPreview message={msg} accentColor={accent} guildName={guildName} extras={showExtras && !isBasic ? extras : undefined} mode={isBasic ? 'basic' : 'v2'} />}
+              ? <V2Preview blocks={blocks} channel={previewChannel} />
+              : <DiscordPreview message={msg} accentColor={accent} guildName={guildName} extras={showExtras && !isBasic ? extras : undefined} mode={isBasic ? 'basic' : 'v2'} channel={previewChannel} />}
           </div>
         </div>
 
@@ -774,6 +775,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
       {editingModal === 'dm' && (
         <MessageEditor
           title="Editar mensagem de DM"
+          previewChannel="mensagem-direta"
           message={welcome.dmMessage}
           accentColor={welcome.accentColor}
           guildName={guildName}
@@ -784,6 +786,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
       {editingModal === 'goodbye' && (
         <MessageEditor
           title="Editar mensagem de Despedida"
+          previewChannel="despedidas"
           message={goodbye.message}
           accentColor={goodbye.accentColor}
           guildName={guildName}
@@ -806,6 +809,7 @@ export function WelcomeTab({ welcome, goodbye, channels, guildName, guildId, onC
       {editingModal === 'ban' && (
         <MessageEditor
           title="Editar mensagem de Ban"
+          previewChannel="despedidas"
           message={goodbye.banMessage}
           accentColor={goodbye.accentColor}
           guildName={guildName}

@@ -121,6 +121,18 @@ function btnChip(style: number): React.CSSProperties {
   return { display: 'inline-flex', alignItems: 'center', gap: 5, background: BTN_BG[style] ?? '#4e5058', color: '#fff', borderRadius: 4, padding: '5px 12px', fontSize: 12.5, fontWeight: 500 };
 }
 
+/* Botão personalizado do ticket, fiel ao render do bot: os de LINK são sempre
+   cinzentos com a seta ↗ (estilo Link do Discord), os restantes usam a cor. */
+function TktBtnChip({ b }: { b: TButton }) {
+  const isLink = b.action === 'link';
+  return (
+    <span style={btnChip(isLink ? 0 : (b.style ?? 2))}>
+      {b.emoji ? `${b.emoji} ` : ''}{b.label}
+      {isLink && <span style={{ opacity: .6, fontSize: 10 }}>↗</span>}
+    </span>
+  );
+}
+
 /* Pré-visualização do TICKET (mensagem de abertura + botões) para uma categoria */
 function TicketPreview({ cat, cfg }: { cat: Category; cfg: Config }) {
   const accent = cat.color || cfg.openingColor || '#6db83e';
@@ -141,6 +153,8 @@ function TicketPreview({ cat, cfg }: { cat: Category; cfg: Config }) {
             <img src={banner} alt="" style={{ width: '100%', maxHeight: 110, objectFit: 'cover', display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
           )}
           <div style={{ padding: '10px 12px' }}>
+          {/* fiel ao bot: o ping do membro vem DENTRO do container, antes do título */}
+          <p style={{ fontSize: 12.5, color: '#8fa4d4', marginBottom: 4 }}>@membro</p>
           <p style={{ fontSize: 13, color: '#dbdee1', lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pmd(`## ${title}\n${body}`) }} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
             {cfg.claimEnabled !== false && <span style={btnChip(3)}>{cfg.claimEmoji ? `${cfg.claimEmoji} ` : ''}{cfg.claimLabel || 'Reivindicar'}</span>}
@@ -148,12 +162,12 @@ function TicketPreview({ cat, cfg }: { cat: Category; cfg: Config }) {
           </div>
           {custom.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-              {custom.map(b => <span key={b.id} style={btnChip(b.style ?? 2)}>{b.emoji ? `${b.emoji} ` : ''}{b.label}</span>)}
+              {custom.map(b => <TktBtnChip key={b.id} b={b} />)}
             </div>
           )}
           {(cfg.extraButtons ?? []).filter(b => b.label?.trim()).length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-              {(cfg.extraButtons ?? []).filter(b => b.label?.trim()).map(b => <span key={b.id} style={btnChip(b.style ?? 2)}>{b.emoji ? `${b.emoji} ` : ''}{b.label}</span>)}
+              {(cfg.extraButtons ?? []).filter(b => b.label?.trim()).map(b => <TktBtnChip key={b.id} b={b} />)}
             </div>
           )}
           </div>

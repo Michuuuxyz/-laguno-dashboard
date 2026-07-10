@@ -213,12 +213,12 @@ function PreviewInner({ b }: { b: V2Inner }) {
   );
 }
 
-export function V2Preview({ blocks }: { blocks: V2Block[] }) {
+export function V2Preview({ blocks, channel = 'boas-vindas' }: { blocks: V2Block[]; channel?: string }) {
   return (
     <div style={{ background: '#313338', borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,.06)', fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
       <div style={{ padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', gap: 5 }}>
         <span style={{ color: '#80848e', fontSize: 13 }}>#</span>
-        <span style={{ fontSize: 12, color: '#80848e' }}>boas-vindas</span>
+        <span style={{ fontSize: 12, color: '#80848e' }}>{channel}</span>
       </div>
       <div style={{ padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
