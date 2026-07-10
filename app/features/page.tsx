@@ -6,12 +6,12 @@ import { ScrollReveal } from '@/components/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'Funcionalidades',
-  description: 'Descobre tudo o que o Laguno pode fazer pelo teu servidor — moderação, boas-vindas, logs, self-roles e sorteios.',
+  description: 'Descobre tudo o que o Laguno pode fazer pelo teu servidor — moderação, boas-vindas, logs, reaction roles e tickets.',
   alternates: { canonical: '/features' },
-  keywords: ['laguno funcionalidades', 'bot discord moderação', 'auto-mod discord', 'boas-vindas discord', 'self-roles discord', 'sorteios discord', 'logs discord', 'bot discord português'],
+  keywords: ['laguno funcionalidades', 'bot discord moderação', 'auto-mod discord', 'boas-vindas discord', 'reaction roles discord', 'tickets discord', 'logs discord', 'bot discord português'],
   openGraph: {
     title: 'Funcionalidades | Laguno',
-    description: 'Descobre tudo o que o Laguno pode fazer pelo teu servidor — moderação, boas-vindas, logs, self-roles e sorteios.',
+    description: 'Descobre tudo o que o Laguno pode fazer pelo teu servidor — moderação, boas-vindas, logs, reaction roles e tickets.',
     url: 'https://www.lagunoapp.xyz/features',
   },
 };
@@ -28,7 +28,6 @@ const FEAT_ICONS = {
   boasvindas:  ic(<><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="9" cy="7" r="3.2"/><path d="M17 11l2 2 4-4"/></>),
   logs:        ic(<><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5h7M8.5 9.5h3"/></>),
   selfroles:   ic(<><path d="M20.6 13.4L13 21a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 2.6 12l.4-6a2 2 0 0 1 2-2l6-.4a2 2 0 0 1 1.6.6l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="8.5" r="1.4"/></>),
-  sorteios:    ic(<><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v8h14v-8M12 8v13"/><path d="M12 8S10.5 3 7.8 3.6C6 4 6 6.5 8 7.4 9.4 8 12 8 12 8zM12 8s1.5-5 4.2-4.4C18 4 18 6.5 16 7.4 14.6 8 12 8 12 8z"/></>),
   builder:     ic(<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>),
 };
 
@@ -91,7 +90,7 @@ export default function Features() {
           Funcionalidades
         </h1>
         <p style={{ fontSize: 16, color: 'var(--text-2)', lineHeight: 1.75 }}>
-          Moderação com personalidade, boas‑vindas automáticas, registos completos, self‑roles e sorteios.
+          Moderação com personalidade, boas‑vindas automáticas, registos completos, reaction roles e tickets.
           Tudo configurado no dashboard, tudo a correr sem ti.
         </p>
       </ScrollReveal>
@@ -228,37 +227,6 @@ export default function Features() {
           </MockMsg>
         }
         reverse
-      />
-
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
-        <div style={{ height: 1, background: 'var(--line)' }} />
-      </div>
-
-      {/* ── SORTEIOS ── */}
-      <FeatureSection
-        id="sorteios"
-        accent="#f59e0b"
-        icon={FEAT_ICONS.sorteios}
-        tag="Sorteios"
-        title={`Sorteios sem drama.\nCom personalidade.`}
-        desc="Crias um sorteio pelo dashboard: prize, duração, número de vencedores. O Laguno publica o anúncio, gere as inscrições e sorteia no fim. Podes fazer re-roll com um clique se o vencedor não reclamar o prémio."
-        mock={
-          <MockMsg avatar="/laguno.png" name="Laguno" bot time="15:00">
-            <DCContainer accent="#f59e0b">
-              <div>
-                <MockH2>Nitro Classic</MockH2>
-                <MockText>Oferecido por <Mention color="#f59e0b">@Admin</Mention></MockText>
-                <MockText><span style={{ color: DC.muted }}>Termina </span><span style={{ color: DC.strong }}>em 24 horas</span></MockText>
-                <MockText><span style={{ color: DC.muted }}>Vencedores </span><span style={{ color: DC.strong }}>1</span></MockText>
-              </div>
-              <DCSep />
-              <MockSub>boa sorte a todos (não é mentira)</MockSub>
-              <DCBtnRow>
-                <DCBtn label="Quero participar" />
-              </DCBtnRow>
-            </DCContainer>
-          </MockMsg>
-        }
       />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>

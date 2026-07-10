@@ -13,7 +13,6 @@ const tabSkel = () => <div className="skel" style={{ height: 220, borderRadius: 
 const WelcomeTab       = dynamic(() => import('./WelcomeTab').then(m => m.WelcomeTab),             { ssr: false, loading: tabSkel });
 const ReactionRolesTab = dynamic(() => import('./ReactionRolesTab').then(m => m.ReactionRolesTab), { ssr: false, loading: tabSkel });
 const AutoRoleTab      = dynamic(() => import('./AutoRoleTab').then(m => m.AutoRoleTab),           { ssr: false, loading: tabSkel });
-const GiveawayModule   = dynamic(() => import('./modules/GiveawayModule').then(m => m.GiveawayModule), { ssr: false, loading: tabSkel });
 const MessageBuilderTab= dynamic(() => import('./MessageBuilderTab').then(m => m.MessageBuilderTab), { ssr: false, loading: tabSkel });
 const TicketsTab       = dynamic(() => import('./TicketsTab').then(m => m.TicketsTab),             { ssr: false, loading: tabSkel });
 const BotProfileTab    = dynamic(() => import('./BotProfileTab').then(m => m.BotProfileTab),       { ssr: false, loading: tabSkel });
@@ -210,7 +209,6 @@ const IconWarn    = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="
 const IconSettings= () => <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="5.1" width="18" height="2.8" rx="1.4" opacity=".35"/><rect x="3" y="16.1" width="18" height="2.8" rx="1.4" opacity=".35"/><circle cx="9" cy="6.5" r="3.1"/><circle cx="15" cy="17.5" r="3.1"/></svg>;
 const IconChevron = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 const IconCheck   = () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
-const IconGift    = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="11" width="16" height="10" rx="2" opacity=".35"/><rect x="2.5" y="7" width="19" height="4.6" rx="1.4"/><rect x="10.4" y="7" width="3.2" height="14" opacity=".6"/></svg>;
 const IconTicket  = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 8.5A2 2 0 0 1 5 6.5h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z" opacity=".35"/><rect x="8.6" y="6.5" width="2" height="12" rx="1"/></svg>;
 
 /* ── Sidebar nav structure ── */
@@ -800,7 +798,6 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '.07em', textTransform: 'uppercase' }}>Ações rápidas</p>
                 {[
                   { label: amOn ? 'Rever Auto-Mod' : 'Ativar Auto-Mod', tab: 'automod' },
-                  { label: 'Criar sorteio',            tab: 'giveaways' },
                   { label: 'Configurar boas-vindas',   tab: 'welcome' },
                   { label: 'Escolher canal de logs',   tab: 'logs' },
                 ].map(a => (
@@ -1128,15 +1125,6 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
               chip={`${config.autoroles.length} cargo${config.autoroles.length !== 1 ? 's' : ''}`} />
             <AutoRoleTab autoroles={config.autoroles} roles={roles} guildId={guildId}
               onChange={(key, val) => setConfig(c => ({ ...c, [key]: val }))} />
-          </div>
-        )}
-
-        {/* SORTEIOS */}
-        {active === 'giveaways' && (
-          <div>
-            <ModuleHeader icon={<IconGift />} accent="#f59e0b" title="Sorteios" mascot="estrela"
-              desc="Cria sorteios com prémios, banners, cargos obrigatórios e rerolls." />
-            <GiveawayModule guildId={guildId} />
           </div>
         )}
 

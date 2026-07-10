@@ -26,7 +26,6 @@ const NAV = [
       { id: 'automod',      label: 'Auto-Moderação' },
       { id: 'reaction-roles', label: 'Reaction Roles' },
       { id: 'auto-role',    label: 'Auto-Role' },
-      { id: 'giveaways',    label: 'Sorteios' },
       { id: 'builder',      label: 'Construtor de Mensagens' },
       { id: 'tickets',      label: 'Tickets' },
     ],
@@ -36,7 +35,7 @@ const NAV = [
 type PageId =
   | 'introduction' | 'add-laguno' | 'dashboard' | 'faq'
   | 'commands' | 'variables' | 'moderation' | 'welcome'
-  | 'logs' | 'automod' | 'reaction-roles' | 'auto-role' | 'giveaways' | 'builder' | 'tickets';
+  | 'logs' | 'automod' | 'reaction-roles' | 'auto-role' | 'builder' | 'tickets';
 
 /* ─────────────────────────────── SMALL ATOMS ─── */
 const G = '#6db83e';
@@ -164,7 +163,7 @@ function Content({ page }: { page: PageId }) {
         <div style={{ marginBottom: 24 }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: G, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 8 }}>Documentação</p>
           <H1>Bem-vindo ao Laguno</H1>
-          <P>O <strong style={{ color: 'var(--text-1)' }}>Laguno</strong> é um bot para Discord em português para toda a comunidade lusófona. Oferece moderação com personalidade, logs automáticos, boas-vindas, auto-moderação, reaction roles e sorteios — tudo configurado num dashboard web sem escrever uma linha de código.</P>
+          <P>O <strong style={{ color: 'var(--text-1)' }}>Laguno</strong> é um bot para Discord em português para toda a comunidade lusófona. Oferece moderação com personalidade, logs automáticos, boas-vindas, auto-moderação, reaction roles e tickets — tudo configurado num dashboard web sem escrever uma linha de código.</P>
           <P>Esta documentação cobre todos os módulos e comandos. Navega pela barra lateral para encontrar o que precisas.</P>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px,1fr))', gap: 12, marginBottom: 28 }}>
@@ -189,7 +188,6 @@ function Content({ page }: { page: PageId }) {
             { l: 'Auto-Moderação', d: '6 regras nativas do Discord + filtro de CAPS e anti-flood.' },
             { l: 'Reaction Roles', d: 'Painéis de botões/menu para membros escolherem cargos.' },
             { l: 'Auto-Role', d: 'Cargos dados automaticamente a quem entra no servidor.' },
-            { l: 'Sorteios', d: 'Criação e gestão de giveaways pelo dashboard.' },
             { l: 'Construtor de Mensagens', d: 'Mensagens com botões interativos (Components V2).' },
           ].map(m => (
             <div key={m.l} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, padding: '12px 16px' }}>
@@ -665,37 +663,6 @@ function Content({ page }: { page: PageId }) {
 
         <Note type="warn">Como nos Reaction Roles, o cargo do Laguno tem de estar acima dos cargos a atribuir na hierarquia do servidor.</Note>
         <Note type="tip">Combina bem com as Boas-Vindas: o membro entra, recebe o cargo base e vê logo a mensagem de boas-vindas.</Note>
-      </div>
-    );
-
-    /* ── SORTEIOS ── */
-    case 'giveaways': return (
-      <div>
-        <H1>Sorteios</H1>
-        <P>Cria e gere sorteios diretamente pelo dashboard. O Laguno publica o anúncio, gere as participações e sorteia automaticamente quando o tempo terminar.</P>
-
-        <H2>Como criar um sorteio</H2>
-        <Steps items={[
-          <span key={1}>No dashboard, vai a <strong style={{ color: 'var(--text-1)' }}>Sorteios</strong> e clica em <strong style={{ color: 'var(--text-1)' }}>Criar sorteio</strong>.</span>,
-          <span key={2}>Define o prémio, o canal de publicação, a duração e o número de vencedores.</span>,
-          <span key={3}>Clica em <strong style={{ color: 'var(--text-1)' }}>Iniciar</strong>. O Laguno publica o anúncio com um botão de participação.</span>,
-          <span key={4}>Os membros clicam no botão para participar. O Laguno gere as inscrições automaticamente.</span>,
-          <span key={5}>Quando o tempo terminar, o bot sorteia e anuncia os vencedores no mesmo canal.</span>,
-        ]} />
-
-        <H2>Opções do sorteio</H2>
-        <div style={{ marginBottom: 16 }}>
-          {[
-            ['Prémio',          'O que está a ser sorteado.'],
-            ['Canal',           'Canal onde o anúncio é publicado.'],
-            ['Duração',         'Quanto tempo o sorteio fica aberto.'],
-            ['Nº de vencedores','Quantos membros são sorteados.'],
-          ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
-        </div>
-
-        <H2>Re-roll</H2>
-        <P>Se um vencedor não reclamar o prémio, podes fazer re-roll no dashboard para sortear um novo vencedor sem criar um sorteio novo.</P>
-        <Note type="info">Os sorteios ficam guardados no histórico do dashboard mesmo depois de terminarem — podes consultar participantes e vencedores anteriores.</Note>
       </div>
     );
 

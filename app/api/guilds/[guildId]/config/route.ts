@@ -6,7 +6,7 @@ import clientPromise from '@/lib/mongodb';
 const ALLOWED_KEYS = new Set([
   'prefix', 'language', 'enabledModules',
   'moderation', 'autoMod', 'logs', 'logChannelId',
-  'welcome', 'goodbye', 'autoroles', 'giveaways',
+  'welcome', 'goodbye', 'autoroles',
   'warns', 'rolePanels',
 ]);
 

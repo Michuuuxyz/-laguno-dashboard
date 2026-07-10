@@ -124,7 +124,7 @@ export default async function Sobre() {
             },
             {
               fase: 'O dashboard',
-              texto: 'Porque configurar bots pelo terminal ou por ficheiros JSON é coisa de 2015. O Laguno tem um dashboard em Next.js onde configuras tudo com cliques — boas-vindas, logs, auto-mod, self-roles, sorteios.',
+              texto: 'Porque configurar bots pelo terminal ou por ficheiros JSON é coisa de 2015. O Laguno tem um dashboard em Next.js onde configuras tudo com cliques — boas-vindas, logs, auto-mod, reaction roles, tickets.',
             },
             {
               fase: 'Agora',

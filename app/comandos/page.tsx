@@ -55,7 +55,7 @@ export default function Comandos() {
         }}>
           <div>
             <p style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 4, letterSpacing: '-.01em' }}>
-              E as boas-vindas, auto-mod, sorteios e logs?
+              E as boas-vindas, auto-mod, tickets e logs?
             </p>
             <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
               Isso não são comandos — configuram-se uma vez no dashboard e correm sozinhos, para sempre.

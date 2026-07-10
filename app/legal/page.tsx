@@ -113,7 +113,7 @@ export default async function LegalPage({ searchParams }: { searchParams: Promis
             </Section>
 
             <Section title="2. Descrição do Serviço">
-              <p>O Laguno é um bot para Discord desenvolvido de forma independente que oferece funcionalidades de moderação, auto-moderação, boas-vindas personalizadas, logs de eventos, gestão de self-roles, sorteios e um dashboard web de configuração.</p>
+              <p>O Laguno é um bot para Discord desenvolvido de forma independente que oferece funcionalidades de moderação, auto-moderação, boas-vindas personalizadas, logs de eventos, gestão de reaction roles, tickets e um dashboard web de configuração.</p>
               <p>O serviço é fornecido gratuitamente e sem garantias. Reservamo-nos o direito de alterar, suspender, limitar ou descontinuar qualquer funcionalidade a qualquer momento, com ou sem aviso prévio.</p>
               <p>O Laguno não é afiliado, patrocinado nem endossado pela Discord Inc. Discord é uma marca registada da Discord Inc.</p>
             </Section>
@@ -210,7 +210,7 @@ export default async function LegalPage({ searchParams }: { searchParams: Promis
             <Section title="4. Como Usamos os Dados">
               <p>Os dados recolhidos são usados exclusivamente para:</p>
               <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <li>Fornecer as funcionalidades do Laguno (moderação, boas-vindas, logs, self-roles, sorteios).</li>
+                <li>Fornecer as funcionalidades do Laguno (moderação, boas-vindas, logs, reaction roles, tickets).</li>
                 <li>Guardar as configurações de cada servidor entre sessões.</li>
                 <li>Autenticar administradores de servidor no dashboard via Discord OAuth2.</li>
                 <li>Manter registos de ações de moderação (warns, bans) para consulta posterior pelos administradores.</li>

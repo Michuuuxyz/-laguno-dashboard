@@ -149,7 +149,6 @@ function NavMenus() {
                     <Rise index={1}><DropItem href="/features#moderacao"  icon={DI.automod}    title="Auto-Mod"    desc="Spam e convites bloqueados sozinhos" /></Rise>
                     <Rise index={2}><DropItem href="/features#boasvindas" icon={DI.boasvindas} title="Boas-Vindas" desc="Recebe cada membro com estilo" /></Rise>
                     <Rise index={3}><DropItem href="/features#selfroles"  icon={DI.selfroles}  title="Reaction Roles" desc="Clica no botão, recebe o cargo" /></Rise>
-                    <Rise index={4}><DropItem href="/features#sorteios"   icon={DI.sorteios}   title="Sorteios"    desc="Cria, gere e sorteia do dashboard" /></Rise>
                     <Rise index={5}><DropItem href="/features#builder"    icon={DI.builder}    title="Construtor"  desc="Mensagens com botões, sem código" /></Rise>
                   </div>
                   <Rise index={6}>
@@ -189,7 +188,6 @@ const DI = {
   automod:    dic(<><path d="M13.5 2.2 3.6 14a.7.7 0 0 0 .5 1.1H9l-1 6.3a.6.6 0 0 0 1.1.4L20.4 10a.7.7 0 0 0-.5-1.1H15z" opacity=".35"/><path d="M13.5 2.2 3.6 14a.7.7 0 0 0 .5 1.1H9z"/></>),
   boasvindas: dic(<><path d="M4 20.5a8 8 0 0 1 16 0 .9.9 0 0 1-.9.9H4.9a.9.9 0 0 1-.9-.9z" opacity=".35"/><circle cx="12" cy="7.5" r="4.3"/></>),
   selfroles:  dic(<><path d="M11.7 3.4A2 2 0 0 0 10.3 3H5.4a2 2 0 0 0-2 2v4.9a2 2 0 0 0 .6 1.4l8 8a2 2 0 0 0 2.8 0l4.9-4.9a2 2 0 0 0 0-2.8z" opacity=".35"/><circle cx="7.7" cy="7.7" r="1.9"/></>),
-  sorteios:   dic(<><rect x="4" y="11" width="16" height="10" rx="2" opacity=".35"/><rect x="2.5" y="7" width="19" height="4.6" rx="1.4"/><rect x="10.4" y="7" width="3.2" height="14" opacity=".6"/></>),
   builder:    dic(<><path d="M4 4h16a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 20 16H9.5L4.8 20a.8.8 0 0 1-1.3-.6V5.5A1.5 1.5 0 0 1 4 4z" opacity=".35"/><rect x="7" y="8" width="10" height="2" rx="1"/><rect x="7" y="11.5" width="6.5" height="2" rx="1"/></>),
   comandos:   dic(<><rect x="2.5" y="4" width="19" height="16" rx="3" opacity=".35"/><path d="M6.7 9.3a1 1 0 0 1 1.5-1.3l2.8 3a1 1 0 0 1 0 1.4l-2.8 3a1 1 0 1 1-1.5-1.4L8.9 12z"/><rect x="12" y="14.3" width="5" height="1.9" rx=".95"/></>),
   docs:       dic(<><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6.5A2.5 2.5 0 0 0 4 21.5z" opacity=".35"/><rect x="7.5" y="6.5" width="8.5" height="1.9" rx=".95"/><rect x="7.5" y="10.2" width="6" height="1.9" rx=".95"/></>),

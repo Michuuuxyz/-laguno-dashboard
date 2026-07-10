@@ -40,8 +40,7 @@ const CAPS = [
   { href: '/features#moderacao',  title: 'Moderação',   desc: 'Ban, kick, warn e timeout — com respostas que mudam de humor.' },
   { href: '/features#moderacao',  title: 'Auto-Mod',    desc: 'Spam, convites, caps e menções bloqueados antes de chegarem a ti.' },
   { href: '/features#boasvindas', title: 'Boas-Vindas', desc: 'Cada entrada recebida com banner, avatar e a tua mensagem.' },
-  { href: '/features#selfroles',  title: 'Self-Roles',  desc: 'Painéis de botões — os membros servem-se sozinhos.' },
-  { href: '/features#sorteios',   title: 'Sorteios',    desc: 'Criar, gerir e sortear sem sair do dashboard.' },
+  { href: '/features#selfroles',  title: 'Reaction Roles', desc: 'Painéis de botões — os membros servem-se sozinhos.' },
   { href: '/features#logs',       title: 'Registos',    desc: 'Mais de 30 eventos registados. Nada se perde.' },
 ];
 
@@ -73,7 +72,7 @@ export default async function Home() {
           </div>
 
           <p style={{ fontSize: 'clamp(15px,1.7vw,17px)', color: 'var(--text-2)', lineHeight: 1.75, maxWidth: 520, margin: '30px auto 32px' }}>
-            O Laguno modera, regista, dá boas-vindas e faz sorteios — enquanto tu vives a tua vida.
+            O Laguno modera, regista, dá boas-vindas e trata dos tickets — enquanto tu vives a tua vida.
             Configuras uma vez, num dashboard em português. Depois, é comigo.
           </p>
 

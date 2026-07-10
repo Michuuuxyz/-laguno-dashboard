@@ -8,7 +8,6 @@ const MODULES = [
   'Auto-Mod',
   'Boas-Vindas',
   'Reaction Roles',
-  'Sorteios',
   'Registos',
   'Construtor',
 ];
