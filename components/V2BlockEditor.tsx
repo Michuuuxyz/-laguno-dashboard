@@ -6,10 +6,8 @@
 
 import { bid, type V2Block, type V2Inner, type V2Container } from '@/lib/v2blocks';
 import { AppBadge } from './AppBadge';
+import { inputSm as inp, lblSm as lbl, mini } from './ui';
 
-const inp: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 7, padding: '7px 10px', color: 'var(--text-1)', fontSize: 13, width: '100%', outline: 'none' };
-const lbl: React.CSSProperties = { fontSize: 10.5, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4, display: 'block' };
-const mini: React.CSSProperties = { width: 24, height: 24, borderRadius: 6, border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--text-2)', cursor: 'pointer', fontSize: 11, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
 
 const NAMES: Record<string, string> = { text: 'Texto', separator: 'Separador', gallery: 'Galeria', buttons: 'Linha de Botões', container: 'Container' };
 
@@ -193,7 +191,7 @@ function PreviewInner({ b }: { b: V2Inner }) {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: urls.length > 1 ? '1fr 1fr' : '1fr', gap: 4, margin: '4px 0' }}>
         {urls.slice(0, 4).map((u, i) => (
-          // eslint-disable-next-line @next/next/no-img-element
+           
           <img key={i} src={u} alt="" style={{ width: '100%', maxHeight: urls.length > 1 ? 90 : 150, objectFit: 'cover', borderRadius: 6, display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
         ))}
       </div>
@@ -221,7 +219,7 @@ export function V2Preview({ blocks, channel = 'boas-vindas' }: { blocks: V2Block
         <span style={{ fontSize: 12, color: '#80848e' }}>{channel}</span>
       </div>
       <div style={{ padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        { }
         <img src="/laguno.png" alt="" style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 6 }}>

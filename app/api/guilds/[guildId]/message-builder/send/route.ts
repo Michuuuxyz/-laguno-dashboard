@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { assertGuildAccess } from '@/lib/guildAuth';
+import { rateLimit, tooMany } from '@/lib/rateLimit';
 import { channelBelongsToGuild } from '@/lib/channelGuard';
 import clientPromise from '@/lib/mongodb';
 
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
   const { guildId } = await params;
   if (!await assertGuildAccess(guildId))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!rateLimit('mbsend:' + guildId, 6, 60_000)) return NextResponse.json(tooMany, { status: 429 });
   if (!BOT_TOKEN)
     return NextResponse.json({ error: 'DISCORD_TOKEN em falta' }, { status: 503 });
 

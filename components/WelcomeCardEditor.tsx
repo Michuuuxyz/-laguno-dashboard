@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Stage, Layer, Rect, Text, Circle, Ellipse, Image as KImage, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { CARD_W, CARD_H, CARD_TEMPLATES, type WCLayer, type WelcomeCardTemplate } from '@/lib/welcomeCard';
+import { inputSm as inp } from './ui';
 
 const CANVAS_W = CARD_W;
 const CANVAS_H = CARD_H;
@@ -51,7 +52,6 @@ function useHtmlImage(src?: string) {
 }
 
 const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 5, display: 'block' };
-const inp: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 7, padding: '7px 10px', color: 'var(--text-1)', fontSize: 13, width: '100%', outline: 'none' };
 
 export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplate; onChange: (c: WelcomeCardTemplate) => void }) {
   const [selId, setSelId] = useState<string | null>(null);

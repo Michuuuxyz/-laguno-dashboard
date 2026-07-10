@@ -6,12 +6,12 @@ import { ScrollReveal } from '@/components/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'Funcionalidades',
-  description: 'Descobre tudo o que o Laguno pode fazer pelo teu servidor — moderação, boas-vindas, logs, reaction roles e tickets.',
+  description: 'Moderação com humor próprio, boas-vindas com cartão, mais de 30 eventos de log, reaction roles e tickets. Tudo o que o Laguno faz pelo teu servidor.',
   alternates: { canonical: '/features' },
   keywords: ['laguno funcionalidades', 'bot discord moderação', 'auto-mod discord', 'boas-vindas discord', 'reaction roles discord', 'tickets discord', 'logs discord', 'bot discord português'],
   openGraph: {
     title: 'Funcionalidades | Laguno',
-    description: 'Descobre tudo o que o Laguno pode fazer pelo teu servidor — moderação, boas-vindas, logs, reaction roles e tickets.',
+    description: 'Moderação com humor próprio, boas-vindas com cartão, mais de 30 eventos de log, reaction roles e tickets. Tudo o que o Laguno faz pelo teu servidor.',
     url: 'https://www.lagunoapp.xyz/features',
   },
 };
@@ -90,8 +90,8 @@ export default function Features() {
           Funcionalidades
         </h1>
         <p style={{ fontSize: 16, color: 'var(--text-2)', lineHeight: 1.75 }}>
-          Moderação com personalidade, boas‑vindas automáticas, registos completos, reaction roles e tickets.
-          Tudo configurado no dashboard, tudo a correr sem ti.
+          Moderação que muda de humor, boas-vindas com cartão, mais de 30 eventos de log, reaction roles e tickets.
+          Configuras no dashboard e ele trata do resto.
         </p>
       </ScrollReveal>
 
@@ -105,8 +105,8 @@ export default function Features() {
         accent="#ef4444"
         icon={FEAT_ICONS.moderacao}
         tag="Moderação"
-        title={`Ban, kick, aviso —\ncom personalidade.`}
-        desc="O Laguno tem um motor de estados de espírito: stressado, sonolento, entediado, animado ou feliz. As mensagens de moderação mudam de tom conforme o humor. O resultado é sempre o mesmo — a frase não."
+        title={`Ban, kick, aviso.\nNunca com a mesma frase.`}
+        desc="O Laguno tem um motor de estados de espírito: stressado, sonolento, entediado, animado ou feliz. As mensagens de moderação mudam de tom conforme o humor. O resultado é sempre o mesmo. A frase, nunca."
         mock={
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <MockMsg avatarColor="#4e5058" name="Admin" time="14:31">
@@ -171,7 +171,7 @@ export default function Features() {
         icon={FEAT_ICONS.logs}
         tag="Registos"
         title={`Nada acontece\nsem ficar registado.`}
-        desc="Bans, kicks, mensagens editadas e apagadas, entradas e saídas, alterações de cargos — tudo vai para um canal de logs que tu escolhes no dashboard. Podes filtrar o que registar e onde."
+        desc="Bans, kicks, mensagens editadas e apagadas, entradas e saídas, alterações de cargos: mais de 30 tipos de eventos, num canal que tu escolhes no dashboard. Podes filtrar o que registar e onde."
         mock={
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <MockMsg avatar="/laguno.png" name="Laguno" bot time="14:33">
@@ -208,7 +208,7 @@ export default function Features() {
         icon={FEAT_ICONS.selfroles}
         tag="Self-roles"
         title={`Os membros escolhem.\nTu não fazes nada.`}
-        desc="Crias painéis com botões no dashboard — cada botão dá ou remove um cargo. Os membros clicam sozinhos. Sem tickets, sem pedidos ao admin, sem espera. Podes ter vários painéis para categorias diferentes."
+        desc="Crias painéis com botões no dashboard e cada botão dá ou remove um cargo. Os membros clicam sozinhos, sem pedir nada ao admin. Podes ter vários painéis para categorias diferentes."
         mock={
           <MockMsg avatar="/laguno.png" name="Laguno" bot time="09:00">
             <DCContainer accent="#5865f2">
@@ -240,7 +240,7 @@ export default function Features() {
         icon={FEAT_ICONS.builder}
         tag="Construtor de Mensagens"
         title={`Mensagens com botões.\nSem escrever código.`}
-        desc="Monta mensagens ricas no dashboard com blocos — texto, imagem, separador e botões — na ordem que quiseres. Cada botão faz o que decidires: responde com uma mensagem (privada ou pública), dá um cargo, ou abre um link. Tudo em Components V2, com a tua cor."
+        desc="Monta mensagens ricas no dashboard com blocos (texto, imagem, separador e botões) na ordem que quiseres. Cada botão faz o que decidires: responde com uma mensagem (privada ou pública), dá um cargo, ou abre um link. Tudo em Components V2, com a tua cor."
         mock={
           <MockMsg avatar="/laguno.png" name="Laguno" bot time="17:20">
             <DCContainer accent="#6db83e">

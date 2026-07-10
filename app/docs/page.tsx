@@ -163,7 +163,7 @@ function Content({ page }: { page: PageId }) {
         <div style={{ marginBottom: 24 }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: G, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 8 }}>Documentação</p>
           <H1>Bem-vindo ao Laguno</H1>
-          <P>O <strong style={{ color: 'var(--text-1)' }}>Laguno</strong> é um bot para Discord em português para toda a comunidade lusófona. Oferece moderação com personalidade, logs automáticos, boas-vindas, auto-moderação, reaction roles e tickets — tudo configurado num dashboard web sem escrever uma linha de código.</P>
+          <P>O <strong style={{ color: 'var(--text-1)' }}>Laguno</strong> é um bot para Discord em português para toda a comunidade lusófona. Oferece moderação com humor próprio, mais de 30 tipos de logs, boas-vindas, auto-moderação, reaction roles e tickets, tudo configurado num dashboard web sem escrever uma linha de código.</P>
           <P>Esta documentação cobre todos os módulos e comandos. Navega pela barra lateral para encontrar o que precisas.</P>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px,1fr))', gap: 12, marginBottom: 28 }}>
@@ -487,7 +487,7 @@ function Content({ page }: { page: PageId }) {
             ['URL de apelo',      'Link enviado ao membro banido para contestar a decisão.'],
           ].map(([l, d]) => <PropRow key={l} label={l} desc={d} />)}
         </div>
-        <Note type="warn">Para o /mute funcionar, o cargo de mute deve ter a permissão "Enviar Mensagens" negada em todos os canais.</Note>
+        <Note type="warn">Para o /mute funcionar, o cargo de mute deve ter a permissão “Enviar Mensagens” negada em todos os canais.</Note>
       </div>
     );
 

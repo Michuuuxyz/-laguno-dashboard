@@ -10,10 +10,10 @@ import {
 
 export const metadata: Metadata = {
   title: 'Laguno — Bot de Discord em português',
-  description: 'Bane spammers. Regista tudo. Dá boas-vindas. Em português, para toda a comunidade lusófona.',
+  description: 'O Laguno bane o spam às 4 da manhã, regista mais de 30 tipos de eventos e recebe cada membro novo. Em português, para toda a comunidade lusófona.',
   openGraph: {
     title: 'Laguno — Bot de Discord em português',
-    description: 'Bane spammers. Regista tudo. Dá boas-vindas. Em português, para toda a comunidade lusófona.',
+    description: 'O Laguno bane o spam às 4 da manhã, regista mais de 30 tipos de eventos e recebe cada membro novo. Em português, para toda a comunidade lusófona.',
     url: 'https://www.lagunoapp.xyz',
   },
 };
@@ -37,10 +37,10 @@ async function getStats(): Promise<{ guildCount: number; userCount: number } | n
 
 /* ── O que ele faz — lista tranquila, os detalhes vivem em /features ── */
 const CAPS = [
-  { href: '/features#moderacao',  title: 'Moderação',   desc: 'Ban, kick, warn e timeout — com respostas que mudam de humor.' },
+  { href: '/features#moderacao',  title: 'Moderação',   desc: 'Ban, kick, warn e timeout, com respostas que mudam consoante o humor dele.' },
   { href: '/features#moderacao',  title: 'Auto-Mod',    desc: 'Spam, convites, caps e menções bloqueados antes de chegarem a ti.' },
   { href: '/features#boasvindas', title: 'Boas-Vindas', desc: 'Cada entrada recebida com banner, avatar e a tua mensagem.' },
-  { href: '/features#selfroles',  title: 'Reaction Roles', desc: 'Painéis de botões — os membros servem-se sozinhos.' },
+  { href: '/features#selfroles',  title: 'Reaction Roles', desc: 'Painéis de botões onde os membros escolhem os próprios cargos.' },
   { href: '/features#logs',       title: 'Registos',    desc: 'Mais de 30 eventos registados. Nada se perde.' },
 ];
 
@@ -72,7 +72,7 @@ export default async function Home() {
           </div>
 
           <p style={{ fontSize: 'clamp(15px,1.7vw,17px)', color: 'var(--text-2)', lineHeight: 1.75, maxWidth: 520, margin: '30px auto 32px' }}>
-            O Laguno modera, regista, dá boas-vindas e trata dos tickets — enquanto tu vives a tua vida.
+            Moderação, registos, boas-vindas e tickets a funcionar enquanto não estás.
             Configuras uma vez, num dashboard em português. Depois, é comigo.
           </p>
 
@@ -94,7 +94,7 @@ export default async function Home() {
             <span className="display" style={{ color: 'var(--green)', fontSize: 14 }}>04:12</span> · enquanto dormias
           </p>
           <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7, marginBottom: 18 }}>
-            Isto aconteceu ontem, num servidor como o teu. Ninguém acordado para moderar — não fez falta.
+            Isto aconteceu ontem, num servidor como o teu. Ninguém acordado para moderar. Não fez falta.
           </p>
           <MockWindow channel="geral">
             <MockMsg avatarColor="#7a4e4e" name="xX_Dark_Xx" time="04:12">
@@ -112,7 +112,7 @@ export default async function Home() {
             </MockMsg>
           </MockWindow>
           <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.7, marginTop: 16 }}>
-            Às 4 da manhã responde em modo <em>sonolento</em>. De dia, depende do dia — o Laguno
+            Às 4 da manhã responde em modo <em>sonolento</em>. De dia, depende do dia: o Laguno
             tem um motor de humor, e a frase nunca é a mesma. O resultado, sim.
           </p>
         </ScrollReveal>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
+import { rateLimit, tooMany } from '@/lib/rateLimit';
 
 const DISCORD_API = 'https://discord.com/api/v10';
 const CDN = 'https://cdn.discordapp.com';
@@ -60,6 +61,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
   if (!token) return NextResponse.json({ error: 'DISCORD_TOKEN em falta' }, { status: 503 });
 
   let body: { nick?: unknown; avatar?: unknown; banner?: unknown; bio?: unknown };
+  if (!rateLimit('botprof:' + guildId, 4, 60_000)) return NextResponse.json(tooMany, { status: 429 });
+
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'JSON inválido' }, { status: 400 }); }
 
   // Só envia os campos realmente presentes — não mexe no que não vem.

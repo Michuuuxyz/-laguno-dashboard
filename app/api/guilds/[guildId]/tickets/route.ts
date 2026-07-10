@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
+import { rateLimit, tooMany } from '@/lib/rateLimit';
 import clientPromise from '@/lib/mongodb';
 
 interface Question { id: string; label: string; placeholder?: string; style?: string; required?: boolean }
@@ -81,7 +82,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
   if (!await assertGuildAccess(guildId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   let body: { config?: Record<string, unknown>; panels?: Panel[] };
+  if (!rateLimit('tksave:' + guildId, 20, 60_000)) return NextResponse.json(tooMany, { status: 429 });
+
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'JSON inválido' }, { status: 400 }); }
+
+  // Cap de tamanho — a BD não deve engolir payloads gigantes
+  if (JSON.stringify(body).length > 150_000) return NextResponse.json({ error: 'Configuração demasiado grande.' }, { status: 413 });
 
   const db = (await clientPromise).db();
 

@@ -139,12 +139,12 @@ export default async function LegalPage({ searchParams }: { searchParams: Promis
             </Section>
 
             <Section title="5. Propriedade Intelectual">
-              <p>Todo o código, design, marca, nome "Laguno" e demais elementos do serviço são propriedade exclusiva do seu criador. É proibida a reprodução, distribuição, modificação ou utilização comercial sem autorização expressa e por escrito.</p>
+              <p>Todo o código, design, marca, nome “Laguno” e demais elementos do serviço são propriedade exclusiva do seu criador. É proibida a reprodução, distribuição, modificação ou utilização comercial sem autorização expressa e por escrito.</p>
               <p>Os utilizadores não adquirem qualquer direito de propriedade sobre o serviço ou os seus componentes pelo facto de o utilizarem.</p>
             </Section>
 
             <Section title="6. Isenção de Garantias e Limitação de Responsabilidade">
-              <p>O Laguno é disponibilizado "tal como está" ("as is"), sem qualquer garantia expressa ou implícita de funcionamento ininterrupto, ausência de erros ou adequação a um fim específico.</p>
+              <p>O Laguno é disponibilizado “tal como está” (“as is”), sem qualquer garantia expressa ou implícita de funcionamento ininterrupto, ausência de erros ou adequação a um fim específico.</p>
               <p>Em nenhuma circunstância o criador do Laguno será responsável por danos diretos, indiretos, incidentais ou consequentes resultantes do uso ou da impossibilidade de uso do serviço, incluindo mas não limitado a perda de dados, perda de receita ou danos reputacionais.</p>
             </Section>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { AppBadge } from './AppBadge';
+import { input, lbl } from './ui';
 
 interface Channel { id: string; name: string; }
 interface Role    { id: string; name: string; color: number; }
@@ -22,11 +23,6 @@ type Block =
 
 interface Props { guildId: string; channels: Channel[]; roles: Role[]; }
 
-const input: React.CSSProperties = {
-  background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8,
-  padding: '8px 12px', color: 'var(--text-1)', fontSize: 13.5, width: '100%', outline: 'none',
-};
-const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.04em', display: 'block', marginBottom: 6 };
 
 const STYLE_OPTS: { v: 1 | 2 | 3 | 4; label: string; bg: string }[] = [
   { v: 1, label: 'Azul', bg: '#5865f2' }, { v: 2, label: 'Cinza', bg: '#4e5058' },
@@ -319,7 +315,7 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
           <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Pré-visualização</p>
           <div style={{ background: '#313338', borderRadius: 10, padding: 14, fontFamily: '"gg sans","Noto Sans",sans-serif', position: 'sticky', top: 90 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img src={bot?.avatar || '/laguno.png'} alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }}
                 onError={e => { (e.currentTarget as HTMLImageElement).src = '/laguno.png'; }} />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -336,7 +332,7 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
                         if (b.accKind === 'image' && b.accUrl?.trim()) return (
                           <div key={b.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                             {texto}
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            { }
                             <img src={b.accUrl} alt="" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                           </div>
                         );
@@ -352,7 +348,7 @@ export function MessageBuilderTab({ guildId, channels, roles }: Props) {
                         return <div key={b.id}>{texto}</div>;
                       }
                       if (b.type === 'image') return b.url.trim()
-                        // eslint-disable-next-line @next/next/no-img-element
+                         
                         ? <img key={b.id} src={b.url} alt="" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 4, display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} /> : null;
                       if (b.type === 'separator') return <div key={b.id} style={{ height: b.divider ? 1 : 8, background: b.divider ? 'rgba(255,255,255,.08)' : 'transparent' }} />;
                       if (b.type === 'buttons') return (

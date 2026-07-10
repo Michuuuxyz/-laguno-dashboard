@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
+import { rateLimit, tooMany } from '@/lib/rateLimit';
 import { channelBelongsToGuild } from '@/lib/channelGuard';
 import clientPromise from '@/lib/mongodb';
 
@@ -14,6 +15,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { panelId, channelId } = await req.json();
+  if (!rateLimit('rlsend:' + guildId, 6, 60_000)) return NextResponse.json(tooMany, { status: 429 });
   if (!panelId || !channelId)
     return NextResponse.json({ error: 'panelId e channelId são obrigatórios' }, { status: 400 });
 

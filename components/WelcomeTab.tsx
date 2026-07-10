@@ -6,6 +6,7 @@ import { defaultCard, type WelcomeCardTemplate } from '@/lib/welcomeCard';
 import { legacyToBlocks, type V2Block } from '@/lib/v2blocks';
 import { V2BlockEditor, V2Preview } from './V2BlockEditor';
 import { AppBadge } from './AppBadge';
+import { Toggle, input as inputStyle } from './ui';
 
 // Editor com Konva — só no browser (ssr:false), carregado ao abrir o modo cartão.
 const WelcomeCardEditor = dynamic(() => import('./WelcomeCardEditor').then(m => m.WelcomeCardEditor), {
@@ -95,27 +96,7 @@ const VARIABLES = [
   { tag: '{created}',     desc: 'Conta criada há...' },
 ];
 
-const inputStyle: React.CSSProperties = {
-  background: 'var(--surface)', border: '1px solid var(--line)',
-  borderRadius: 8, padding: '8px 12px', color: 'var(--text-1)',
-  fontSize: 13.5, width: '100%', outline: 'none',
-};
 
-function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
-  return (
-    <button onClick={onChange} style={{
-      width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
-      background: on ? 'var(--green)' : 'var(--elevated)',
-      position: 'relative', transition: 'background .18s', flexShrink: 0,
-    }}>
-      <span style={{
-        position: 'absolute', top: 3, left: on ? 23 : 3,
-        width: 18, height: 18, borderRadius: '50%', background: '#fff',
-        transition: 'left .18s', display: 'block',
-      }} />
-    </button>
-  );
-}
 
 function parsePreview(text: string, guildName: string): string {
   return text
@@ -173,7 +154,7 @@ function DiscordPreview({ message, accentColor, guildName, extras, mode, channel
           <span style={{ fontSize: 12, color: '#80848e' }}>{channel}</span>
         </div>
         <div style={{ padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
           <img src="/laguno.png" alt="Laguno" style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
@@ -199,7 +180,7 @@ function DiscordPreview({ message, accentColor, guildName, extras, mode, channel
         <span style={{ fontSize: 12, color: '#80848e' }}>{channel}</span>
       </div>
       <div style={{ padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        { }
         <img src="/laguno.png" alt="Laguno" style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
@@ -210,7 +191,7 @@ function DiscordPreview({ message, accentColor, guildName, extras, mode, channel
           <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `3px solid ${accent}`, overflow: 'hidden', maxWidth: 400 }}>
             {/* Banner */}
             {extras?.bannerUrl?.trim() ? (
-              // eslint-disable-next-line @next/next/no-img-element
+               
               <img src={extras.bannerUrl} alt="" style={{ width: '100%', maxHeight: 140, objectFit: 'cover', display: 'block' }}
                 onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
             ) : null}

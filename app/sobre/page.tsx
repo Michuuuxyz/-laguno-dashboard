@@ -76,13 +76,13 @@ export default async function Sobre() {
             </p>
             <p style={{ fontSize: 17, color: 'var(--text-2)', lineHeight: 1.85, marginBottom: 20 }}>
               Por isso pegou no TypeScript, no Discord.js, e fez ele próprio.
-              Um bot com voz — literalmente. O Laguno tem estados de espírito.
+              Um bot com voz, literalmente. O Laguno tem estados de espírito.
               Às vezes está stressado e avisa-te com letras maiúsculas. Às vezes está sonolento
               e praticamente adormece a mandar a mensagem. Sempre em português.
             </p>
             <p style={{ fontSize: 17, color: 'var(--text-1)', lineHeight: 1.85, fontWeight: 500 }}>
               Não é um produto de uma empresa. É um projeto de uma pessoa
-              que queria algo melhor para os seus servidores — e decidiu construí-lo.
+              que queria algo melhor para os seus servidores e decidiu construí-lo.
             </p>
           </div>
           <div style={{ flexShrink: 0 }}>
@@ -116,7 +116,7 @@ export default async function Sobre() {
             },
             {
               fase: 'A primeira versão',
-              texto: 'Comandos básicos. Warn, ban, kick. Nada de especial — mas em português e com aquela vibe de "foi feito por alguém que usa Discord de verdade". Para PT e BR. Já era diferente.',
+              texto: 'Comandos básicos. Warn, ban, kick. Nada de especial, mas em português e com aquela vibe de "foi feito por alguém que usa Discord de verdade". Para PT e BR. Já era diferente.',
             },
             {
               fase: 'A personalidade',
@@ -124,11 +124,11 @@ export default async function Sobre() {
             },
             {
               fase: 'O dashboard',
-              texto: 'Porque configurar bots pelo terminal ou por ficheiros JSON é coisa de 2015. O Laguno tem um dashboard em Next.js onde configuras tudo com cliques — boas-vindas, logs, auto-mod, reaction roles, tickets.',
+              texto: 'Porque configurar bots pelo terminal ou por ficheiros JSON é coisa de 2015. O Laguno tem um dashboard em Next.js onde configuras tudo com cliques: boas-vindas, logs, auto-mod, reaction roles, tickets.',
             },
             {
               fase: 'Agora',
-              texto: 'O projeto continua. Há sempre mais um módulo a adicionar, mais um detalhe a afinar. Mas a base está lá — um bot que faz o trabalho e tem carácter próprio.',
+              texto: 'O projeto continua. Há sempre mais um módulo a adicionar, mais um detalhe a afinar. Mas a base está lá: um bot que faz o trabalho e tem carácter próprio.',
             },
           ].map(({ fase, texto }, i) => (
             <div key={fase} style={{
@@ -161,19 +161,19 @@ export default async function Sobre() {
               <Image src="/laguno.png" alt="Laguno" width={56} height={56} style={{ objectFit: 'contain' }} />
             </div>
             <OrbitingCircles radius={140} iconSize={36}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img src="https://cdn.simpleicons.org/typescript/3178C6" alt="" width={28} height={28} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img src="https://cdn.simpleicons.org/nextdotjs/ffffff" alt="" width={28} height={28} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img src="https://cdn.simpleicons.org/mongodb/47A248" alt="" width={28} height={28} />
             </OrbitingCircles>
             <OrbitingCircles radius={80} iconSize={30}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img src="https://cdn.simpleicons.org/discord/5865F2" alt="" width={24} height={24} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img src="https://cdn.simpleicons.org/vercel/ffffff" alt="" width={24} height={24} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img src="https://cdn.simpleicons.org/nodedotjs/339933" alt="" width={24} height={24} />
             </OrbitingCircles>
           </div>
@@ -221,7 +221,7 @@ export default async function Sobre() {
             </p>
             <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.7 }}>
               Desenvolvedor de língua portuguesa. Constrói coisas para Discord porque passa demasiado tempo no Discord.
-              O Laguno é o projeto principal — mas não o último.
+              O Laguno é o projeto principal, mas não o último.
             </p>
           </div>
         </div>

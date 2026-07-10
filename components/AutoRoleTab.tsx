@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { input as field } from './ui';
 
 interface Role { id: string; name: string; color: number; }
 interface Props {
@@ -10,11 +11,6 @@ interface Props {
   onChange: (key: 'autoroles', val: string[]) => void;
 }
 
-const field: React.CSSProperties = {
-  background: 'var(--surface)', border: '1px solid var(--line)',
-  borderRadius: 8, padding: '8px 12px', color: 'var(--text-1)',
-  fontSize: 13.5, width: '100%', outline: 'none',
-};
 
 function hexColor(color: number) {
   return color ? `#${color.toString(16).padStart(6, '0')}` : 'var(--text-3)';

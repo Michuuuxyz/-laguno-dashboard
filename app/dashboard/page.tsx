@@ -50,7 +50,7 @@ export default async function DashboardPage() {
         paddingLeft: 14, textAlign: 'left',
         lineHeight: 1.6,
       }}>
-        "Estava aqui a vigiar o servidor em silêncio… como sempre."
+        “Estava aqui a vigiar o servidor em silêncio… como sempre.”
       </p>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Reveal } from './Reveal';
 import { AppBadge } from './AppBadge';
+import { Toggle, input, card } from './ui';
 
 interface Channel { id: string; name: string }
 interface Role { id: string; name: string; color?: number }
@@ -25,11 +26,6 @@ interface BotIdentity { name: string; avatar: string }
 
 const sid = () => Math.random().toString(36).slice(2, 8);
 
-const input: React.CSSProperties = {
-  background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8,
-  padding: '8px 12px', color: 'var(--text-1)', fontSize: 13.5, width: '100%', outline: 'none',
-};
-const card: React.CSSProperties = { background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '16px 18px' };
 const lbl: React.CSSProperties = { fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'block' };
 const miniBtn: React.CSSProperties = { width: 26, height: 26, borderRadius: 6, border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--text-2)', cursor: 'pointer', fontSize: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
 
@@ -73,16 +69,6 @@ function ButtonEditor({ b, onChange, onRemove }: {
   );
 }
 
-function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
-  return (
-    <button onClick={onChange} style={{
-      width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
-      background: on ? 'var(--green)' : 'var(--elevated)', position: 'relative', transition: 'background .18s', flexShrink: 0,
-    }}>
-      <span style={{ position: 'absolute', top: 3, left: on ? 23 : 3, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left .18s' }} />
-    </button>
-  );
-}
 
 const STYLE_OPTS = [{ v: 1, l: 'Azul' }, { v: 2, l: 'Cinza' }, { v: 3, l: 'Verde' }, { v: 4, l: 'Vermelho' }];
 const BTN_BG: Record<number, string> = { 1: '#5865f2', 2: '#4e5058', 3: '#3ba55d', 4: '#ed4245' };
@@ -149,7 +135,7 @@ function TicketPreview({ cat, cfg }: { cat: Category; cfg: Config }) {
       <div style={{ background: '#313338', borderRadius: 8, padding: 12, fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
         <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
           {banner && (
-            // eslint-disable-next-line @next/next/no-img-element
+             
             <img src={banner} alt="" style={{ width: '100%', maxHeight: 110, objectFit: 'cover', display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
           )}
           <div style={{ padding: '10px 12px' }}>
@@ -185,7 +171,7 @@ function PanelPreview({ panel, bot }: { panel: Panel; bot?: BotIdentity | null }
       <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Pré-visualização</p>
       <div style={{ background: '#313338', borderRadius: 10, padding: 14, fontFamily: '"gg sans","Noto Sans",sans-serif', position: 'sticky', top: 90 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
           <img src={bot?.avatar || '/laguno.png'} alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
@@ -194,7 +180,7 @@ function PanelPreview({ panel, bot }: { panel: Panel; bot?: BotIdentity | null }
             </div>
             <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
               {panel.bannerUrl?.trim() && (panel.bannerPosition ?? 'top') !== 'bottom' && (
-                // eslint-disable-next-line @next/next/no-img-element
+                 
                 <img src={panel.bannerUrl} alt="" style={{ width: '100%', maxHeight: 140, objectFit: 'cover', display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
               )}
               <div style={{ padding: '12px 14px' }}>
@@ -209,7 +195,7 @@ function PanelPreview({ panel, bot }: { panel: Panel; bot?: BotIdentity | null }
                 </div>
               </div>
               {panel.bannerUrl?.trim() && (panel.bannerPosition ?? 'top') === 'bottom' && (
-                // eslint-disable-next-line @next/next/no-img-element
+                 
                 <img src={panel.bannerUrl} alt="" style={{ width: '100%', maxHeight: 140, objectFit: 'cover', display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
               )}
             </div>
@@ -234,7 +220,7 @@ function InnerTicketPreview({ cfg, bot }: { cfg: Config; bot?: BotIdentity | nul
       <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Como fica dentro do ticket</p>
       <div style={{ background: '#313338', borderRadius: 10, padding: 14, fontFamily: '"gg sans","Noto Sans",sans-serif' }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
           <img src={bot?.avatar || '/laguno.png'} alt="" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', border: '1px solid rgba(255,255,255,.08)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 5 }}>
@@ -243,7 +229,7 @@ function InnerTicketPreview({ cfg, bot }: { cfg: Config; bot?: BotIdentity | nul
             </div>
             <div style={{ background: '#2b2d31', borderRadius: 8, borderLeft: `4px solid ${accent}`, overflow: 'hidden' }}>
               {cfg.openingBanner?.trim() && (
-                // eslint-disable-next-line @next/next/no-img-element
+                 
                 <img src={cfg.openingBanner} alt="" style={{ width: '100%', maxHeight: 120, objectFit: 'cover', display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
               )}
               <div style={{ padding: '12px 14px' }}>

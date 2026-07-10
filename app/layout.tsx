@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     default: 'Laguno — O bot em português com personalidade',
     template: '%s | Laguno',
   },
-  description: 'Moderação com personalidade, logs automáticos, boas-vindas, reaction roles e tickets. Configurado em dois minutos, a correr sem ti.',
+  description: 'O Laguno modera, dá boas-vindas, abre tickets e regista mais de 30 tipos de eventos do teu servidor. 100% em português, configurado num dashboard em dois minutos.',
   alternates: { canonical: '/' },
   keywords: ['laguno', 'laguno bot', 'laguno discord', 'discord bot', 'bot português', 'bot brasileiro', 'moderação discord', 'bot discord portugal', 'bot discord brasil'],
   authors: [{ name: 'Michuu' }],
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     url: 'https://www.lagunoapp.xyz',
     siteName: 'Laguno',
     title: 'Laguno — O bot em português com personalidade',
-    description: 'Moderação com personalidade, logs automáticos, boas-vindas, reaction roles e tickets. Configurado em dois minutos, a correr sem ti.',
+    description: 'O Laguno modera, dá boas-vindas, abre tickets e regista mais de 30 tipos de eventos do teu servidor. 100% em português, configurado num dashboard em dois minutos.',
     images: [
       {
         url: '/laguno.png',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary',
     title: 'Laguno — O bot em português com personalidade',
-    description: 'Moderação com personalidade, logs automáticos, boas-vindas, reaction roles e tickets.',
+    description: 'Moderação, logs, boas-vindas, reaction roles e tickets. 100% em português, configurado em dois minutos.',
     images: ['/laguno.png'],
   },
   // Favicon/ícones: geridos pela convenção de ficheiros do Next
@@ -68,7 +68,7 @@ const JSON_LD = {
       name: 'Laguno',
       url: 'https://www.lagunoapp.xyz',
       logo: 'https://www.lagunoapp.xyz/laguno.png',
-      description: 'Bot de moderação de Discord em português, com personalidade.',
+      description: 'Bot de Discord em português para moderação, logs, boas-vindas e tickets.',
       sameAs: [
         'https://top.gg/bot/706487689519562833',
         'https://discord.ly/laguno',
@@ -91,7 +91,7 @@ const JSON_LD = {
       applicationCategory: 'CommunicationApplication',
       operatingSystem: 'Discord',
       url: 'https://www.lagunoapp.xyz',
-      description: 'Bot de moderação de Discord 100% em português: ban, kick, warn, auto-moderação, boas-vindas, reaction roles, tickets e logs. Configurado num dashboard, com personalidade.',
+      description: 'Bot de moderação de Discord 100% em português: ban, kick, warn, auto-moderação, boas-vindas, reaction roles, tickets e logs, tudo configurado num dashboard.',
       inLanguage: 'pt',
       author: { '@id': 'https://www.lagunoapp.xyz/#organization' },
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
+import { rateLimit, tooMany } from '@/lib/rateLimit';
 import { channelBelongsToGuild } from '@/lib/channelGuard';
 import type { WelcomeCardTemplate } from '@/lib/welcomeCard';
 import { blocksToApi, type V2Block } from '@/lib/v2blocks';
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
   const { guildId } = await params;
   const access = await assertGuildAccess(guildId);
   if (!access) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!rateLimit('wtest:' + guildId, 6, 60_000)) return NextResponse.json(tooMany, { status: 429 });
 
   const body = await req.json();
   const { channelId, message, accentColor, bannerUrl, showAvatar, footer, card, mode, blocks } = body as {

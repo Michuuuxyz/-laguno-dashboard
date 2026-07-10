@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertGuildAccess } from '@/lib/guildAuth';
+import { rateLimit, tooMany } from '@/lib/rateLimit';
 import { syncAutoModRules } from '@/lib/discordAutoMod';
 import clientPromise from '@/lib/mongodb';
 
@@ -26,8 +27,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   let body: Record<string, unknown>;
+  if (!rateLimit('cfgsave:' + guildId, 20, 60_000)) return NextResponse.json(tooMany, { status: 429 });
+
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
+
+  // Cap de tamanho — a BD não deve engolir payloads gigantes
+  if (JSON.stringify(body).length > 150_000) return NextResponse.json({ error: 'Configuração demasiado grande.' }, { status: 413 });
 
   const safeBody = Object.fromEntries(
     Object.entries(body).filter(([k]) => ALLOWED_KEYS.has(k))

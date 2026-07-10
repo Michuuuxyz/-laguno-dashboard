@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AppBadge } from './AppBadge';
+import { input, lbl } from './ui';
 
 interface Loaded {
   globalName: string; globalAvatar: string;
@@ -9,8 +10,6 @@ interface Loaded {
 }
 
 const card: React.CSSProperties = { background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: '16px 18px' };
-const input: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, padding: '8px 12px', color: 'var(--text-1)', fontSize: 13.5, width: '100%', outline: 'none' };
-const lbl: React.CSSProperties = { fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'block' };
 
 // undefined = não mexer · null = limpar · string = nova imagem (data URI)
 type ImgState = string | null | undefined;
@@ -84,7 +83,7 @@ export function BotProfileTab({ guildId }: { guildId: string }) {
             <div>
               <label style={lbl}>Foto (avatar)</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+                { }
                 <img src={previewAvatar} alt="" style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--line)' }} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <button onClick={() => avatarInput.current?.click()} style={{ ...input, width: 'auto', cursor: 'pointer', padding: '6px 12px', fontSize: 12.5 }}>Carregar…</button>
@@ -131,7 +130,7 @@ export function BotProfileTab({ guildId }: { guildId: string }) {
         <div>
           <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Lista de membros</p>
           <div style={{ background: '#2b2d31', borderRadius: 8, padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+            { }
             <img src={previewAvatar} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
             <span style={{ fontSize: 14, fontWeight: 600, color: '#f2f3f5' }}>{previewName}</span>
             <AppBadge />
@@ -143,7 +142,7 @@ export function BotProfileTab({ guildId }: { guildId: string }) {
           <div style={{ background: '#232428', borderRadius: 10, overflow: 'hidden' }}>
             <div style={{ height: 70, background: previewBanner ? `center/cover url(${previewBanner})` : 'linear-gradient(120deg,#5865f2,#8b5cf6)' }} />
             <div style={{ padding: '0 14px 14px', marginTop: -28 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img src={previewAvatar} alt="" style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', border: '5px solid #232428' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: '#f2f3f5' }}>{previewName}</span>

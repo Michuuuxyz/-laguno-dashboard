@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { input as field } from './ui';
 
 interface Channel { id: string; name: string; }
 interface Role { id: string; name: string; color: number; }
@@ -15,11 +16,6 @@ interface Props {
   onChange: (key: 'rolePanels', val: RolePanel[]) => void;
 }
 
-const field: React.CSSProperties = {
-  background: 'var(--surface)', border: '1px solid var(--line)',
-  borderRadius: 8, padding: '8px 12px', color: 'var(--text-1)',
-  fontSize: 13.5, width: '100%', outline: 'none',
-};
 const lblCss: React.CSSProperties = { fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.04em', display: 'block', marginBottom: 6 };
 
 function hexColor(color: number) {
@@ -34,7 +30,7 @@ function PanelPreview({ panel }: { panel: RolePanel }) {
   return (
     <div style={{ background: '#2b2d31', borderRadius: 12, padding: '1px', border: '1px solid #3f4147', overflow: 'hidden', borderLeft: panel.accentColor ? `4px solid ${panel.accentColor}` : '1px solid #3f4147' }}>
       {panel.bannerUrl?.trim() ? (
-        // eslint-disable-next-line @next/next/no-img-element
+         
         <img src={panel.bannerUrl} alt="" style={{ width: '100%', maxHeight: 120, objectFit: 'cover', display: 'block' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
       ) : null}
       <div style={{ background: '#232428', borderRadius: 11, padding: '16px 18px' }}>
