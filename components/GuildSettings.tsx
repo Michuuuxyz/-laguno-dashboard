@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -296,6 +296,52 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 }
 
 /* ── Cabeçalho unificado de módulo ── */
+/* Mascote em "modo fantástico": entra com pop, flutua, tem um brilho verde por
+   baixo e inclina-se em 3D a seguir o rato (perspective + rotateX/rotateY).
+   O float anima a propriedade `translate` para não lutar com o `transform`
+   do tilt — compõem-se. Respeita prefers-reduced-motion. */
+function Mascot3D({ src }: { src: string }) {
+  const inner = useRef<HTMLDivElement>(null);
+  return (
+    <div
+      className="mh-mascot"
+      style={{ position: 'absolute', right: 6, bottom: -8, zIndex: 1, perspective: '480px' }}
+      onMouseMove={e => {
+        const el = inner.current; if (!el) return;
+        const r = el.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        el.style.transform = `rotateY(${(x * 30).toFixed(1)}deg) rotateX(${(-y * 24).toFixed(1)}deg) scale(1.08)`;
+      }}
+      onMouseLeave={() => { const el = inner.current; if (el) el.style.transform = ''; }}
+    >
+      <div className="mh-glow" aria-hidden />
+      <div ref={inner} className="mh-inner">
+        <Image src={src} alt="" width={170} height={118} style={{ objectFit: 'contain', height: 118, width: 'auto' }} />
+      </div>
+      <style>{`
+        .mh-inner {
+          transition: transform .16s ease-out;
+          transform-style: preserve-3d; will-change: transform;
+          filter: drop-shadow(0 12px 20px rgba(0,0,0,.55));
+          animation: mh-pop .65s cubic-bezier(.34,1.56,.64,1) backwards, mh-float 4.5s ease-in-out .65s infinite;
+        }
+        .mh-glow {
+          position: absolute; left: 8%; right: 8%; bottom: -4px; height: 58%;
+          background: radial-gradient(55% 65% at 50% 85%, rgba(109,184,62,.4), transparent 70%);
+          filter: blur(12px); pointer-events: none;
+          animation: mh-glow 4.5s ease-in-out infinite;
+        }
+        @keyframes mh-pop   { from { opacity: 0; transform: translateY(30px) scale(.5) rotate(-8deg); } to { opacity: 1; transform: none; } }
+        @keyframes mh-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+        @keyframes mh-glow  { 0%, 100% { opacity: .8; } 50% { opacity: .35; } }
+        @media (max-width: 720px) { .mh-mascot { display: none; } }
+        @media (prefers-reduced-motion: reduce) { .mh-inner, .mh-glow { animation: none !important; } }
+      `}</style>
+    </div>
+  );
+}
+
 function ModuleHeader({ icon, accent, title, desc, chip, mascot }: {
   icon: React.ReactNode; accent: string; title: string; desc: string; chip?: string; mascot?: string;
 }) {
@@ -306,15 +352,8 @@ function ModuleHeader({ icon, accent, title, desc, chip, mascot }: {
   const head  = words.join(' ');
   return (
     <div style={{ position: 'relative', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 18 }}>
-      {/* Mascote do módulo — pousado em cima da linha divisória */}
-      {mascot && (
-        <>
-          <div className="mh-mascot" style={{ position: 'absolute', right: 6, bottom: -6, pointerEvents: 'none', filter: 'drop-shadow(0 6px 16px rgba(0,0,0,.45))', zIndex: 1 }}>
-            <Image src={`/mascote/${mascot}.png`} alt="" width={132} height={96} style={{ objectFit: 'contain', height: 96, width: 'auto' }} />
-          </div>
-          <style>{`@media (max-width: 720px) { .mh-mascot { display: none; } }`}</style>
-        </>
-      )}
+      {/* Mascote do módulo — pousado na linha divisória, em modo 3D */}
+      {mascot && <Mascot3D src={`/mascote/${mascot}.png`} />}
       <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
         <span style={{
           width: 42, height: 42, borderRadius: 11, flexShrink: 0,
@@ -820,7 +859,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* SETTINGS */}
         {active === 'settings' && (
           <div>
-            <ModuleHeader icon={<IconSettings />} accent="#94a3b8" title="Configurações" mascot="firme"
+            <ModuleHeader icon={<IconSettings />} accent="#94a3b8" title="Configurações" mascot="cruzado"
               desc="Definições gerais do Laguno neste servidor." />
 
             {/* Módulos de comandos — é para aqui que o bot manda quando diz "ativa no dashboard" */}
@@ -869,7 +908,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* MODERATION */}
         {active === 'moderation' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <ModuleHeader icon={<IconShield />} accent="#f87171" title="Moderação" mascot="firme"
+            <ModuleHeader icon={<IconShield />} accent="#f87171" title="Moderação" mascot="thor"
               desc="Comportamento dos comandos /ban, /kick, /warn, /timeout e restantes." />
 
             {/* Comportamento */}
@@ -958,7 +997,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
           ].filter(Boolean).length;
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <ModuleHeader icon={<IconBolt />} accent="#6db83e" title="Auto-Moderação" mascot="firme"
+              <ModuleHeader icon={<IconBolt />} accent="#6db83e" title="Auto-Moderação" mascot="automod"
                 desc="Regras nativas do Discord e filtros do bot, sem sobreposição."
                 chip={activeRules > 0 ? `${activeRules} regra${activeRules !== 1 ? 's' : ''} ativa${activeRules !== 1 ? 's' : ''}` : 'inativo'} />
               <div style={{ background: 'rgba(109,184,62,.06)', border: '1px solid rgba(109,184,62,.2)', borderRadius: 12, padding: '16px 20px' }}>
@@ -1164,7 +1203,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
           const linkedCats = Object.values(config.logs).filter(c => (c as LogCategory)?.channelId).length;
           return (
           <div>
-            <ModuleHeader icon={<IconFile />} accent="#fbbf24" title="Logs" mascot="espreitar"
+            <ModuleHeader icon={<IconFile />} accent="#fbbf24" title="Logs" mascot="vigiar"
               desc="Configura um canal por categoria e ativa os eventos que queres registar."
               chip={linkedCats > 0 ? `${linkedCats} de ${LOG_CATEGORIES.length} categorias` : 'sem canal'} />
 
