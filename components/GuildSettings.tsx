@@ -305,7 +305,7 @@ function Mascot3D({ src }: { src: string }) {
   return (
     <div
       className="mh-mascot"
-      style={{ position: 'absolute', right: 6, bottom: -8, zIndex: 1, perspective: '480px' }}
+      style={{ position: 'absolute', right: 14, bottom: -4, zIndex: 1, perspective: '480px' }}
       onMouseMove={e => {
         const el = inner.current; if (!el) return;
         const r = el.getBoundingClientRect();
@@ -317,7 +317,7 @@ function Mascot3D({ src }: { src: string }) {
     >
       <div className="mh-glow" aria-hidden />
       <div ref={inner} className="mh-inner">
-        <Image src={src} alt="" width={170} height={118} style={{ objectFit: 'contain', height: 118, width: 'auto' }} />
+        <Image src={src} alt="" width={132} height={92} style={{ objectFit: 'contain', height: 92, width: 'auto' }} />
       </div>
       <style>{`
         .mh-inner {
@@ -332,8 +332,8 @@ function Mascot3D({ src }: { src: string }) {
           filter: blur(12px); pointer-events: none;
           animation: mh-glow 4.5s ease-in-out infinite;
         }
-        @keyframes mh-pop   { from { opacity: 0; transform: translateY(30px) scale(.5) rotate(-8deg); } to { opacity: 1; transform: none; } }
-        @keyframes mh-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+        @keyframes mh-pop   { from { opacity: 0; transform: translateY(18px) scale(.5) rotate(-8deg); } to { opacity: 1; transform: none; } }
+        @keyframes mh-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
         @keyframes mh-glow  { 0%, 100% { opacity: .8; } 50% { opacity: .35; } }
         @media (max-width: 720px) { .mh-mascot { display: none; } }
         @media (prefers-reduced-motion: reduce) { .mh-inner, .mh-glow { animation: none !important; } }
@@ -351,10 +351,12 @@ function ModuleHeader({ icon, accent, title, desc, chip, mascot }: {
   const last  = words.pop() ?? '';
   const head  = words.join(' ');
   return (
-    <div style={{ position: 'relative', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 18 }}>
+    // minHeight reserva o espaço do mascote (92px) — sem isto ele estoura
+    // acima do cabeçalho e fica cortado no topo da página.
+    <div style={{ position: 'relative', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 18, minHeight: mascot ? 104 : undefined, display: 'flex', alignItems: 'center' }}>
       {/* Mascote do módulo — pousado na linha divisória, em modo 3D */}
       {mascot && <Mascot3D src={`/mascote/${mascot}.png`} />}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 13, width: '100%', paddingRight: mascot ? 150 : 0 }}>
         <span style={{
           width: 42, height: 42, borderRadius: 11, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
