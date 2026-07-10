@@ -55,6 +55,8 @@ const inp: React.CSSProperties = { background: 'var(--surface)', border: '1px so
 
 export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplate; onChange: (c: WelcomeCardTemplate) => void }) {
   const [selId, setSelId] = useState<string | null>(null);
+  // Modo simples por defeito: modelo + textos + fundo. O resto vive no avançado.
+  const [adv, setAdv] = useState(false);
   const [display, setDisplay] = useState(680);
   const wrapRef = useRef<HTMLDivElement>(null);
   const trRef = useRef<Konva.Transformer>(null);
@@ -135,12 +137,12 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
   const tbBtn: React.CSSProperties = { flex: 1, padding: '5px 4px', borderRadius: 6, fontSize: 11, cursor: 'pointer', border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--text-2)' };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 280px', gap: 16, alignItems: 'start' }} className="wc-grid">
+    <div style={{ display: 'grid', gridTemplateColumns: adv ? 'minmax(0,1fr) 280px' : 'minmax(0,1fr)', gap: 16, alignItems: 'start' }} className="wc-grid">
       {/* ── Palco ── */}
       <div ref={wrapRef} style={{ minWidth: 0 }}>
         {/* Modelos prontos — o caminho fácil: um clique e o cartão está montado */}
         <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Modelos prontos — clica num e está feito</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>1 · Escolhe um modelo — clica e está feito</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 6 }}>
             {CARD_TEMPLATES.map(t => (
               <button key={t.id} onClick={() => { onChange(t.make()); setSelId(null); }} title={t.desc} style={{
@@ -157,12 +159,14 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
           <p style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 8 }}>Escolher um modelo substitui o desenho atual. Depois personaliza o que quiseres em baixo.</p>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-          <button onClick={addText} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Texto</button>
-          <button onClick={addAvatar} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Avatar</button>
-          <button onClick={addShape} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Forma</button>
-          <span style={{ fontSize: 11.5, color: 'var(--text-3)', alignSelf: 'center' }}>Arrasta os elementos. Clica num para editar à direita.</span>
-        </div>
+        {adv && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+            <button onClick={addText} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Texto</button>
+            <button onClick={addAvatar} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Avatar</button>
+            <button onClick={addShape} style={{ ...inp, width: 'auto', cursor: 'pointer', fontWeight: 600, color: 'var(--green)' }}>+ Forma</button>
+            <span style={{ fontSize: 11.5, color: 'var(--text-3)', alignSelf: 'center' }}>Arrasta os elementos. Clica num para editar à direita.</span>
+          </div>
+        )}
         <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)', width: display, maxWidth: '100%' }}>
           <Stage ref={stageRef} width={display} height={H * scale} scaleX={scale} scaleY={scale}
             onMouseDown={e => { if (e.target === e.target.getStage()) setSelId(null); }}>
@@ -236,6 +240,24 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
             </Layer>
           </Stage>
         </div>
+        {/* Modo simples: editar os textos do cartão sem tocar no canvas */}
+        {!adv && (
+          <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginTop: 10 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>2 · Escreve os textos</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {card.layers.filter(l => l.type === 'text').map((l, i) => (
+                <input key={l.id} style={inp} value={(l as { text: string }).text}
+                  onChange={e => patch(l.id, { text: e.target.value })}
+                  placeholder={i === 0 ? 'Bem-vindo, {user}!' : `Linha ${i + 1}`} />
+              ))}
+              {card.layers.filter(l => l.type === 'text').length === 0 && (
+                <p style={{ fontSize: 11.5, color: 'var(--text-3)' }}>Este modelo não tem textos — escolhe outro em cima.</p>
+              )}
+            </div>
+            <p style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 8 }}>Podes usar as variáveis em baixo. Também podes arrastar os elementos no cartão para os posicionar.</p>
+          </div>
+        )}
+
         {/* Variáveis */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
           {['{user}', '{@user}', '{user.name}', '{user.tag}', '{user.id}', '{count}', '{guild.size}', '{server}', '{guild.name}'].map(v => (
@@ -246,7 +268,8 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
 
       {/* ── Painel de propriedades ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* Formato do cartão */}
+        {/* Formato do cartão (avançado) */}
+        {adv && (
         <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: 12 }}>
           <p style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>Formato do cartão</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -267,10 +290,11 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
             })}
           </div>
         </div>
+        )}
 
         {/* Fundo */}
         <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: 12 }}>
-          <p style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>Fundo</p>
+          <p style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>{adv ? 'Fundo' : '3 · Fundo'}</p>
           <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
             {(['color', 'gradient', 'image'] as const).map(t => (
               <button key={t} onClick={() => setBg({ bgType: t })} style={{ flex: 1, padding: '6px', borderRadius: 7, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${card.bgType === t ? 'var(--green)' : 'var(--line)'}`, background: card.bgType === t ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: card.bgType === t ? 'var(--green)' : 'var(--text-2)' }}>{t === 'color' ? 'Cor' : t === 'gradient' ? 'Gradiente' : 'Imagem'}</button>
@@ -285,8 +309,8 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
           <div style={{ marginTop: 10 }}><label style={lbl}>Escurecer fundo ({Math.round((card.bgOverlay ?? 0) * 100)}%)</label><input type="range" min={0} max={100} value={Math.round((card.bgOverlay ?? 0) * 100)} onChange={e => setBg({ bgOverlay: parseInt(e.target.value) / 100 })} style={{ width: '100%' }} /></div>
         </div>
 
-        {/* Elemento selecionado */}
-        {sel ? (
+        {/* Elemento selecionado (avançado) */}
+        {adv && (sel ? (
           <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <p style={{ fontSize: 12.5, fontWeight: 700 }}>{sel.type === 'text' ? 'Texto' : sel.type === 'avatar' ? 'Avatar' : 'Forma'}</p>
@@ -354,7 +378,17 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
           <div style={{ background: 'var(--card)', border: '1px dashed var(--line)', borderRadius: 10, padding: '18px 12px', textAlign: 'center', fontSize: 12, color: 'var(--text-3)' }}>
             Clica num elemento na tela para o editares.
           </div>
-        )}
+        ))}
+
+        {/* Alternar simples ↔ avançado */}
+        <button onClick={() => { setAdv(a => !a); setSelId(null); }} style={{
+          padding: '9px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12.5, fontWeight: 600,
+          border: '1px solid var(--line)', background: 'var(--surface)',
+          color: adv ? 'var(--text-2)' : 'var(--green)',
+        }}>
+          {adv ? 'Voltar ao modo simples' : 'Personalizar mais (modo avançado)'}
+        </button>
+        {!adv && <p style={{ fontSize: 10.5, color: 'var(--text-3)', lineHeight: 1.5, marginTop: -6 }}>No avançado podes adicionar textos, avatares e formas, mudar fontes, tamanhos, formato do cartão e muito mais.</p>}
       </div>
 
       <style>{`@media (max-width: 760px){ .wc-grid { grid-template-columns: 1fr !important; } }`}</style>
