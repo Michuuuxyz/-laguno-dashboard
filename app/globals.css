@@ -31,19 +31,19 @@
   --green-muted: rgba(109,184,62,0.10);
   --green-border:rgba(109,184,62,0.22);
 
-  /* neutral dark — sem tint verde */
-  --bg:       #0d0d0f;
-  --surface:  #141416;
-  --card:     #1a1a1e;
-  --elevated: #202024;
-  --hover:    #26262b;
+  /* Tema "Meia-noite" — tinta azulada (Linear/Vercel), site inteiro */
+  --bg:       #12141c;
+  --surface:  #171a26;
+  --card:     #1b1e2b;
+  --elevated: #232738;
+  --hover:    #282c40;
 
-  --line:      rgba(255,255,255,0.07);
-  --line-hover:rgba(255,255,255,0.12);
+  --line:      rgba(146,156,196,0.10);
+  --line-hover:rgba(146,156,196,0.20);
 
-  --text-1: #f0f0f2;
-  --text-2: #8f8f9d;
-  --text-3: #52525e;
+  --text-1: #eef0f6;
+  --text-2: #a9aec4;
+  --text-3: #737891;
 
   --r-sm: 6px;
   --r-md: 10px;
@@ -185,20 +185,20 @@ h1, h2, h3 { text-wrap: balance; }
   .reveal { opacity: 1 !important; transform: none !important; }
 }
 
-/* ── Tema do dashboard — nativo Discord, verde Laguno ──
-   Aplica-se só dentro de .dash-theme (a landing mantém o tema próprio).
-   Cores do Discord: conteúdo #313338, chrome #2b2d31/#1e1f22, cartões #2b2d31. */
+/* ── Tema do dashboard — Meia-noite, estrutura nativa Discord ──
+   Variante do tema do site: conteúdo mais claro que o chrome (sidebar),
+   como no Discord, mas em tinta azulada. */
 .dash-theme {
-  --bg:       #313338;
-  --surface:  #2b2d31;
-  --card:     #2b2d31;
-  --elevated: #383a40;
-  --hover:    #3f4248;
-  --line:      rgba(255,255,255,0.07);
-  --line-hover:rgba(255,255,255,0.14);
-  --text-1: #f2f3f5;
-  --text-2: #b5bac1;
-  --text-3: #80848e;
+  --bg:       #171922;
+  --surface:  #111320;
+  --card:     #1e2130;
+  --elevated: #262a40;
+  --hover:    #222536;
+  --line:      rgba(140,150,190,0.12);
+  --line-hover:rgba(140,150,190,0.22);
+  --text-1: #eef0f6;
+  --text-2: #9aa0b5;
+  --text-3: #7b8095;
 }
 
 /* ── Card ────────────────────────────────────── */

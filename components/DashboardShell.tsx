@@ -258,7 +258,7 @@ function Shell({ rail, sidebar, children }: { rail: React.ReactNode; sidebar: Re
           .dash-topbar {
             display: flex; align-items: center; gap: 12px;
             position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 200;
-            background: rgba(13,13,15,.94);
+            background: rgba(16,18,26,.94);
             -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--line);
             padding: 0 14px;

@@ -212,7 +212,7 @@ export function Navbar() {
   }, []);
 
   return (
-    <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(13,13,15,.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--line)' }}>
+    <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(16,18,26,.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--line)' }}>
       <style>{`
         @keyframes dropdown-in { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }
         /* (animações do mega-menu agora via framer-motion, como o ScrollReveal) */
@@ -318,7 +318,7 @@ export function Navbar() {
       {mobileOpen && (
         <div className="nav-burger" style={{
           flexDirection: 'column', padding: '8px 16px 18px', gap: 2,
-          borderTop: '1px solid var(--line)', background: 'rgba(13,13,15,.98)',
+          borderTop: '1px solid var(--line)', background: 'rgba(16,18,26,.98)',
           animation: 'dropdown-in .15s ease both',
         }}>
           {[

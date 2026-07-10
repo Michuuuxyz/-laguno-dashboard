@@ -54,7 +54,7 @@ export default async function LegalPage({ searchParams }: { searchParams: Promis
       {/* Navbar */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 100,
-        background: 'rgba(13,13,15,.85)', backdropFilter: 'blur(16px)',
+        background: 'rgba(16,18,26,.85)', backdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--line)',
       }}>
         <div style={{ height: 2, background: 'linear-gradient(90deg, transparent, #6db83e 40%, transparent)' }} />
