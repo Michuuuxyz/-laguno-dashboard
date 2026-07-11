@@ -167,7 +167,16 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
             <span style={{ fontSize: 11.5, color: 'var(--text-3)', alignSelf: 'center' }}>Arrasta os elementos. Clica num para editar à direita.</span>
           </div>
         )}
-        <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)', width: display, maxWidth: '100%' }}>
+        <div style={{
+          borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)', width: display, maxWidth: '100%',
+          // Xadrez de transparência quando não há fundo — mostra que o cartão é transparente
+          ...(card.bgType === 'none' ? {
+            backgroundColor: '#242424',
+            backgroundImage: 'linear-gradient(45deg,#333 25%,transparent 25%),linear-gradient(-45deg,#333 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#333 75%),linear-gradient(-45deg,transparent 75%,#333 75%)',
+            backgroundSize: '20px 20px',
+            backgroundPosition: '0 0,0 10px,10px -10px,-10px 0px',
+          } : {}),
+        }}>
           <Stage ref={stageRef} width={display} height={H * scale} scaleX={scale} scaleY={scale}
             onMouseDown={e => { if (e.target === e.target.getStage()) setSelId(null); }}>
             <Layer>
@@ -175,7 +184,7 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
                 <Rect x={0} y={0} width={W} height={H} listening={false}
                   fillLinearGradientStartPoint={{ x: 0, y: 0 }} fillLinearGradientEndPoint={{ x: W, y: H }}
                   fillLinearGradientColorStops={[0, card.bgColor || '#0d0d0f', 1, card.bgColor2 || card.bgColor || '#1a1a1e']} />
-              ) : (
+              ) : card.bgType === 'none' ? null : (
                 <Rect x={0} y={0} width={W} height={H} fill={card.bgColor || '#0d0d0f'} listening={false} />
               )}
               {card.bgType === 'image' && bgImg && (() => {
@@ -296,8 +305,8 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
         <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 10, padding: 12 }}>
           <p style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 10 }}>{adv ? 'Fundo' : '3 · Fundo'}</p>
           <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            {(['color', 'gradient', 'image'] as const).map(t => (
-              <button key={t} onClick={() => setBg({ bgType: t })} style={{ flex: 1, padding: '6px', borderRadius: 7, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${card.bgType === t ? 'var(--green)' : 'var(--line)'}`, background: card.bgType === t ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: card.bgType === t ? 'var(--green)' : 'var(--text-2)' }}>{t === 'color' ? 'Cor' : t === 'gradient' ? 'Gradiente' : 'Imagem'}</button>
+            {(['color', 'gradient', 'image', 'none'] as const).map(t => (
+              <button key={t} onClick={() => setBg({ bgType: t })} style={{ flex: 1, padding: '6px', borderRadius: 7, fontSize: 11.5, cursor: 'pointer', border: `1px solid ${card.bgType === t ? 'var(--green)' : 'var(--line)'}`, background: card.bgType === t ? 'rgba(109,184,62,.1)' : 'var(--surface)', color: card.bgType === t ? 'var(--green)' : 'var(--text-2)' }}>{t === 'color' ? 'Cor' : t === 'gradient' ? 'Gradiente' : t === 'image' ? 'Imagem' : 'Sem fundo'}</button>
             ))}
           </div>
           {card.bgType === 'color' && <div style={{ display: 'flex', gap: 6 }}><input type="color" value={card.bgColor || '#0d0d0f'} onChange={e => setBg({ bgColor: e.target.value })} style={{ width: 36, height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /><input style={inp} value={card.bgColor || ''} onChange={e => setBg({ bgColor: e.target.value })} /></div>}
@@ -306,7 +315,8 @@ export function WelcomeCardEditor({ card, onChange }: { card: WelcomeCardTemplat
             <div style={{ flex: 1 }}><label style={lbl}>Fim</label><input type="color" value={card.bgColor2 || '#1a1a1e'} onChange={e => setBg({ bgColor2: e.target.value })} style={{ width: '100%', height: 32, borderRadius: 6, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /></div>
           </div>}
           {card.bgType === 'image' && <input style={inp} value={card.bgUrl || ''} onChange={e => setBg({ bgUrl: e.target.value })} placeholder="https://…/fundo.png" />}
-          <div style={{ marginTop: 10 }}><label style={lbl}>Escurecer fundo ({Math.round((card.bgOverlay ?? 0) * 100)}%)</label><input type="range" min={0} max={100} value={Math.round((card.bgOverlay ?? 0) * 100)} onChange={e => setBg({ bgOverlay: parseInt(e.target.value) / 100 })} style={{ width: '100%' }} /></div>
+          {card.bgType === 'none' && <p style={{ fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.5 }}>Cartão transparente — no Discord vê-se o fundo do canal por trás. Usa formas para criar o cartão.</p>}
+          {card.bgType !== 'none' && <div style={{ marginTop: 10 }}><label style={lbl}>Escurecer fundo ({Math.round((card.bgOverlay ?? 0) * 100)}%)</label><input type="range" min={0} max={100} value={Math.round((card.bgOverlay ?? 0) * 100)} onChange={e => setBg({ bgOverlay: parseInt(e.target.value) / 100 })} style={{ width: '100%' }} /></div>}
         </div>
 
         {/* Elemento selecionado (avançado) */}

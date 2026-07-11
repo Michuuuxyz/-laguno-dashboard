@@ -8,7 +8,7 @@ export interface WCShape  { id: string; type: 'shape'; kind: 'rect' | 'circle'; 
 export type WCLayer = WCText | WCAvatar | WCShape;
 export interface WelcomeCardTemplate {
   width: number; height: number;
-  bgType: 'color' | 'gradient' | 'image';
+  bgType: 'color' | 'gradient' | 'image' | 'none';
   bgColor?: string; bgColor2?: string; bgUrl?: string; bgOverlay?: number;
   layers: WCLayer[];
 }
@@ -59,9 +59,9 @@ export const CARD_TEMPLATES: { id: string; name: string; desc: string; make: () 
     }),
   },
   {
-    id: 'empilhado', name: 'Empilhado', desc: 'Cartão em destaque com molduras sobrepostas, selo no topo e avatar ao centro.',
+    id: 'empilhado', name: 'Empilhado', desc: 'Cartão flutuante com molduras sobrepostas e fundo transparente — vê-se o canal por trás.',
     make: () => ({
-      width: 1024, height: 460, bgType: 'color', bgColor: '#0c0b12',
+      width: 1024, height: 460, bgType: 'none',
       layers: [
         // Molduras deslocadas por trás (uma clara em cima-esquerda, outra escura em baixo-direita)
         { id: sid(), type: 'shape', kind: 'rect', x: 190, y: 26, width: 600, height: 372, fill: '#7ec44a', opacity: 1, radius: 30 },

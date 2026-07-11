@@ -77,12 +77,15 @@ export async function renderWelcomeCard(t: WelcomeCardTemplate, c: WCContext, fo
     grad.addColorStop(0, t.bgColor || '#0d0d0f');
     grad.addColorStop(1, t.bgColor2 || t.bgColor || '#1a1a1e');
     g.fillStyle = grad; g.fillRect(0, 0, W, H);
-  } else {
+  } else if (t.bgType !== 'none') {
     g.fillStyle = t.bgColor || '#1a1a1e'; g.fillRect(0, 0, W, H);
     if (t.bgType === 'image' && t.bgUrl) { const bg = await fetchImage(t.bgUrl); if (bg) drawCover(g, bg, W, H); }
   }
-  const ov = Math.max(0, Math.min(1, t.bgOverlay ?? 0));
-  if (ov > 0) { g.fillStyle = `rgba(0,0,0,${ov})`; g.fillRect(0, 0, W, H); }
+  // 'none' → sem fundo (PNG transparente): não desenha fundo nem overlay
+  if (t.bgType !== 'none') {
+    const ov = Math.max(0, Math.min(1, t.bgOverlay ?? 0));
+    if (ov > 0) { g.fillStyle = `rgba(0,0,0,${ov})`; g.fillRect(0, 0, W, H); }
+  }
 
   for (const layer of t.layers || []) {
     if (layer.type === 'shape') {
