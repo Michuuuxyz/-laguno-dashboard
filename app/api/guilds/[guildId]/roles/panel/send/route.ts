@@ -9,6 +9,19 @@ const DISCORD_API = 'https://discord.com/api/v10';
 interface RoleEntry { roleId: string; label: string; emoji?: string; }
 interface RolePanel  { id: string; title: string; description?: string; style?: 'buttons' | 'menu'; roles: RoleEntry[]; accentColor?: string; bannerUrl?: string; }
 
+// Emoji: aceita unicode ou custom <:nome:id> / <a:nome:id>; ignora texto normal.
+// Sem isto, um emoji personalizado (ex: <:pepe:123>) ia como { name } inteiro
+// e o Discord respondia "Invalid Form Body".
+function parseEmoji(raw?: string): Record<string, unknown> | undefined {
+  const s = raw?.trim();
+  if (!s) return undefined;
+  const custom = s.match(/^<(a)?:(\w+):(\d+)>$/);
+  if (custom) return { name: custom[2], id: custom[3], animated: !!custom[1] };
+  // só passa se contiver um caractere fora do ASCII (provável emoji)
+  if (new RegExp('[^\\x00-\\x7f]').test(s)) return { name: s };
+  return undefined;
+}
+
 export async function POST(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
   if (!await assertGuildAccess(guildId))
@@ -59,12 +72,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     components: innerComponents,
   };
 
+  // Só entram cargos com roleId válido; o label cai para "Cargo" se vier vazio
+  // (um botão/opção sem label nem emoji faz o Discord recusar a mensagem).
+  const validRoles = panel.roles.filter(r => r.roleId);
+  if (validRoles.length === 0)
+    return NextResponse.json({ error: 'O painel não tem cargos válidos' }, { status: 400 });
+
   let rows: Record<string, unknown>[];
   if (isMenu) {
     // Menu dropdown — até 25 cargos, seleção múltipla sincronizada pelo bot
-    const options = panel.roles.slice(0, 25).map(r => {
-      const opt: Record<string, unknown> = { label: r.label.slice(0, 100), value: r.roleId };
-      if (r.emoji) opt.emoji = { name: r.emoji };
+    const options = validRoles.slice(0, 25).map(r => {
+      const opt: Record<string, unknown> = { label: (r.label || 'Cargo').slice(0, 100), value: r.roleId };
+      const emoji = parseEmoji(r.emoji);
+      if (emoji) opt.emoji = emoji;
       return opt;
     });
     rows = [{
@@ -80,16 +100,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     }];
   } else {
     const chunks: RoleEntry[][] = [];
-    for (let i = 0; i < panel.roles.length; i += 5) chunks.push(panel.roles.slice(i, i + 5));
+    for (let i = 0; i < validRoles.length; i += 5) chunks.push(validRoles.slice(i, i + 5));
     rows = chunks.map(chunk => ({
       type: 1,
       components: chunk.map(r => {
         const btn: Record<string, unknown> = {
           type: 2, style: 2,
-          label: r.label,
+          label: (r.label || 'Cargo').slice(0, 80),
           custom_id: `role_toggle:${r.roleId}`,
         };
-        if (r.emoji) btn.emoji = { name: r.emoji };
+        const emoji = parseEmoji(r.emoji);
+        if (emoji) btn.emoji = emoji;
         return btn;
       }),
     }));
@@ -104,7 +125,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
   if (!res.ok) {
     const err = await res.json().catch(() => ({})) as { message?: string };
     console.error('[roles/panel/send]', guildId, err);
-    return NextResponse.json({ error: err.message ?? `Discord error ${res.status}` }, { status: 502 });
+    const raw = JSON.stringify(err);
+    const friendly = /emoji/i.test(raw)
+      ? 'Um dos emojis é inválido ou de outro servidor. Usa um emoji normal, ou um emoji personalizado deste servidor.'
+      : (err.message ?? `Discord error ${res.status}`);
+    return NextResponse.json({ error: friendly }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true });
