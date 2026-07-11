@@ -29,6 +29,9 @@ export function useStats(intervalMs = 10_000) {
   }
 
   useEffect(() => {
+    // Fetch inicial + polling: os setState só correm depois do fetch resolver
+    // (assíncrono), não há cascata de renders — padrão legítimo de data-fetching.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStats();
     const interval = setInterval(fetchStats, intervalMs);
     return () => clearInterval(interval);

@@ -424,8 +424,9 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const dirty = savedSnapshot !== null && JSON.stringify(config) !== JSON.stringify(savedSnapshot);
 
-  // Captura o snapshot inicial assim que a config carrega
+  // Captura o snapshot inicial assim que a config carrega (uma vez)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!loading && savedSnapshot === null) setSavedSnapshot(config);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);

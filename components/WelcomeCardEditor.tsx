@@ -40,6 +40,9 @@ const CARD_FORMATS = [
 function useHtmlImage(src?: string) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   useEffect(() => {
+    // Sincroniza com a API Image do browser quando o src muda — se não há src,
+    // limpa a imagem carregada. Padrão legítimo de sincronização.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!src) { setImg(null); return; }
     const i = new window.Image();
     i.crossOrigin = 'anonymous';
