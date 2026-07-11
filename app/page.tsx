@@ -4,6 +4,8 @@ import { Navbar } from '@/components/Navbar';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ScrollReveal } from '@/components/ScrollReveal';
 import { HeroBadge } from '@/components/HeroBadge';
+import { HeroMascot } from '@/components/HeroMascot';
+import { LagoaBackground } from '@/components/LagoaBackground';
 import {
   MockWindow, MockMsg, MockText, MockSub, Mention, DCContainer, DCSep,
 } from '@/components/DiscordMock';
@@ -35,13 +37,13 @@ async function getStats(): Promise<{ guildCount: number; userCount: number } | n
   } catch { return null; }
 }
 
-/* ── O que ele faz — lista tranquila, os detalhes vivem em /features ── */
-const CAPS = [
-  { href: '/features#moderacao',  title: 'Moderação',   desc: 'Ban, kick, warn e timeout, com respostas que mudam consoante o humor dele.' },
-  { href: '/features#moderacao',  title: 'Auto-Mod',    desc: 'Spam, convites, caps e menções bloqueados antes de chegarem a ti.' },
-  { href: '/features#boasvindas', title: 'Boas-Vindas', desc: 'Cada entrada recebida com banner, avatar e a tua mensagem.' },
-  { href: '/features#selfroles',  title: 'Reaction Roles', desc: 'Painéis de botões onde os membros escolhem os próprios cargos.' },
-  { href: '/features#logs',       title: 'Registos',    desc: 'Mais de 30 eventos registados. Nada se perde.' },
+/* ── A equipa da lagoa — cada mascote apresenta o seu módulo ── */
+const EQUIPA = [
+  { img: 'thor',     nome: 'Thor',     papel: 'o segurança',    desc: 'Bane primeiro, boceja depois. Moderação e auto-mod sem folgas.', href: '/features#moderacao' },
+  { img: 'coracoes', nome: 'Corações', papel: 'a anfitriã',     desc: 'Recebe os novos como se fossem primos. Cartão de boas-vindas incluído.', href: '/features#boasvindas' },
+  { img: 'vigiar',   nome: 'Vigia',    papel: 'o cusco',        desc: 'Aponta tudo num caderninho. Mais de 30 cadernos, aliás.', href: '/features#logs' },
+  { img: 'estrela',  nome: 'Estrela',  papel: 'a organizadora', desc: 'Dá os cargos a quem clica no botão. Sem filas, sem pedidos ao admin.', href: '/features#selfroles' },
+  { img: 'pensar',   nome: 'Pensador', papel: 'o paciente',     desc: 'Abre tickets e ouve os teus dramas sem revirar os olhos.', href: '/docs' },
 ];
 
 export default async function Home() {
@@ -51,41 +53,51 @@ export default async function Home() {
     <div style={{ minHeight: '100vh' }}>
       <Navbar />
 
-      {/* ── HERO — a tese, na voz do crocodilo ── */}
-      <section style={{ minHeight: '82vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: '100%', maxWidth: 880, margin: '0 auto', padding: 'clamp(48px,8vh,80px) clamp(20px,4vw,56px)', textAlign: 'center' }}>
-          <HeroBadge />
+      {/* ── HERO — mascote primeiro: "Olá. Sou o Laguno." ── */}
+      <section style={{ position: 'relative', minHeight: '74vh', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+        <LagoaBackground />
 
-          <h1 className="display" style={{
-            fontSize: 'clamp(48px,9vw,110px)', fontWeight: 800,
-            letterSpacing: '-.04em', lineHeight: 0.98, marginBottom: 0,
-          }}>
-            Tu dormes.<br />
-            <span style={{ color: 'var(--green)' }}>Eu fico de olho.</span>
-          </h1>
-
-          {/* A assinatura: a linha de água, com os olhos a espreitar */}
-          <div style={{ maxWidth: 560, margin: 'clamp(26px,4vh,38px) auto 0' }}>
-            <div className="waterline" style={{ ['--eyes-x' as string]: '68%' } as React.CSSProperties}>
-              <span className="waterline-eyes"><span /><span /></span>
-            </div>
+        <div className="hero-grid" style={{
+          position: 'relative', zIndex: 1, width: '100%', maxWidth: 1050, margin: '0 auto',
+          padding: 'clamp(36px,6vh,64px) clamp(20px,4vw,56px)',
+          display: 'grid', gridTemplateColumns: 'minmax(0,44%) minmax(0,1fr)',
+          gap: 'clamp(24px,4vw,56px)', alignItems: 'center',
+        }}>
+          <div className="hero-mascot" style={{ textAlign: 'center' }}>
+            <HeroMascot src="/mascote/firme-hero.webp" alt="Laguno, o crocodilo" />
           </div>
-
-          <p style={{ fontSize: 'clamp(15px,1.7vw,17px)', color: 'var(--text-2)', lineHeight: 1.75, maxWidth: 520, margin: '30px auto 32px' }}>
-            Moderação, registos, boas-vindas e tickets a funcionar enquanto não estás.
-            Configuras uma vez, num dashboard em português. Depois, é comigo.
-          </p>
-
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 15, padding: '.85rem 2.2rem', fontWeight: 700 }}>
-              Adicionar ao servidor
-            </a>
-            <Link href="/features" className="nav-cta-outline" style={{ fontSize: 15, padding: '.85rem 2.2rem' }}>
-              Ver funcionalidades
-            </Link>
+          <div className="hero-text">
+            <div className="hero-rise" style={{ ['--d' as string]: '.15s' }}><HeroBadge /></div>
+            <p className="hero-rise" style={{ ['--d' as string]: '.25s', fontSize: 'clamp(16px,2vw,20px)', color: 'var(--text-2)', marginBottom: 2 }}>Olá. Sou o</p>
+            <h1 className="display hero-rise" style={{
+              ['--d' as string]: '.32s',
+              fontSize: 'clamp(56px,8.5vw,104px)', fontWeight: 800,
+              letterSpacing: '-.04em', lineHeight: 0.95, color: 'var(--green)',
+            }}>
+              Laguno.
+            </h1>
+            <p className="hero-rise" style={{ ['--d' as string]: '.42s', fontSize: 'clamp(15px,1.7vw,17px)', color: 'var(--text-2)', lineHeight: 1.75, maxWidth: 440, margin: '20px 0 28px' }}>
+              O crocodilo que toma conta do teu servidor enquanto dormes.
+              Não é preciso agradecer. Mas podes.
+            </p>
+            <div className="hero-rise" style={{ ['--d' as string]: '.52s', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <a href={INVITE} target="_blank" rel="noreferrer" className="nav-cta-green" style={{ fontSize: 15, padding: '.85rem 2.2rem', fontWeight: 700 }}>
+                Adicionar ao servidor
+              </a>
+              <Link href="/dashboard" className="nav-cta-outline" style={{ fontSize: 15, padding: '.85rem 2.2rem' }}>
+                Abrir dashboard
+              </Link>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* A assinatura: a linha de água, com os olhos a espreitar */}
+      <div style={{ maxWidth: 880, margin: '0 auto clamp(48px,7vh,72px)', padding: '0 clamp(20px,4vw,56px)' }}>
+        <div className="waterline" style={{ ['--eyes-x' as string]: '72%' } as React.CSSProperties}>
+          <span className="waterline-eyes"><span /><span /></span>
+        </div>
+      </div>
 
       {/* ── A PROVA — um único momento, às 04:12 ── */}
       <section style={{ maxWidth: 640, margin: '0 auto', padding: '0 clamp(20px,4vw,56px) clamp(72px,10vh,110px)' }}>
@@ -118,28 +130,39 @@ export default async function Home() {
         </ScrollReveal>
       </section>
 
-      {/* ── O QUE ELE FAZ — lista tranquila ── */}
-      <div style={{ maxWidth: 880, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
+      {/* ── A EQUIPA DA LAGOA — os mascotes apresentam os módulos ── */}
+      <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
         <div style={{ height: 1, background: 'var(--line)' }} />
       </div>
-      <section style={{ maxWidth: 880, margin: '0 auto', padding: 'clamp(56px,8vh,88px) clamp(20px,4vw,56px)' }}>
-        <ScrollReveal style={{ marginBottom: 'clamp(32px,5vh,48px)' }}>
+      <section style={{ maxWidth: 980, margin: '0 auto', padding: 'clamp(56px,8vh,88px) clamp(20px,4vw,56px)' }}>
+        <ScrollReveal style={{ marginBottom: 'clamp(28px,4vh,40px)' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--green)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 6 }}>
+            Quem vive cá
+          </p>
           <h2 className="display" style={{ fontSize: 'clamp(24px,3.2vw,36px)', fontWeight: 800, letterSpacing: '-.03em' }}>
-            O resto do dia, resumido.
+            A equipa da lagoa.
           </h2>
+          <p style={{ fontSize: 14.5, color: 'var(--text-2)', marginTop: 8, lineHeight: 1.65 }}>
+            Cada um trata do seu módulo. Tu não tratas de nada.
+          </p>
         </ScrollReveal>
-        <div className="caps-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 clamp(32px,5vw,64px)' }}>
-          {CAPS.map((c, i) => (
-            <ScrollReveal key={c.title} delay={i * 0.05}>
-              <Link href={c.href} style={{
-                display: 'block', textDecoration: 'none',
-                padding: '20px 0', borderTop: '1px solid var(--line)',
+        <div className="equipa-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+          {EQUIPA.map((m, i) => (
+            <ScrollReveal key={m.nome} delay={i * 0.06}>
+              <Link href={m.href} className="equipa-card" style={{
+                display: 'block', textDecoration: 'none', height: '100%',
+                background: 'var(--surface)', border: '1px solid var(--line)',
+                borderRadius: 14, padding: '20px 18px 18px', textAlign: 'center',
               }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 5 }}>
-                  <h3 style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-.02em' }}>{c.title}</h3>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/></svg>
-                </div>
-                <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{c.desc}</p>
+                <img src={`/mascote/${m.img}.webp`} alt="" loading="lazy" style={{
+                  height: 96, width: 'auto', maxWidth: '100%', objectFit: 'contain',
+                  transform: `rotate(${i % 2 ? 2.5 : -2.5}deg)`,
+                  filter: 'drop-shadow(0 10px 18px rgba(0,0,0,.4))',
+                }} />
+                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-.02em', marginTop: 12 }}>
+                  {m.nome} <span style={{ fontWeight: 500, color: 'var(--green)' }}>· {m.papel}</span>
+                </p>
+                <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginTop: 5 }}>{m.desc}</p>
               </Link>
             </ScrollReveal>
           ))}
@@ -153,7 +176,7 @@ export default async function Home() {
       <section style={{ padding: 'clamp(64px,10vh,110px) clamp(20px,4vw,56px)', textAlign: 'center' }}>
         <ScrollReveal>
           <h2 className="display" style={{ fontSize: 'clamp(28px,4.5vw,52px)', fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1.05, marginBottom: 14 }}>
-            Pronto quando tu estiveres.
+            Traz o teu servidor para a lagoa.
           </h2>
           {stats && (
             <p style={{ fontSize: 14.5, color: 'var(--text-2)', marginBottom: 28 }}>
@@ -174,8 +197,18 @@ export default async function Home() {
       <SiteFooter />
 
       <style>{`
-        @media (max-width: 720px) {
-          .caps-grid { grid-template-columns: 1fr !important; }
+        .hero-rise { opacity: 0; animation: hero-rise .6s cubic-bezier(.16,1,.3,1) var(--d, 0s) forwards; }
+        @keyframes hero-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .equipa-card { transition: transform .18s ease, border-color .18s ease; }
+        .equipa-card:hover { transform: translateY(-3px); border-color: rgba(109,184,62,.4); }
+        @media (max-width: 760px) {
+          .hero-grid { grid-template-columns: 1fr !important; text-align: center; }
+          .hero-text { order: 2; display: flex; flex-direction: column; align-items: center; }
+          .hero-mascot { order: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .equipa-card { transition: none; }
+          .hero-rise { animation: none !important; opacity: 1 !important; }
         }
       `}</style>
     </div>

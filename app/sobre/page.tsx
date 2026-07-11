@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Navbar } from '@/components/Navbar';
 import { SiteFooter } from '@/components/SiteFooter';
 import { OrbitingCircles } from '@/components/OrbitingCircles';
+import { PageHero } from '@/components/PageHero';
 
 export const metadata: Metadata = {
   title: 'Sobre — Laguno',
@@ -47,53 +48,32 @@ export default async function Sobre() {
     <div style={{ minHeight: '100vh' }}>
       <Navbar />
 
+      {/* ── PAGE HERO — mesma estrutura mascote + rabiscos do site ── */}
+      <PageHero
+        eyebrow="Sobre o projeto"
+        title="Um bot feito por frustração."
+        titleAccent="A sério."
+        desc="O Laguno nasceu porque o Michu se fartou de bots em inglês, de configurar oito bots para fazer o que um devia fazer, e de mensagens de ban saídas de um manual corporativo."
+        mascot="/mascote/coracoes.webp"
+        mascotAlt="Laguno"
+      />
+
       {/* ── INTRO ── */}
       <section style={{
         maxWidth: 860, margin: '0 auto',
-        padding: 'clamp(64px,10vh,110px) clamp(20px,4vw,56px) 0',
+        padding: 'clamp(28px,4vh,48px) clamp(20px,4vw,56px) 0',
       }}>
-        <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--green)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 20 }}>
-          Sobre o projeto
-        </p>
-        <h1 className="display" style={{
-          fontSize: 'clamp(36px,6vw,72px)',
-          fontWeight: 800,
-          letterSpacing: '-.03em',
-          lineHeight: 1.0,
-          marginBottom: 36,
-        }}>
-          Um bot feito<br />
-          por frustração.<br />
-          <span style={{ color: 'var(--green)' }}>A sério.</span>
-        </h1>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 48, alignItems: 'start' }} className="sobre-intro">
-          <div>
-            <p style={{ fontSize: 17, color: 'var(--text-2)', lineHeight: 1.85, marginBottom: 20 }}>
-              O Laguno nasceu porque o Michu se fartou. Fartou-se de bots em inglês em servidores de língua portuguesa.
-              Fartou-se de configurar oito bots diferentes para fazer o que um devia fazer.
-              Fartou-se de mensagens de ban que pareciam saídas de um manual corporativo.
-            </p>
-            <p style={{ fontSize: 17, color: 'var(--text-2)', lineHeight: 1.85, marginBottom: 20 }}>
-              Por isso pegou no TypeScript, no Discord.js, e fez ele próprio.
-              Um bot com voz, literalmente. O Laguno tem estados de espírito.
-              Às vezes está stressado e avisa-te com letras maiúsculas. Às vezes está sonolento
-              e praticamente adormece a mandar a mensagem. Sempre em português.
-            </p>
-            <p style={{ fontSize: 17, color: 'var(--text-1)', lineHeight: 1.85, fontWeight: 500 }}>
-              Não é um produto de uma empresa. É um projeto de uma pessoa
-              que queria algo melhor para os seus servidores e decidiu construí-lo.
-            </p>
-          </div>
-          <div style={{ flexShrink: 0 }}>
-            <Image
-              src="/fig1.png"
-              alt="Laguno"
-              width={200}
-              height={200}
-              style={{ transform: 'rotate(-8deg)', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,.4))' }}
-            />
-          </div>
+        <div>
+          <p style={{ fontSize: 17, color: 'var(--text-2)', lineHeight: 1.85, marginBottom: 20 }}>
+            Por isso pegou no TypeScript, no Discord.js, e fez ele próprio.
+            Um bot com voz, literalmente. O Laguno tem estados de espírito.
+            Às vezes está stressado e avisa-te com letras maiúsculas. Às vezes está sonolento
+            e praticamente adormece a mandar a mensagem. Sempre em português.
+          </p>
+          <p style={{ fontSize: 17, color: 'var(--text-1)', lineHeight: 1.85, fontWeight: 500 }}>
+            Não é um produto de uma empresa. É um projeto de uma pessoa
+            que queria algo melhor para os seus servidores e decidiu construí-lo.
+          </p>
         </div>
       </section>
 

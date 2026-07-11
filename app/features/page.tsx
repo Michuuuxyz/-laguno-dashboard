@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ScrollReveal } from '@/components/ScrollReveal';
+import { PageHero } from '@/components/PageHero';
 
 export const metadata: Metadata = {
   title: 'Funcionalidades',
@@ -84,19 +85,18 @@ export default function Features() {
     <div style={{ minHeight: '100vh' }}>
       <Navbar />
 
-      {/* ── PAGE HEADER ── */}
-      <ScrollReveal style={{ textAlign: 'center', padding: 'clamp(64px,10vh,100px) clamp(20px,4vw,56px) 0', maxWidth: 640, margin: '0 auto' }}>
-        <h1 className="display" style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1.1, marginBottom: 20 }}>
-          Funcionalidades
-        </h1>
-        <p style={{ fontSize: 16, color: 'var(--text-2)', lineHeight: 1.75 }}>
-          Moderação que muda de humor, boas-vindas com cartão, mais de 30 eventos de log, reaction roles e tickets.
-          Configuras no dashboard e ele trata do resto.
-        </p>
-      </ScrollReveal>
+      {/* ── PAGE HERO — mesma estrutura mascote + rabiscos do site ── */}
+      <PageHero
+        eyebrow="O que ele faz"
+        title="Tudo isto,"
+        titleAccent="sem ti."
+        desc="Moderação que muda de humor, boas-vindas com cartão, mais de 30 eventos de log, reaction roles e tickets. Configuras no dashboard e ele trata do resto."
+        mascot="/mascote/thor.webp"
+        mascotAlt="Laguno pronto para moderar"
+      />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(20px,4vw,56px)' }}>
-        <div style={{ height: 1, background: 'var(--line)', marginTop: 'clamp(48px,7vh,80px)' }} />
+        <div style={{ height: 1, background: 'var(--line)' }} />
       </div>
 
       {/* ── MODERAÇÃO ── */}

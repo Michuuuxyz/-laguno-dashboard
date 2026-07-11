@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { SiteFooter } from '@/components/SiteFooter';
 import { CommandsExplorer } from '@/components/CommandsExplorer';
+import { PageHero } from '@/components/PageHero';
 
 export const metadata: Metadata = {
   title: 'Comandos — Laguno',
@@ -24,24 +25,15 @@ export default function Comandos() {
     <div style={{ minHeight: '100vh' }}>
       <Navbar />
 
-      {/* ── Cabeçalho ── */}
-      <section style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(56px,9vh,96px) clamp(20px,4vw,56px) 0' }}>
-        <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--green)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 18 }}>
-          Referência completa
-        </p>
-        <h1 className="display" style={{
-          fontSize: 'clamp(34px,5.5vw,64px)', fontWeight: 800,
-          letterSpacing: '-.03em', lineHeight: 1.02, marginBottom: 16,
-        }}>
-          Todos os comandos.<br />
-          <span style={{ color: 'var(--text-3)' }}>Zero em inglês.</span>
-        </h1>
-        <p style={{ fontSize: 15.5, color: 'var(--text-2)', lineHeight: 1.7, maxWidth: 560, marginBottom: 40 }}>
-          Escreve <code style={{ background: 'var(--card)', border: '1px solid var(--line)', padding: '1px 8px', borderRadius: 5, color: 'var(--green)', fontSize: 14 }}>/</code> no
-          Discord e aparecem todos. Os que exigem permissões só são visíveis para quem as tem —
-          os restantes membros nem os veem.
-        </p>
-      </section>
+      {/* ── PAGE HERO — mesma estrutura mascote + rabiscos do site ── */}
+      <PageHero
+        eyebrow="Referência completa"
+        title="Todos os comandos."
+        titleAccent="Zero em inglês."
+        desc="Escreve / no Discord e aparecem todos. Os que exigem permissões só são visíveis para quem as tem — os restantes membros nem os veem."
+        mascot="/mascote/estrela.webp"
+        mascotAlt="Laguno"
+      />
 
       {/* ── Explorador ── */}
       <section style={{ maxWidth: 1000, margin: '0 auto', padding: '0 clamp(20px,4vw,56px) clamp(56px,8vh,88px)' }}>
