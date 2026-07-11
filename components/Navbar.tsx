@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ThemeToggle } from './ThemeToggle';
 
 // Mesma curva do ScrollReveal da página — o menu e o scroll falam a mesma língua
 const EASE: [number, number, number, number] = [0.25, 0.1, 0.25, 1];
@@ -53,7 +54,7 @@ export function Navbar() {
   const isActive = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   return (
-    <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(16,18,26,.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--line)' }}>
+    <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--nav-bg)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--line)' }}>
       <style>{`
         @keyframes dropdown-in { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }
         .nav-desktop { display: flex; }
@@ -81,8 +82,9 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Direita (desktop) — login / utilizador */}
-        <div className="nav-desktop" style={{ gap: 8, alignItems: 'center', flexShrink: 0 }}>
+        {/* Direita (desktop) — tema + login / utilizador */}
+        <div className="nav-desktop" style={{ gap: 10, alignItems: 'center', flexShrink: 0 }}>
+          <ThemeToggle compact />
           {session?.user ? (
             <div ref={userRef} style={{ position: 'relative' }}>
               <button onClick={() => setUserOpen(o => !o)}
@@ -163,7 +165,7 @@ export function Navbar() {
       {mobileOpen && (
         <div className="nav-burger" style={{
           flexDirection: 'column', padding: '8px 16px 18px', gap: 2,
-          borderTop: '1px solid var(--line)', background: 'rgba(16,18,26,.98)',
+          borderTop: '1px solid var(--line)', background: 'var(--surface)',
           animation: 'dropdown-in .15s ease both',
         }}>
           {LINKS.map(l => (
@@ -176,6 +178,10 @@ export function Navbar() {
             style={{ padding: '11px 12px', borderRadius: 8, fontSize: 14, fontWeight: 500, color: 'var(--text-2)' }}>
             Servidor de suporte
           </a>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px' }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-2)' }}>Tema</span>
+            <ThemeToggle compact />
+          </div>
           <div style={{ height: 1, background: 'var(--line)', margin: '8px 0' }} />
           {session?.user ? (
             <>

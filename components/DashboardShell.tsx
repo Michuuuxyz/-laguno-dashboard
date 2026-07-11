@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import { ThemeToggle } from './ThemeToggle';
 
 interface Guild { id: string; name: string; icon: string | null; }
 interface User  { name?: string | null; image?: string | null; }
@@ -198,7 +199,7 @@ function Shell({ rail, sidebar, children }: { rail: React.ReactNode; sidebar: Re
   return (
     <div className="dash-theme" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
       {/* Topbar desktop — logo centrado, volta à página principal */}
-      <div className="dash-desktop-topbar">
+      <div className="dash-desktop-topbar" style={{ position: 'relative' }}>
         <Link href="/" title="Início" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', transition: 'opacity .15s' }}
           onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.opacity = '.75')}
           onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.opacity = '1')}
@@ -206,6 +207,9 @@ function Shell({ rail, sidebar, children }: { rail: React.ReactNode; sidebar: Re
           <Image src="/laguno.png" alt="Laguno" width={36} height={36} style={{ objectFit: 'contain' }} />
           <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--text-1)' }}>Laguno</span>
         </Link>
+        <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)' }}>
+          <ThemeToggle compact />
+        </div>
       </div>
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
@@ -222,6 +226,7 @@ function Shell({ rail, sidebar, children }: { rail: React.ReactNode; sidebar: Re
           <Image src="/laguno.png" alt="Laguno" width={30} height={30} style={{ objectFit: 'contain' }} />
           <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-.02em' }}>Laguno</span>
         </Link>
+        <div style={{ marginLeft: 'auto' }}><ThemeToggle compact /></div>
       </div>
 
       {navOpen && <div className="dash-backdrop" onClick={() => setNavOpen(false)} />}
@@ -258,7 +263,7 @@ function Shell({ rail, sidebar, children }: { rail: React.ReactNode; sidebar: Re
           .dash-topbar {
             display: flex; align-items: center; gap: 12px;
             position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 200;
-            background: rgba(16,18,26,.94);
+            background: var(--nav-bg);
             -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--line);
             padding: 0 14px;

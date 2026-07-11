@@ -110,6 +110,12 @@ const JSON_LD = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt" className={`${inter.variable} ${bricolage.variable} ${fredoka.variable}`}>
+      <head>
+        {/* Anti-flash: aplica o tema guardado antes de pintar */}
+        <script
+          dangerouslySetInnerHTML={{ __html: `(function(){try{if(localStorage.getItem('laguno-theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();` }}
+        />
+      </head>
       <body>
         <script
           type="application/ld+json"
