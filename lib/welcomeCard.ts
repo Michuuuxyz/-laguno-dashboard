@@ -59,6 +59,27 @@ export const CARD_TEMPLATES: { id: string; name: string; desc: string; make: () 
     }),
   },
   {
+    id: 'empilhado', name: 'Empilhado', desc: 'Cartão em destaque com molduras sobrepostas, selo no topo e avatar ao centro.',
+    make: () => ({
+      width: 1024, height: 460, bgType: 'color', bgColor: '#0c0b12',
+      layers: [
+        // Molduras deslocadas por trás (uma clara em cima-esquerda, outra escura em baixo-direita)
+        { id: sid(), type: 'shape', kind: 'rect', x: 190, y: 26, width: 600, height: 372, fill: '#7ec44a', opacity: 1, radius: 30 },
+        { id: sid(), type: 'shape', kind: 'rect', x: 234, y: 66, width: 600, height: 372, fill: '#3f7a24', opacity: 1, radius: 30 },
+        // Cartão principal
+        { id: sid(), type: 'shape', kind: 'rect', x: 212, y: 46, width: 600, height: 372, fill: '#171423', opacity: 1, radius: 30 },
+        // Selo em pílula no topo
+        { id: sid(), type: 'shape', kind: 'rect', x: 417, y: 76, width: 190, height: 48, fill: '#0e0c17', opacity: 1, radius: 24, strokeColor: '#6db83e', strokeWidth: 2 },
+        { id: sid(), type: 'text', x: 417, y: 89, width: 190, text: 'Bem-vindo!', size: 23, color: '#a9e08a', font: 'Poppins SemiBold', align: 'center' },
+        // Avatar ao centro
+        { id: sid(), type: 'avatar', x: 437, y: 140, size: 150, shape: 'circle', borderColor: '#ffffff', borderWidth: 6 },
+        // Nome + subtítulo
+        { id: sid(), type: 'text', x: 212, y: 306, width: 600, text: '{user}', size: 46, color: '#ffffff', font: 'Poppins Bold', align: 'center' },
+        { id: sid(), type: 'text', x: 212, y: 366, width: 600, text: 'acabou de entrar em {server}', size: 25, color: '#a9aec4', font: 'Poppins', align: 'center' },
+      ],
+    }),
+  },
+  {
     id: 'painel', name: 'Painel', desc: 'Texto sobre um painel translúcido — ideal com imagem de fundo.',
     make: () => ({
       width: 1024, height: 400, bgType: 'color', bgColor: '#0d0d0f', bgOverlay: 0,
