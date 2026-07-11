@@ -38,6 +38,7 @@ const NAV_MODULES = [
   { id: 'reactionroles', label: 'Reaction Roles', section: 'MÓDULOS' },
   { id: 'autorole',      label: 'Auto-Role',      section: 'MÓDULOS' },
   { id: 'builder',    label: 'Construtor',       section: 'MÓDULOS' },
+  { id: 'tempmessages', label: 'Mensagens Temporárias', section: 'MÓDULOS' },
   { id: 'tickets',    label: 'Tickets',          section: 'MÓDULOS' },
   { id: 'moderation', label: 'Moderação',       section: 'MODERAÇÃO' },
   { id: 'automod',    label: 'Auto-Mod',        section: 'MODERAÇÃO' },

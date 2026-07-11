@@ -15,6 +15,7 @@ const WelcomeTab       = dynamic(() => import('./WelcomeTab').then(m => m.Welcom
 const ReactionRolesTab = dynamic(() => import('./ReactionRolesTab').then(m => m.ReactionRolesTab), { ssr: false, loading: tabSkel });
 const AutoRoleTab      = dynamic(() => import('./AutoRoleTab').then(m => m.AutoRoleTab),           { ssr: false, loading: tabSkel });
 const MessageBuilderTab= dynamic(() => import('./MessageBuilderTab').then(m => m.MessageBuilderTab), { ssr: false, loading: tabSkel });
+const TempMessagesTab  = dynamic(() => import('./TempMessagesTab').then(m => m.TempMessagesTab),     { ssr: false, loading: tabSkel });
 const TicketsTab       = dynamic(() => import('./TicketsTab').then(m => m.TicketsTab),             { ssr: false, loading: tabSkel });
 const BotProfileTab    = dynamic(() => import('./BotProfileTab').then(m => m.BotProfileTab),       { ssr: false, loading: tabSkel });
 
@@ -996,6 +997,15 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* CONSTRUTOR DE MENSAGENS */}
         {active === 'builder' && (
           <MessageBuilderTab guildId={guildId} channels={channels} roles={roles} />
+        )}
+
+        {/* MENSAGENS TEMPORÁRIAS */}
+        {active === 'tempmessages' && (
+          <div>
+            <ModuleHeader icon={<IconFile />} accent="#f59e0b" title="Mensagens Temporárias" mascot="vigiar"
+              desc="Mensagens que se renovam sozinhas num canal — por temporizador ou fixas no fundo." />
+            <TempMessagesTab guildId={guildId} channels={channels} />
+          </div>
         )}
 
         {/* TICKETS */}
