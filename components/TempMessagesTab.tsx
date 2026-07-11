@@ -52,6 +52,17 @@ export function TempMessagesTab({ guildId, channels }: { guildId: string; channe
   const remove = (id: string) => setMsgs(ms => ms.filter(m => m.configId !== id));
 
   async function save() {
+    // Uma mensagem sem canal não faz sentido — e um save vazio apagava tudo
+    const semCanal = msgs.findIndex(m => !m.channelId);
+    if (semCanal !== -1) {
+      setErr(`Escolhe um canal para a Mensagem ${semCanal + 1} antes de guardar.`);
+      return;
+    }
+    const semConteudo = msgs.findIndex(m => !m.blocks?.length);
+    if (semConteudo !== -1) {
+      setErr(`A Mensagem ${semConteudo + 1} está vazia — adiciona pelo menos um bloco.`);
+      return;
+    }
     setSaving(true); setErr(null);
     try {
       const res = await fetch(`/api/guilds/${guildId}/temp-messages`, {

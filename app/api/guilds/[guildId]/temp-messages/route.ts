@@ -49,7 +49,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
   for (const m of incoming) {
     const configId = String(m.configId || '').slice(0, 40);
     const channelId = String(m.channelId || '');
-    if (!configId || !channelId) continue;
+    if (!configId) continue;
+    // Sem canal → erro claro (em vez de saltar em silêncio e apagar tudo)
+    if (!channelId) {
+      return NextResponse.json({ error: 'Escolhe um canal para todas as mensagens.' }, { status: 400 });
+    }
     if (!await channelBelongsToGuild(channelId, guildId)) {
       return NextResponse.json({ error: 'Um dos canais não pertence a este servidor.' }, { status: 403 });
     }
