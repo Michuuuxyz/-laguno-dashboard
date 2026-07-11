@@ -23,6 +23,7 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
   reactionroles: di(<><path d="M11.7 3.4A2 2 0 0 0 10.3 3H5.4a2 2 0 0 0-2 2v4.9a2 2 0 0 0 .6 1.4l8 8a2 2 0 0 0 2.8 0l4.9-4.9a2 2 0 0 0 0-2.8z" opacity=".35"/><circle cx="7.7" cy="7.7" r="1.9"/></>),
   autorole:   di(<><circle cx="9" cy="8" r="3.6" opacity=".35"/><path d="M3 20a6 6 0 0 1 12 0 .8.8 0 0 1-.8.8H3.8A.8.8 0 0 1 3 20z" opacity=".35"/><path d="M18 6.5v7M14.5 10h7" /></>),
   builder:    di(<><path d="M4 4h16a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 20 16H9.5L4.8 20a.8.8 0 0 1-1.3-.6V5.5A1.5 1.5 0 0 1 4 4z" opacity=".35"/><rect x="7" y="8" width="10" height="2" rx="1"/><rect x="7" y="11.5" width="6.5" height="2" rx="1"/></>),
+  tempmessages: di(<><circle cx="12" cy="12" r="9" opacity=".35"/><path d="M12 6.6a1 1 0 0 1 1 1V11.6l2.5 2.5a1 1 0 0 1-1.4 1.4l-2.8-2.8A1 1 0 0 1 11 12V7.6a1 1 0 0 1 1-1z"/></>),
   tickets:    di(<><path d="M3 8.5A2 2 0 0 1 5 6.5h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z" opacity=".35"/><rect x="8.6" y="6.5" width="2" height="12" rx="1"/></>),
   moderation: di(<><path d="M12 2.2l7.5 2.9a1 1 0 0 1 .6 1v5.4c0 4.9-3.3 8.4-7.8 9.9a1 1 0 0 1-.6 0C7.2 19.9 3.9 16.4 3.9 11.5V6.1a1 1 0 0 1 .6-1z" opacity=".35"/><path d="M10.6 13.2l-1.7-1.7-1.5 1.5 3.2 3.2 5.3-5.3-1.5-1.5z"/></>),
   automod:    di(<><path d="M13.5 2.2 3.6 14a.7.7 0 0 0 .5 1.1H9l-1 6.3a.6.6 0 0 0 1.1.4L20.4 10a.7.7 0 0 0-.5-1.1H15z" opacity=".35"/><path d="M13.5 2.2 3.6 14a.7.7 0 0 0 .5 1.1H9z"/></>),

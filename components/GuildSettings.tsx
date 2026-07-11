@@ -1002,7 +1002,7 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
         {/* MENSAGENS TEMPORÁRIAS */}
         {active === 'tempmessages' && (
           <div>
-            <ModuleHeader icon={<IconFile />} accent="#f59e0b" title="Mensagens Temporárias" mascot="vigiar"
+            <ModuleHeader icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9" opacity=".35"/><path d="M12 6.6a1 1 0 0 1 1 1V11.6l2.5 2.5a1 1 0 0 1-1.4 1.4l-2.8-2.8A1 1 0 0 1 11 12V7.6a1 1 0 0 1 1-1z"/></svg>} accent="#f59e0b" title="Mensagens Temporárias" mascot="vigiar"
               desc="Mensagens que se renovam sozinhas num canal — por temporizador ou fixas no fundo." />
             <TempMessagesTab guildId={guildId} channels={channels} />
           </div>
