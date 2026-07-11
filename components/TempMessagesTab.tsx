@@ -123,14 +123,17 @@ export function TempMessagesTab({ guildId, channels }: { guildId: string; channe
               </div>
             </div>
 
-            <div>
-              <label style={{ ...lbl, marginBottom: 8 }}>Mensagem</label>
-              <V2BlockEditor blocks={m.blocks} onChange={b => patch(m.configId, { blocks: b })} />
-            </div>
-
-            <div>
-              <label style={{ ...lbl, marginBottom: 8 }}>Pré-visualização</label>
-              <V2Preview blocks={m.blocks} channel={ch?.name ?? 'canal'} />
+            <div className="tm-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
+              <div>
+                <label style={{ ...lbl, marginBottom: 8 }}>Mensagem</label>
+                <V2BlockEditor blocks={m.blocks} onChange={b => patch(m.configId, { blocks: b })} />
+              </div>
+              <div>
+                <label style={{ ...lbl, marginBottom: 8 }}>Pré-visualização</label>
+                <div style={{ position: 'sticky', top: 12 }}>
+                  <V2Preview blocks={m.blocks} channel={ch?.name ?? 'canal'} />
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -147,6 +150,8 @@ export function TempMessagesTab({ guildId, channels }: { guildId: string; channe
           {saving ? 'A guardar…' : saved ? 'Guardado!' : 'Guardar'}
         </button>
       </div>
+
+      <style>{`@media (max-width: 820px) { .tm-grid { grid-template-columns: 1fr !important; } }`}</style>
     </div>
   );
 }
