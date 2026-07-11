@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Bricolage_Grotesque, Fredoka } from 'next/font/google';
 import { SessionProvider } from '@/components/SessionProvider';
 import { PageTransition } from '@/components/PageTransition';
+import { LagoaBackground } from '@/components/LagoaBackground';
 import './globals.css';
 
 // Self-hosted via next/font — sem @import render-blocking, sem layout shift.
@@ -114,7 +115,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
-        <SessionProvider><PageTransition>{children}</PageTransition></SessionProvider>
+        {/* Moldura global — rabiscos da lagoa só nas laterais, fixos ao ecrã,
+            atrás de todo o conteúdo. O centro fica sempre limpo. */}
+        <LagoaBackground edges fixed />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <SessionProvider><PageTransition>{children}</PageTransition></SessionProvider>
+        </div>
       </body>
     </html>
   );

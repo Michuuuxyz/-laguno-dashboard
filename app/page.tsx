@@ -55,7 +55,7 @@ export default async function Home() {
 
       {/* ── HERO — mascote primeiro: "Olá. Sou o Laguno." ── */}
       <section style={{ position: 'relative', minHeight: '74vh', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
-        <LagoaBackground />
+        <LagoaBackground animated />
 
         <div className="hero-grid" style={{
           position: 'relative', zIndex: 1, width: '100%', maxWidth: 1050, margin: '0 auto',

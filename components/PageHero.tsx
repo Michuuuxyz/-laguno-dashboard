@@ -1,9 +1,8 @@
 import { HeroMascot } from './HeroMascot';
-import { LagoaBackground } from './LagoaBackground';
 
-/* Cabeçalho partilhado das páginas internas: mesma estrutura do hero principal
-   (rabiscos da lagoa + mascote com tilt 3D à direita + eyebrow/título/texto à
-   esquerda), para que todas as páginas se leiam como o mesmo site. */
+/* Cabeçalho partilhado das páginas internas: mascote com tilt 3D à direita +
+   eyebrow/título/texto à esquerda. Os rabiscos da lagoa vêm da moldura global
+   do layout (laterais), por isso o hero não os repete. */
 export function PageHero({ eyebrow, title, titleAccent, desc, mascot, mascotAlt = 'Laguno' }: {
   eyebrow: string;
   title: string;
@@ -14,7 +13,6 @@ export function PageHero({ eyebrow, title, titleAccent, desc, mascot, mascotAlt 
 }) {
   return (
     <section style={{ position: 'relative', overflow: 'hidden' }}>
-      <LagoaBackground />
       <div className="ph-grid" style={{
         position: 'relative', zIndex: 1, width: '100%', maxWidth: 1050, margin: '0 auto',
         padding: 'clamp(40px,7vh,80px) clamp(20px,4vw,56px) clamp(28px,4vh,48px)',
