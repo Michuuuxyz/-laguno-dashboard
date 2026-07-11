@@ -116,10 +116,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     }));
   }
 
+  // Botões/menu vão DENTRO do container (a seguir ao separador), para ficarem
+  // dentro da caixa da embed em vez de soltos por baixo.
+  innerComponents.push(...rows);
+
   const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
     method: 'POST',
     headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ flags: 32768, components: [container, ...rows] }),
+    body: JSON.stringify({ flags: 32768, components: [container] }),
   });
 
   if (!res.ok) {
