@@ -27,6 +27,7 @@ const NAV = [
       { id: 'reaction-roles', label: 'Reaction Roles' },
       { id: 'auto-role',    label: 'Auto-Role' },
       { id: 'builder',      label: 'Construtor de Mensagens' },
+      { id: 'tempmessages', label: 'Mensagens Temporárias' },
       { id: 'tickets',      label: 'Tickets' },
     ],
   },
@@ -35,7 +36,7 @@ const NAV = [
 type PageId =
   | 'introduction' | 'add-laguno' | 'dashboard' | 'faq'
   | 'commands' | 'variables' | 'moderation' | 'welcome'
-  | 'logs' | 'automod' | 'reaction-roles' | 'auto-role' | 'builder' | 'tickets';
+  | 'logs' | 'automod' | 'reaction-roles' | 'auto-role' | 'builder' | 'tempmessages' | 'tickets';
 
 /* ─────────────────────────────── SMALL ATOMS ─── */
 const G = '#6db83e';
@@ -189,6 +190,8 @@ function Content({ page }: { page: PageId }) {
             { l: 'Reaction Roles', d: 'Painéis de botões/menu para membros escolherem cargos.' },
             { l: 'Auto-Role', d: 'Cargos dados automaticamente a quem entra no servidor.' },
             { l: 'Construtor de Mensagens', d: 'Mensagens com botões interativos (Components V2).' },
+            { l: 'Mensagens Temporárias', d: 'Avisos que se renovam por temporizador ou ficam fixos no fundo.' },
+            { l: 'Tickets', d: 'Painéis de suporte com botões ou menu, formulários e transcripts.' },
           ].map(m => (
             <div key={m.l} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, padding: '12px 16px' }}>
               <p style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>{m.l}</p>
@@ -708,6 +711,34 @@ function Content({ page }: { page: PageId }) {
         ))}
         <Note type="tip">Cada botão pode ter uma cor (azul, cinza, verde ou vermelho) e um emoji. Podes ter várias linhas de botões na mesma mensagem.</Note>
         <Note type="warn">Para os botões de cargo funcionarem, o Laguno precisa de ter o seu cargo acima dos cargos que vai atribuir na hierarquia do servidor.</Note>
+      </div>
+    );
+
+    /* ── MENSAGENS TEMPORÁRIAS ── */
+    case 'tempmessages': return (
+      <div>
+        <H1>Mensagens Temporárias</H1>
+        <P>Mensagens que se renovam sozinhas num canal, montadas no editor <strong style={{ color: 'var(--text-1)' }}>Components V2</strong> (texto, botões de link, separador, imagem). Ideais para regras, avisos ou informação que deve estar sempre à vista.</P>
+
+        <H2>Os dois modos</H2>
+        {[
+          { t: 'Temporizador', c: '#f59e0b', d: 'O bot apaga e reenvia a mensagem de X em X tempo (de 30 segundos a 24 horas). Bom para lembretes periódicos.' },
+          { t: 'Fixar no fundo', c: '#6db83e', d: 'Sempre que alguém escreve no canal, a mensagem reaparece por baixo — fica sempre visível. Tem uma espera mínima para não fazer spam quando o canal está movimentado.' },
+        ].map(f => (
+          <div key={f.t} style={{ borderLeft: `3px solid ${f.c}`, padding: '12px 16px', background: 'var(--surface)', borderRadius: '0 8px 8px 0', marginBottom: 10 }}>
+            <p style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-1)', marginBottom: 5 }}>{f.t}</p>
+            <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{f.d}</p>
+          </div>
+        ))}
+
+        <H2>Como funciona</H2>
+        <Steps items={[
+          <span key={1}>No dashboard, vai a <strong style={{ color: 'var(--text-1)' }}>Mensagens Temporárias</strong>.</span>,
+          <span key={2}>Escolhe o <strong style={{ color: 'var(--text-1)' }}>canal</strong>, o <strong style={{ color: 'var(--text-1)' }}>modo</strong> e o <strong style={{ color: 'var(--text-1)' }}>intervalo</strong>.</span>,
+          <span key={3}>Monta a mensagem no editor de blocos e guarda.</span>,
+          <span key={4}>O bot começa a renová-la em segundos — podes ter várias mensagens em canais diferentes.</span>,
+        ]} />
+        <Note type="tip">Podes usar variáveis como {'{server}'} e {'{count}'} no texto.</Note>
       </div>
     );
 
