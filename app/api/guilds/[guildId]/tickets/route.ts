@@ -5,8 +5,8 @@ import clientPromise from '@/lib/mongodb';
 
 interface Question { id: string; label: string; placeholder?: string; style?: string; required?: boolean }
 interface TButton { id: string; label: string; emoji?: string; style?: number; action?: string; content?: string; ephemeral?: boolean; roleId?: string; url?: string }
-interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingTitle?: string; openingMessage?: string; openingBanner?: string; format?: string; categoryChannelId?: string | null; supportChannelId?: string | null; supportRoles?: string[]; form?: Question[]; buttons?: TButton[] }
-interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; categories?: Category[] }
+interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; description?: string; openingTitle?: string; openingMessage?: string; openingBanner?: string; format?: string; categoryChannelId?: string | null; supportChannelId?: string | null; supportRoles?: string[]; form?: Question[]; buttons?: TButton[] }
+interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; panelType?: 'buttons' | 'menu'; categories?: Category[] }
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
@@ -51,6 +51,7 @@ function sanitizePanel(p: Panel): Record<string, unknown> {
     emoji:          String(c.emoji || '').slice(0, 40),
     style:          [1, 2, 3, 4].includes(Number(c.style)) ? Number(c.style) : 2,
     color:          String(c.color || '#6db83e').slice(0, 9),
+    description:       String(c.description || '').slice(0, 100),
     openingTitle:      String(c.openingTitle || '').slice(0, 200),
     openingMessage:    String(c.openingMessage || '').slice(0, 1500),
     openingBanner:     String(c.openingBanner || '').slice(0, 500),
@@ -73,6 +74,7 @@ function sanitizePanel(p: Panel): Record<string, unknown> {
     color:          String(p.color || '#6db83e').slice(0, 9),
     bannerUrl:      String(p.bannerUrl || '').slice(0, 500),
     bannerPosition: p.bannerPosition === 'bottom' ? 'bottom' : 'top',
+    panelType:      p.panelType === 'menu' ? 'menu' : 'buttons',
     categories:     cats,
   };
 }
@@ -114,6 +116,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
       'tickets.openingMessage':      String(c.openingMessage ?? '').slice(0, 1500),
       'tickets.openingColor':        String(c.openingColor || '#6db83e').slice(0, 9),
       'tickets.openingBanner':       String(c.openingBanner || '').slice(0, 500),
+      // Mensagens de fecho (aceitam {number} {category} {user} {closedBy} {reason} {server})
+      'tickets.closeDmMessage':      String(c.closeDmMessage ?? '').slice(0, 1000),
+      'tickets.transcriptMessage':   String(c.transcriptMessage ?? '').slice(0, 1000),
+      'tickets.closeChannelMessage': String(c.closeChannelMessage ?? '').slice(0, 500),
       'tickets.extraButtons':        (Array.isArray(c.extraButtons) ? c.extraButtons : []).slice(0, 5).map((b) => sanitizeButton(b as TButton)),
     };
     await db.collection('guildconfigs').updateOne({ guildId }, { $set: { ...set, guildId } }, { upsert: true });

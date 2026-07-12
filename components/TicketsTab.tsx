@@ -10,14 +10,15 @@ interface Role { id: string; name: string; color?: number }
 
 interface Question { id: string; label: string; placeholder?: string; style?: 'short' | 'paragraph'; required?: boolean }
 interface TButton { id: string; label: string; emoji?: string; style?: number; action?: string; content?: string; ephemeral?: boolean; roleId?: string; url?: string }
-interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; openingTitle?: string; openingMessage?: string; openingBanner?: string; format?: string; categoryChannelId?: string | null; supportChannelId?: string | null; supportRoles?: string[]; form?: Question[]; buttons?: TButton[] }
-interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; categories?: Category[]; channelId?: string | null }
+interface Category { id: string; label: string; emoji?: string; style?: number; color?: string; description?: string; openingTitle?: string; openingMessage?: string; openingBanner?: string; format?: string; categoryChannelId?: string | null; supportChannelId?: string | null; supportRoles?: string[]; form?: Question[]; buttons?: TButton[] }
+interface Panel { panelId: string; title?: string; description?: string; color?: string; bannerUrl?: string; bannerPosition?: string; panelType?: 'buttons' | 'menu'; categories?: Category[]; channelId?: string | null }
 interface Config {
   enabled?: boolean; supportRoles?: string[]; categoryChannelId?: string | null;
   supportChannelId?: string | null; transcriptChannelId?: string | null;
   perUserLimit?: number; defaultFormat?: string; namingScheme?: string;
   claimEnabled?: boolean; claimLabel?: string; claimEmoji?: string; claimMessage?: string; closeLabel?: string; closeEmoji?: string;
   openingTitle?: string; openingMessage?: string; openingColor?: string; openingBanner?: string;
+  closeDmMessage?: string; transcriptMessage?: string; closeChannelMessage?: string;
   extraButtons?: TButton[];
 }
 interface Stats { total: number; open: number; closed: number }
@@ -185,14 +186,24 @@ function PanelPreview({ panel, bot }: { panel: Panel; bot?: BotIdentity | null }
               )}
               <div style={{ padding: '12px 14px' }}>
                 <p style={{ fontSize: 13.5, color: '#dbdee1', lineHeight: 1.55 }} dangerouslySetInnerHTML={{ __html: pmd(`## ${panel.title || 'Central de Suporte'}\n${panel.description || ''}`) }} />
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
-                  {(panel.categories ?? []).map(c => (
-                    <div key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: BTN_BG[c.style ?? 2] ?? '#4e5058', color: '#fff', borderRadius: 4, padding: '6px 14px', fontSize: 13.5, fontWeight: 500 }}>
-                      {c.emoji && <span>{c.emoji}</span>}{c.label || 'Abrir ticket'}
+                {(panel.panelType ?? 'buttons') === 'menu' ? (
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, background: '#1e1f22', border: '1px solid #3a3c42', borderRadius: 8, padding: '9px 12px', color: '#b5bac1', fontSize: 13.5 }}>
+                      <span>Escolhe um assunto para abrir um ticket</span>
+                      <span style={{ fontSize: 11, color: '#80848e' }}>▾</span>
                     </div>
-                  ))}
-                  {(panel.categories ?? []).length === 0 && <span style={{ fontSize: 12.5, color: '#80848e', fontStyle: 'italic' }}>Adiciona categorias para veres os botões.</span>}
-                </div>
+                    {(panel.categories ?? []).length === 0 && <span style={{ fontSize: 12.5, color: '#80848e', fontStyle: 'italic', display: 'block', marginTop: 6 }}>Adiciona categorias para veres as opções.</span>}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+                    {(panel.categories ?? []).map(c => (
+                      <div key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: BTN_BG[c.style ?? 2] ?? '#4e5058', color: '#fff', borderRadius: 4, padding: '6px 14px', fontSize: 13.5, fontWeight: 500 }}>
+                        {c.emoji && <span>{c.emoji}</span>}{c.label || 'Abrir ticket'}
+                      </div>
+                    ))}
+                    {(panel.categories ?? []).length === 0 && <span style={{ fontSize: 12.5, color: '#80848e', fontStyle: 'italic' }}>Adiciona categorias para veres os botões.</span>}
+                  </div>
+                )}
               </div>
               {panel.bannerUrl?.trim() && (panel.bannerPosition ?? 'top') === 'bottom' && (
                  
@@ -494,6 +505,31 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
               </div>
             </Step>
 
+            <Step n={5} optional title="Mensagens ao fechar o ticket" desc="O que acontece quando um ticket fecha: a DM que o membro recebe, o resumo que acompanha o transcript, e o aviso dentro do canal. Deixa em branco para usar as mensagens por defeito.">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 640 }}>
+                <div>
+                  <label style={lbl}>DM ao membro <span style={{ opacity: .6, textTransform: 'none' }}>(enviada em privado, com o transcript)</span></label>
+                  <textarea rows={2} style={{ ...input, resize: 'vertical' }} value={config.closeDmMessage ?? ''} onChange={e => setC({ closeDmMessage: e.target.value })} placeholder="O teu ticket #{number} em {server} foi fechado. Motivo: {reason}" />
+                </div>
+                <div>
+                  <label style={lbl}>Mensagem do transcript <span style={{ opacity: .6, textTransform: 'none' }}>(no canal de logs, com o ficheiro)</span></label>
+                  <textarea rows={2} style={{ ...input, resize: 'vertical' }} value={config.transcriptMessage ?? ''} onChange={e => setC({ transcriptMessage: e.target.value })} placeholder="Ticket #{number} fechado por {closedBy}. Motivo: {reason}" />
+                </div>
+                <div>
+                  <label style={lbl}>Aviso dentro do canal <span style={{ opacity: .6, textTransform: 'none' }}>(antes de o canal ser removido)</span></label>
+                  <input style={input} value={config.closeChannelMessage ?? ''} onChange={e => setC({ closeChannelMessage: e.target.value })} placeholder="Ticket fechado — este canal será removido em breve." />
+                </div>
+                <div>
+                  <p style={{ ...lbl, marginBottom: 6 }}>Variáveis que podes usar</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {['{number}', '{category}', '{user}', '{username}', '{closedBy}', '{reason}', '{server}'].map(v => (
+                      <code key={v} style={{ fontSize: 11, background: 'var(--elevated)', border: '1px solid var(--line)', borderRadius: 5, padding: '2px 6px', color: 'var(--text-2)' }}>{v}</code>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Step>
+
             {/* Opções avançadas */}
             <div style={{ borderTop: '1px solid var(--line)', paddingTop: 12, marginTop: 16 }}>
               <button onClick={() => setShowAdv(v => !v)} style={{ background: 'none', border: 'none', color: 'var(--text-2)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: 0 }}>
@@ -518,13 +554,13 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
       </div>
       </Reveal>
 
-      {/* ── Passo 5 — Painéis ── */}
+      {/* ── Passo 6 — Painéis ── */}
       {config.enabled && (
         <Reveal delay={70}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ display: 'flex', gap: 11 }}>
-              <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(109,184,62,.14)', color: 'var(--green)', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>5</span>
+              <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(109,184,62,.14)', color: 'var(--green)', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>6</span>
               <div>
                 <p style={{ fontSize: 13.5, fontWeight: 700 }}>Painéis — o que os membros veem</p>
                 <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.55, maxWidth: 460 }}>A mensagem com botões que envias para um canal. Cada botão abre um tipo de ticket.</p>
@@ -559,6 +595,7 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                       <div><label style={lbl}>Título</label><input style={input} value={panel.title ?? ''} onChange={e => patchPanel(panel.panelId, { title: e.target.value })} /></div>
                       <div><label style={lbl}>Cor</label><div style={{ display: 'flex', gap: 6 }}><input type="color" value={panel.color ?? '#6db83e'} onChange={e => patchPanel(panel.panelId, { color: e.target.value })} style={{ width: 38, height: 36, borderRadius: 8, border: '1px solid var(--line)', background: 'none', cursor: 'pointer' }} /><input style={input} value={panel.color ?? ''} onChange={e => patchPanel(panel.panelId, { color: e.target.value })} /></div></div>
                       <div style={{ gridColumn: '1 / -1' }}><label style={lbl}>Descrição</label><textarea rows={2} style={{ ...input, resize: 'vertical' }} value={panel.description ?? ''} onChange={e => patchPanel(panel.panelId, { description: e.target.value })} /></div>
+                      <div><label style={lbl}>Como os membros escolhem</label><select style={input} value={panel.panelType ?? 'buttons'} onChange={e => patchPanel(panel.panelId, { panelType: e.target.value as 'buttons' | 'menu' })}><option value="buttons">Botões</option><option value="menu">Menu dropdown</option></select></div>
                       <div><label style={lbl}>Banner (URL, opcional)</label><input style={input} value={panel.bannerUrl ?? ''} onChange={e => patchPanel(panel.panelId, { bannerUrl: e.target.value })} placeholder="https://…" /></div>
                       <div><label style={lbl}>Posição do banner</label><select style={input} value={panel.bannerPosition ?? 'top'} onChange={e => patchPanel(panel.panelId, { bannerPosition: e.target.value })}><option value="top">Em cima (topo)</option><option value="bottom">Em baixo (depois dos botões)</option></select></div>
                     </div>
@@ -587,7 +624,10 @@ export function TicketsTab({ guildId, channels, roles }: { guildId: string; chan
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8 }}>
                               <div><label style={lbl}>Texto do botão</label><input style={input} value={cat.label} onChange={e => patchCat(panel.panelId, cat.id, { label: e.target.value })} /></div>
                               <div><label style={lbl}>Emoji</label><input style={input} value={cat.emoji ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { emoji: e.target.value })} placeholder="🎫" /></div>
-                              <div><label style={lbl}>Cor do botão</label><select style={input} value={cat.style ?? 2} onChange={e => patchCat(panel.panelId, cat.id, { style: parseInt(e.target.value) })}>{STYLE_OPTS.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}</select></div>
+                              {(panel.panelType ?? 'buttons') === 'menu'
+                                ? <div><label style={lbl}>Descrição <span style={{ opacity: .6, textTransform: 'none' }}>(no menu)</span></label><input style={input} value={cat.description ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { description: e.target.value })} placeholder="Ajuda com o servidor…" /></div>
+                                : <div><label style={lbl}>Cor do botão</label><select style={input} value={cat.style ?? 2} onChange={e => patchCat(panel.panelId, cat.id, { style: parseInt(e.target.value) })}>{STYLE_OPTS.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}</select></div>
+                              }
                             </div>
                             <div><label style={lbl}>Título do ticket <span style={{ opacity: .6, textTransform: 'none' }}>(em branco = base do servidor)</span></label><input style={input} value={cat.openingTitle ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { openingTitle: e.target.value })} placeholder={config.openingTitle || '🎫 Ticket #{number} — {category}'} /></div>
                             <div><label style={lbl}>Mensagem de abertura <span style={{ opacity: .6, textTransform: 'none' }}>(em branco = base do servidor)</span></label><textarea rows={2} style={{ ...input, resize: 'vertical' }} value={cat.openingMessage ?? ''} onChange={e => patchCat(panel.panelId, cat.id, { openingMessage: e.target.value })} placeholder={config.openingMessage || 'A equipa já foi notificada.'} /></div>
