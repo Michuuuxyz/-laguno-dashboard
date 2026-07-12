@@ -182,5 +182,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     return NextResponse.json({ error: err.message ?? `Discord recusou (${res.status})` }, { status: 502 });
   }
 
+  // Guarda a mensagem enviada para poder ser editada por clique direito no
+  // Discord (o bot reconhece-a por messageId e reconstrói o container).
+  const sent = await res.json().catch(() => null) as { id?: string } | null;
+  if (sent?.id) {
+    await client.db().collection('builtmessages').insertOne({
+      guildId, channelId: body.channelId, messageId: sent.id,
+      container, createdAt: new Date(),
+    }).catch(() => null);
+  }
+
   return NextResponse.json({ ok: true });
 }
