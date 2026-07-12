@@ -188,7 +188,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
   if (sent?.id) {
     await client.db().collection('builtmessages').insertOne({
       guildId, channelId: body.channelId, messageId: sent.id,
-      container, createdAt: new Date(),
+      kind: 'builder', container, createdAt: new Date(),
     }).catch(() => null);
   }
 

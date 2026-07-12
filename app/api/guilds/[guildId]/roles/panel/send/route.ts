@@ -136,5 +136,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gui
     return NextResponse.json({ error: friendly }, { status: 502 });
   }
 
+  // Regista a mensagem para o editor de clique direito (mesmo sistema do Construtor)
+  const sent = await res.json().catch(() => null) as { id?: string } | null;
+  if (sent?.id) {
+    await client.db().collection('builtmessages').insertOne({
+      guildId, channelId, messageId: sent.id, kind: 'roles', container, createdAt: new Date(),
+    }).catch(() => null);
+  }
+
   return NextResponse.json({ ok: true });
 }
