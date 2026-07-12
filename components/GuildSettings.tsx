@@ -400,8 +400,6 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
   const [newWord, setNewWord]         = useState('');
   const [newDomain, setNewDomain]     = useState('');
   const [newProfileWord, setNewProfileWord] = useState('');
-  const [setupStatus, setSetupStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
-  const [setupMsg, setSetupMsg] = useState<string | null>(null);
   const [expandedRule, setExpandedRule] = useState<string | null>(null);
   const [savingRule, setSavingRule]   = useState<string | null>(null);
   const [savedRule, setSavedRule]     = useState<string | null>(null);
@@ -829,43 +827,6 @@ export function GuildSettings({ guildId, guildName = 'Servidor', initialTab = 'o
               <ModuleHeader icon={<IconBolt />} accent="#6db83e" title="Auto-Moderação" mascot="automod"
                 desc="Regras nativas do Discord e filtros do bot, sem sobreposição."
                 chip={activeRules > 0 ? `${activeRules} regra${activeRules !== 1 ? 's' : ''} ativa${activeRules !== 1 ? 's' : ''}` : 'inativo'} />
-              <div style={{ background: 'rgba(109,184,62,.06)', border: '1px solid rgba(109,184,62,.2)', borderRadius: 12, padding: '16px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-                  <div>
-                    <p style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 3 }}>Configuracao Rapida</p>
-                    <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5 }}>Ativa as 6 regras nativas do AutoMod com maxima cobertura — +300 palavras bloqueadas de todas as categorias (PT, EN, discriminacao, NSFW e spam).</p>
-                  </div>
-                  <button disabled={setupStatus === 'loading'} onClick={async () => {
-                    setSetupStatus('loading'); setSetupMsg(null);
-                    try {
-                      const res = await fetch(`/api/guilds/${guildId}/automod/setup`, { method: 'POST' });
-                      const data = await res.json().catch(() => ({}));
-                      // A config e guardada mesmo quando a sincronizacao com o Discord tem avisos.
-                      // Atualiza os toggles sempre que houve gravacao (data.ok ou data.saved).
-                      if (data.ok || data.saved) {
-                        const cfg = await fetch(`/api/guilds/${guildId}/config`).then(r => r.json());
-                        if (cfg?.autoMod) {
-                          const freshAM = { ...DEFAULT_AUTOMOD, ...cfg.autoMod };
-                          setConfig(c => ({ ...c, autoMod: freshAM }));
-                          setSavedSnapshot(s => s ? { ...s, autoMod: freshAM } : s);
-                        }
-                      }
-                      if (res.ok && data.ok) {
-                        setSetupStatus('ok');
-                      } else {
-                        setSetupStatus('err');
-                        setSetupMsg(data.reason ?? data.error ?? 'Nao foi possivel ativar. Tenta de novo.');
-                      }
-                    } catch { setSetupStatus('err'); setSetupMsg('Erro de ligacao. Tenta de novo.'); }
-                    setTimeout(() => setSetupStatus('idle'), 6000);
-                  }} style={{ flexShrink: 0, padding: '9px 22px', borderRadius: 8, border: 'none', cursor: setupStatus === 'loading' ? 'wait' : 'pointer', fontWeight: 700, fontSize: 13, background: setupStatus === 'ok' ? 'rgba(109,184,62,.15)' : setupStatus === 'err' ? 'rgba(248,113,113,.15)' : 'var(--green)', color: setupStatus === 'ok' ? 'var(--green)' : setupStatus === 'err' ? '#f87171' : '#fff', transition: 'all .2s', minWidth: 148 }}>
-                    {setupStatus === 'loading' ? 'A ativar...' : setupStatus === 'ok' ? 'Ativado!' : setupStatus === 'err' ? 'Erro' : 'Ativar tudo'}
-                  </button>
-                </div>
-                {setupMsg && setupStatus === 'err' && (
-                  <p style={{ fontSize: 12, color: '#f87171', marginTop: 12, lineHeight: 1.5, background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.2)', borderRadius: 8, padding: '10px 12px' }}>{setupMsg}</p>
-                )}
-              </div>
               <AMSectionHeader title="Discord Nativo" desc="Aplicadas instantaneamente pelo Discord, sem intervencao do bot." />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 10, alignItems: 'start' }}>
               <AMRuleRow ruleKey="wordFilter" title={`Filtro de Palavras${config.autoMod.wordFilter.words.length > 0 ? ` (${config.autoMod.wordFilter.words.length})` : ''}`} desc="Bloqueia mensagens com palavras proibidas. Usa a API AutoMod do Discord (trigger KEYWORD, max 1000 palavras, 60 chars cada)." badge="discord" enabled={config.autoMod.wordFilter.enabled} onToggle={() => { const en = !config.autoMod.wordFilter.enabled; setAMSub('wordFilter', { enabled: en, ...(en && config.autoMod.wordFilter.words.length === 0 ? { words: [...DEFAULT_BAD_WORDS] } : {}) }); }} actionLabels={['bloquear mensagem', 'enviar alerta']} expanded={exp('wordFilter')} onExpand={() => tog('wordFilter')} onSave={() => saveRule('wordFilter')} saving={savingRule === 'wordFilter'} saved={savedRule === 'wordFilter'} saveMsg={savedRule === 'wordFilter' || savingRule === 'wordFilter' ? ruleSaveMsg : null}>
